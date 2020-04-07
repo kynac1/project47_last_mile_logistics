@@ -1,5 +1,5 @@
 from project47.model import Location, Request
-from project47.routing import TimeWindows
+from project47.routing import TimeWindows, BaseProblem
 import numpy as np
 
 def test_base():
@@ -29,4 +29,4 @@ def test_time_windows():
     prob.print_solution()
 
 if __name__ == "__main__":
-    test_time_windows()
+    test_base()

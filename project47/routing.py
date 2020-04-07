@@ -3,7 +3,7 @@ from ortools.constraint_solver import pywrapcp
 
 import numpy as np
 
-from project47.model import Location
+from project47.model import Location, Vehicle
 
 import matplotlib.pyplot as plt
 
@@ -37,18 +37,18 @@ class BaseProblem:
         def distance_callback(from_index:int, to_index:int):
             from_node = self.manager.IndexToNode(from_index)
             to_node = self.manager.IndexToNode(to_index)
-            return self.nodes[from_node].time_to(self.nodes[to_node])
+            return self.nodes[from_node].distance_to(self.nodes[to_node])
         transit_callback_index = self.routing.RegisterTransitCallback(distance_callback)
         dimension_name = 'Distance'
         self.routing.AddDimension(
             transit_callback_index,
             0,
-            40,
-            True,
+            10000000,
+            False,
             dimension_name,
         )
         distance_dimension = self.routing.GetDimensionOrDie(dimension_name)
-        #distance_dimension.SetGlobalSpanCostCoefficient(100)
+        distance_dimension.SetGlobalSpanCostCoefficient(100)
         self.routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
     
     def solve(self):
@@ -61,7 +61,7 @@ class BaseProblem:
         search_parameters.local_search_metaheuristic = (
             routing_enums_pb2.LocalSearchMetaheuristic.TABU_SEARCH
         )
-        search_parameters.time_limit.seconds = 2
+        search_parameters.time_limit.seconds = 10
         search_parameters.log_search = True
         sol = self.routing.SolveWithParameters(search_parameters)
         if self.routing.status() == 1:
@@ -249,6 +249,45 @@ class TimeWindows:
                     ax.plot([a.lon,b.lon],[a.lat,b.lat], color=color, transform=ccrs.Geodetic())
 
         plt.show()
+
+class Solution:
+    def __init__(self, routes:list, vehicles=[], default_vehicle=Vehicle()):
+        self.routes = routes
+        self.vehicles = vehicles
+        if not self.vehicles:
+            self.vehicles = [default_vehicle]*len(routes)
+        self.calculate_predictions()
+    
+    def calculate_predictions(self):
+        self.predicted_time = [np.zeros(len(route)) for route in routes]
+        self.predicted_distance = [np.zeros(len(route)) for route in routes]
+        for i,route in enumerate(routes):
+            for j,loc in enumerate(route):
+                if j = 0: 
+                    self.predicted_distance[i,j] = 0
+                    self.predicted_time[i,j] = 0
+                else: 
+                    self.predicted_distance[i,j] = self.predicted_distance[i,j-1] + route[j-1].distance_to(loc)
+                    self.predicted_time[i,j] = self.predicted_time[i,j-1] + route[j-1].time_to(loc)
+    def __str__(self):
+        return str(self.routes)
+
+    def plot(self):
+        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax.stock_img()
+        lon = [loc.lon for loc in route for route in self.routes]
+        lat = [loc.lat for loc in route for route in self.routes]
+
+        ax.scatter(lon, lat, transform=ccrs.Geodetic())
+
+        for route in self.routes:
+            lon = [loc.lon for loc in route]
+            lat = [loc.lat for loc in route]
+            ax.plot(lon, lat, transform=ccrs.Geodetic())
+
+        plt.show()
+            
+        
 
         
      

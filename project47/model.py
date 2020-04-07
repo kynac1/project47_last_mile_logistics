@@ -25,4 +25,8 @@ class Request(Location):
     def __init__(self, lat:float, lon:float, tstart:float, tend:float):
         super().__init__(lat,lon)
         self.time_window = (tstart, tend)
-    
+
+
+class Vehicle:
+    def __init__(self):
+        self.distance_travelled = 0
