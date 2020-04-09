@@ -10,10 +10,16 @@ def test_base():
     depo = Location(np.random.rand()*10, np.random.rand()*10)
 
     prob = BaseProblem(depo, locs, 5)
-    prob.solve()
+    def distance(a,b):
+        a.distance_to(b)
 
-    prob.plot_solution()
-    prob.print_solution()
+    dist_dim,_ = prob.add_dimension(distance, 0, 100000000, True, "Distance")
+    dist_dim.SetGlobalSpanCostCoefficient(100)
+
+    solution = prob.solve(log=True)
+    if solution:
+        print(str(solution))
+        solution.plot()
 
 def test_time_windows():
     reqs = [
