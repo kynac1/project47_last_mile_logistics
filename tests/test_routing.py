@@ -29,10 +29,19 @@ def test_time_windows():
     depo = Location(np.random.rand(), np.random.rand())
 
     prob = TimeWindows(depo, reqs, 5)
-    prob.solve()
+    def distance(a,b):
+        a.distance_to(b)
+    def time(a,b):
+        a.time_to(b)
 
-    prob.plot_solution()
-    prob.print_solution()
+    dist_dim,_ = prob.add_dimension(distance, 0, 100000000, True, "Distance")
+    dist_dim.SetGlobalSpanCostCoefficient(100)
+    prob.add_time_windows(time, 0, 23000000, False, "Time")
+
+    solution = prob.solve(log=True)
+    if solution:
+        print(str(solution))
+        solution.plot()
 
 if __name__ == "__main__":
-    test_base()
+    test_time_windows()
