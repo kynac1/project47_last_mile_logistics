@@ -133,8 +133,15 @@ class BaseProblem:
         return Vehicle()
 
 class TimeWindows(BaseProblem):
-
+    """ Extends the problem with time window constraint support
+    """
     def add_time_windows(self, f, slack_max:int, capacity:int, fix_start_cumul_to_zero:bool, name:str):
+        """ Adds a time windowed constraint
+
+        Warning
+        -------
+        Locations must be of the request subtype, so they have the time_window property
+        """
         def callback(from_index:int, to_index:int):
             from_node = self.manager.IndexToNode(from_index)
             to_node = self.manager.IndexToNode(to_index)
