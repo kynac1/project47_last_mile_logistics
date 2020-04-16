@@ -1,7 +1,9 @@
 import numpy as np
-
 import utm
 
+"""
+This defines a set of objects that simulations and optimizations can operate on. 
+"""
 
 class Location:
     def __init__(self, lat, lon):
