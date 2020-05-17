@@ -1,0 +1,1 @@
+The idea of this folder is to have a place we can store simulation scripts that produce actual data, without messing with underlying library stuff.
