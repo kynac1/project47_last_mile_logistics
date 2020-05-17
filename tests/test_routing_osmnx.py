@@ -78,4 +78,4 @@ def test_christchurch_example():
         plt.show()
 
 if __name__ == "__main__":
-    test_base()
+    test_christchurch_example()
