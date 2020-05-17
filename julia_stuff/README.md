@@ -1,4 +1,8 @@
-# To get these examples working:
+# Julia OSM stuff
+
+This folder is for experimenting with julia packages that may be useful
+
+## To get these examples working:
 
 1. Install Julia: https://julialang.org/downloads/
 
