@@ -17,7 +17,7 @@ gmaps = GoogleMaps('AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U')
 #                  'Age':[32,34,36]})
 
 
-df = pd.read_csv("TOLLaddresses.csv")
+df = pd.read_csv("../data/TOLLaddresses.csv")
 df['Address'] = df['Street']+ ',' + df['Suburb'] + ',' + df['City'] + ',' + df['Country']
 
 df['long'] = ""
@@ -30,7 +30,7 @@ for x in range(len(df)):
     df['long'][x] = geocode_result[0]['geometry']['location']['lng']
 df.head()
 print(df.head())
-df.to_csv('TOLLaddress_coords.csv')
+df.to_csv('../data/TOLLaddress_coords.csv')
 
 '''
 
