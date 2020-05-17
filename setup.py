@@ -9,7 +9,13 @@ setup(
         'numpy',
         'matplotlib',
         'cartopy',
-        'ortools'
+        'ortools',
+        'osmnx',
+        'shapely',
+        'pandas',
+        'googlemaps',
+        'geopy'
+
     ]
     
 )
