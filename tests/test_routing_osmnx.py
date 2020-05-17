@@ -4,7 +4,7 @@ import osmnx as ox
 import networkx as nx
 import matplotlib.pyplot as plt
 
-def test_base():
+def test_christchurch_example():
     latlons = [
         (-43.5111688, 172.7319266),
         (-43.5499101, 172.63913),
