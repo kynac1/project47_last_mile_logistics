@@ -13,8 +13,10 @@ def test_ortools():
     r = ORToolsRouting(locs, 3, depo)
     dim,ind = r.add_dimension(distances, 0, 10, True, 'distance')
     r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-    r.solve()
+    s = r.solve()
     assert r.objective == 8
+
+    #s.plot()
 
     locs = 3
     depo = 0
@@ -29,6 +31,8 @@ def test_ortools():
     s = r.solve()
     assert r.objective == 8
     print(s)
+
+    #s.plot()
 
 def test_time_windows():
     locs = 5
@@ -53,6 +57,8 @@ def test_time_windows():
     s = r.solve()
     assert r.objective == 19
     print(s)
+
+    #s.plot(times)
 
 if __name__ == "__main__":
     test_time_windows()

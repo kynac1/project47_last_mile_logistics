@@ -256,30 +256,27 @@ class RoutingSolution:
             s += "->".join(str(loc) for loc in route) + "\n"
         return s
 
-    def plot(self,latlons):
-        """ Plots the locations and routes on a map
-
-        Not sure of the resolution needed, and zooming in can cause issues with images taking too long.
-        I'll fix this once we start working with more realistic locations.
-        """
-
-        ax = plt.axes(projection=ccrs.PlateCarree())
-        ax.stock_img()
-        lon = [latlons[loc][0] for route in self.routes for loc in route]
-        lat = [latlons[loc][1] for route in self.routes for loc in route]
-
-        ax.scatter(lon, lat, transform=ccrs.Geodetic())
+    def plot(self,weight_matrix=None):
+        G = nx.DiGraph()
 
         for route in self.routes:
-            lon = [loc.lon for loc in route] + [route[0].lon]
-            lat = [loc.lat for loc in route] + [route[0].lat]
-            ax.plot(lon, lat, transform=ccrs.Geodetic(), color=np.random.rand(3))
+            for i in range(len(route)-1):
+                G.add_edge(route[i],route[i+1])
+
+        pos = nx.spring_layout(G)
+
+        nx.draw(G, pos, with_labels=True)
+
+        if weight_matrix is not None:
+            labels = {e:str(weight_matrix[e[0],e[1]]) for e in G.edges}
+            nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
 
         plt.show()
-    
-    def plot_osm(self, latlons, G):
-
-        nodes = [ox.get_nearest_node(G, latlon) for latlon in latlons]
+        
+    def plot_osm(self, latlons, G, nodes=None):
+        
+        if nodes is None:
+            nodes = [ox.get_nearest_node(G, latlon) for latlon in latlons]
 
         osm_routes = []
         colorlist = []
