@@ -1,8 +1,10 @@
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 
+import os
 import numpy as np
-
+import csv
+import pandas as pd 
 """
 This is a slightly modified example from the ortools page. The only dependency needed is ortools itself,
 which can be installed using `pip install ortools`
@@ -40,6 +42,9 @@ us solve individual routes seperately.
 
 def create_data_model():
     """Stores the data for the problem."""
+    cd = os.path.dirname(os.path.abspath(__file__)) # current directory
+    dm = pd.read_csv(os.path.join(cd,'dm.csv'), sep = ',', index_col=0).values
+    # print(dm)
     data = {}
     data['distance_matrix'] = [
         [
@@ -111,6 +116,7 @@ def create_data_model():
             536, 194, 798, 0
         ],
     ]
+    data['distance_matrix'] = dm
     data['num_vehicles'] = 4
     data['depot'] = 0
     return data
