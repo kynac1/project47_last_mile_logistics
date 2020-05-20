@@ -42,7 +42,7 @@ us solve individual routes seperately.
 
 def create_data_model():
     """Stores the data for the problem."""
-    cd = os.path.dirname(os.path.abspath(__file__)) # current directory
+    cd = os.path.dirname(os.path.abspath(__file__)).strip('project47') + 'data' # direct to data folder
     dm = pd.read_csv(os.path.join(cd,'dm.csv'), sep = ',', index_col=0).values
     # print(dm)
     data = {}

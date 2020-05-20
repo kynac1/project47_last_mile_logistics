@@ -111,7 +111,7 @@ def osrm_get_dist(cd, coord_filename):
 
 def main():
     API_key = 'AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U'
-    cd = os.path.dirname(os.path.abspath(__file__)) # current directory
+    cd = os.path.dirname(os.path.abspath(__file__)).strip('project47') + 'data' # direct to data folder
     sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data = os.path.join(cd,'christchurch_street.csv')
     # get a random sample of locations in Christchurch
