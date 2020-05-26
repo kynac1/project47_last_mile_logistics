@@ -128,10 +128,8 @@ def main():
     sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data = os.path.join(cd,'christchurch_street.csv')
     # get a random sample of locations in Christchurch
-    get_sample(10, cd, sample_data, CHC_data)
+    # get_sample(10, cd, sample_data, CHC_data)
 
-    # address_filename = os.path.join(cd, 'address.csv')
-    # coord_filename = 'address_coords3.csv'
     coord_filename = os.path.join(cd, 'random_subset.csv')
     # get_coordinates(API_key, cd, address_filename, coord_filename)
     #dm, tm = get_dist(API_key, cd, coord_filename)
