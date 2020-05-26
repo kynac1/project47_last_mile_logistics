@@ -86,7 +86,8 @@ def get_dist(API_key, cd, coord_filename):
     df.to_csv(os.path.join(cd,'tm.csv'), float_format='%.3f', na_rep="NAN!")
     return dm, tm
 
-def osrm_get_dist(cd, coord_filename):
+def osrm_get_dist(cd, coord_filename, save=False, host='router.project-orsm.org'):
+    local = host != 'router.project-orsm.org' # We assume it's local, and can get distances
     # read in coodinates
     data = pd.read_csv(coord_filename, keep_default_na=False) 
     # combine latitude and longitude into coordinates
@@ -97,20 +98,32 @@ def osrm_get_dist(cd, coord_filename):
         dest_string = dest_string + i + ';'
     dest_string = dest_string.rstrip(';') #+ '?annotations = distance'
     # payload = {"annotations": "distance", "geometries":"geojson"}
-    url =  'http://router.project-osrm.org/table/v1/driving/' + dest_string #+ destinations[0]+";" +destinations[1]+";" +destinations[2] #+ '?annotations=distance'
+    url =  'http://' + host + '/table/v1/driving/' + dest_string 
+    if local: url += '?annotations=distance,duration' #+ destinations[0]+";" +destinations[1]+";" +destinations[2] #+ '?annotations=distance'
     response = requests.get(url) #, params = payload)
     result = response.json()
     # print(result)
-    tm = result['durations']
-    # dm = result['distances']
-    # print(tm)
-    # convert to hrs
-    tm[:] = [[y / 3600 for y in x] for x in tm]
-    df = pd.DataFrame(tm)
-    df.to_csv(os.path.join(cd,'tm_osrm.csv'), float_format='%.3f', na_rep="NAN!")
+    if result['code'] == 'Ok':
+        tm = result['durations']
+        if local: dm = result['distances']
+        # print(tm)
+        # convert to hrs
+        tm[:] = [[y / 3600 for y in x] for x in tm]
+        if save:
+            if local:
+                df = pd.DataFrame(dm)
+                df.to_csv(os.path.join(cd,'dm_orsm.csv'), float_format='%.3f', na_rep="NAN!")
+            df = pd.DataFrame(tm)
+            df.to_csv(os.path.join(cd,'tm_osrm.csv'), float_format='%.3f', na_rep="NAN!")
+        if local:
+            return dm, tm
+        else:
+            return None, tm
+    else:
+        return None, None
 
 def main():
-    API_key = 'AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U'
+    #API_key = 'AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U'
     cd = os.path.dirname(os.path.abspath(__file__)).strip('project47') + 'data' # direct to data folder
     sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data = os.path.join(cd,'christchurch_street.csv')
@@ -121,8 +134,8 @@ def main():
     # coord_filename = 'address_coords3.csv'
     coord_filename = os.path.join(cd, 'random_subset.csv')
     # get_coordinates(API_key, cd, address_filename, coord_filename)
-    dm, tm = get_dist(API_key, cd, coord_filename)
-    # osrm_get_dist(cd, coord_filename)
+    #dm, tm = get_dist(API_key, cd, coord_filename)
+    print(osrm_get_dist(cd, coord_filename, host='0.0.0.0:5000', save=True))
 
 
 if __name__ == "__main__":
