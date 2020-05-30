@@ -16,30 +16,27 @@ def test_simple_sim():
     s = r.solve()
     assert r.objective == 8
 
-    s.plot(distances)
+    #s.plot(distances)
 
-    distance, time, futile = sim(
+    distance, time, futile, delivered = sim(
         s, 
         default_distance_function(distances), 
         default_time_function(np.zeros((3,3))), 
-        default_futile_function(0.0), 
-        0
+        default_futile_function(0.0)
     )
 
     assert max(distance) == 8
     assert all(time == 0)
     assert all(futile == 0)
 
-    distance, time, futile = sim(
+    distance, time, futile, delivered = sim(
         s, 
         default_distance_function(distances), 
         default_time_function(np.zeros((3,3))), 
-        default_futile_function(1), 
-        0
+        default_futile_function(1)
     )
 
     assert max(distance) == 8
     assert all(time == 0)
     assert max(futile == 3)
-
 

@@ -15,7 +15,7 @@ def test_ortools_with_osrm():
     r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
     s = r.solve()
     print(s)
-    s.plot(dm)
+    #s.plot(dm)
 
 if __name__ == "__main__":
     test_ortools_with_osrm()
