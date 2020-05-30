@@ -178,6 +178,18 @@ class ORToolsRouting:
             )'''
 
         return time_dimension, transit_callback_index
+        
+    def add_disjunction(self, node, penalty):
+        """ Allows the solver to drop the node
+
+        Parameters
+        ----------
+        node : int
+            The node number to allow droppint
+        penalty : int
+            The cost for dropping the node
+        """
+        self.routing.AddDisjunction([self.manager.NodeToIndex(node)], penalty)
     
     def solve(self, tlim=10, log=True):
         """ Solves the route. If the solution has a better objective, this saves the solution.
