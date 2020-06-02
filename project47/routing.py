@@ -269,14 +269,17 @@ class RoutingSolution:
             s += "->".join(str(loc) for loc in route) + "\n"
         return s
 
-    def plot(self,weight_matrix=None):
+    def plot(self,weight_matrix=None, positions=None):
         G = nx.DiGraph()
 
         for route in self.routes:
             for i in range(len(route)-1):
                 G.add_edge(route[i],route[i+1])
-
-        pos = nx.spring_layout(G)
+                
+        if positions:
+            pos = {i:positions[i] for i in len(positions)}
+        else:
+            pos = nx.spring_layout()
 
         nx.draw(G, pos, with_labels=True)
 
