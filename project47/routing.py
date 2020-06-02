@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 
 
-# import osmnx as ox
+import osmnx as ox
 import networkx as nx
 
 class ORToolsRouting:
