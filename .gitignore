@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 *.osm*
 cache/
+*.osrm*
