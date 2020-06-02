@@ -2,8 +2,10 @@
 from project47.routing import *
 import numpy as np
 from copy import copy
+import json
+import os
 
-def sim(s:RoutingSolution, distance_function, time_function, futile_function, policies:list=[], seed:int=0):
+def sim(s:RoutingSolution, distance_function, time_function, futile_function, windows, policies:list=[], seed:int=0):
     """ Simple simulator
 
     The current behaviour is to have each vehicle travel along each route individually. Times, distances,
@@ -59,15 +61,19 @@ def sim(s:RoutingSolution, distance_function, time_function, futile_function, po
     for i,route in enumerate(s.routes):
         for j in range(len(route)-1):
             distances[i] += distance_function(route[j], route[j+1], times[i])
-            times[i] += time_function(route[j], route[j+1], times[i])
-            if futile_function(route[j], route[j+1], times[i]):
+            times[i] += time_function(route[j], route[j+1], times[i]) # arrivel time for job j+1
+            isfail = False
+            isfail = tw_policy1(i, j, route, distances, times, windows)
+            # need to exclude the [0 0] case?
+            # if futile_function(route[j], route[j+1], times[i]): # and route[j] != route[j+1]:
+            #     isfail = True # to include failed delivery caused by other factors
+            if isfail:
                 futile[i] += 1
             else:
                 delivered.append(route[j])
 
             for policy in policies:
                 policy(s, route, j, times[i])
-    
     return distances, times, futile, delivered
 
 def default_distance_function(distance_matrix):
@@ -85,3 +91,73 @@ def default_futile_function(prob):
         return np.random.rand() < prob
     return f
 
+def tw_policy1(i, j, route, distances, times, windows):
+    '''
+    This time window policy makes the decision after arriving at the next place.
+    The deliver man checks the time once arrived. 
+    If the current time falls out of the time windows, then he will skip and go to the next place.
+    '''
+    # make the decision after arrival
+    # out of time windows
+    isfail = False
+    print(times[i])
+    if times[i] < windows[route[j+1]][0] or times[i] > windows[route[j+1]][1]:
+        # skip j+1 job
+        isfail = True
+    return isfail
+
+def tw_policy2(i, j, route, distances, times, windows, time_function):
+    '''
+    This time window policy makes the decision after arriving at the next place.
+    The deliver man checks the time once arrived. 
+    If the current time is earlier than the time windows, then he will wait till the availabe time.
+    If the current time is later than the time windows, he will skip to next place.
+    '''
+    # make the decision after arrival
+    # out of time windows
+    if times[i] < windows[route[j+1]][0]:
+        # add on the waiting time
+        times[i] += windows[route[j+1]][0] - time_function(route[j], route[j+1], times[i])
+    elif times[i] > windows[route[j+1]][0]:
+        # skip j+1 job
+        isfail = True
+    return isfail
+    
+
+
+
+
+    
+
+
+
+def collect_data(day, seed, s, distances, times, futile, delivered):
+    '''
+    day: day count over the week (i.e. 1-7)
+    '''
+    data = {}
+    key = 'day'+str(day)+str(seed)
+    data[key] = []
+    time_deilvered = times[delivered]
+    print(type(distances))
+    data[key].append({
+        "number_of_packages": len(futile)+len(delivered),
+        "number_of_vehicles": len(s.routes), # is it number of used vehicles or just a total number?
+        "distances": { i : distances[i] for i in range(0,len(distances))},
+        "times": times.tolist(),
+        "deliveries_attempted": '',#{[1,3,6,0,0]}, # successful deliveries or total deliveries?
+        "futile_deliveries": { i : futile[i] for i in range(0,len(futile))},
+        "delivered_packages": {
+            "days_taken": '',#[1,4,2,7,32,2],
+            "time_deilvered":  { i : time_deilvered[i] for i in range(0,len(time_deilvered))},#times[delivered],
+            "time_window": ''#[[2,4],[2,3],[2,3],[1,4],[1,2]] 
+            },
+        "undelivered_packages": {
+            "days_taken": '',#[12,54,21,43,21],
+            "time_window": ''#[[3,7],[2,7],[5,9],[1,3],[4,5]] 
+            }
+    })
+
+    cd = os.path.dirname(os.path.abspath(__file__)).strip('project47') + 'data'
+    with open(os.path.join(cd,'simdata.json'), 'w') as outfile:
+        json.dump(data, outfile, indent=2)

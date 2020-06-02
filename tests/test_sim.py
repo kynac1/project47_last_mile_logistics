@@ -35,8 +35,6 @@ def test_simple_sim():
         default_time_function(np.zeros((3,3))), 
         default_futile_function(1)
     )
-
     assert max(distance) == 8
     assert all(time == 0)
     assert max(futile == 3)
-

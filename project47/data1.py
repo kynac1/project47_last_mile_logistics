@@ -166,7 +166,7 @@ def main():
     CHC_data = os.path.join(cd,'christchurch_street.csv')
     # get a random sample of locations in Christchurch
     # get_sample(10, cd, sample_data, CHC_data)
-    latitude, longitude = get_sample(5, 1, cd, sample_data, CHC_data, save=False)
+    latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
     # latitude, longitude = '', ''
 
     coord_filename = os.path.join(cd, 'random_subset.csv')
