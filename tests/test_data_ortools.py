@@ -1,13 +1,12 @@
-from project47.data import *
+from project47.data1 import *
 from project47.routing import *
 
 def test_ortools_with_osrm():
     cd = os.path.dirname(os.path.abspath(__file__)).strip('tests') + 'data'
     sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data = os.path.join(cd,'christchurch_street.csv')
-    get_sample(10, cd, sample_data, CHC_data)
-    coord_filename = os.path.join(cd, 'random_subset.csv')
-    dm,tm = osrm_get_dist(cd, coord_filename, host='0.0.0.0:5000', save=True)
+    lat, lon = get_sample(10, 0, '', sample_data, CHC_data, False)
+    dm,tm = osrm_get_dist('', '', lat, lon, host='0.0.0.0:5000', save=False)
     dm = np.array(dm)
     locs = dm.shape[0]    
     r = ORToolsRouting(locs, 3)
