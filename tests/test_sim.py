@@ -20,21 +20,11 @@ def test_simple_sim():
 
     distance, time, futile, delivered = sim(
         s, 
-        default_distance_function(distances), 
-        default_time_function(np.zeros((3,3))), 
-        default_futile_function(0.0)
+        default_update_function(distances, np.zeros((3,3)), {})
     )
 
     assert max(distance) == 8
     assert all(time == 0)
-    assert all(futile == 0)
+    assert np.allclose(futile, [1,1,3])
+    assert delivered == []
 
-    distance, time, futile, delivered = sim(
-        s, 
-        default_distance_function(distances), 
-        default_time_function(np.zeros((3,3))), 
-        default_futile_function(1)
-    )
-    assert max(distance) == 8
-    assert all(time == 0)
-    assert max(futile == 3)

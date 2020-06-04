@@ -3,38 +3,6 @@ from project47.routing import *
 from project47.simulation import *
 import numpy as np
 
-def test_ortools():
-    locs = 3
-    depo = 0
-    distances = np.array([
-        [0,2,2],
-        [2,0,4],
-        [2,4,0]
-    ])
-    r = ORToolsRouting(locs, 3, depo)
-    dim,ind = r.add_dimension(distances, 0, 10, True, 'distance')
-    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-    s = r.solve()
-    assert r.objective == 8
-
-    #s.plot()
-
-    locs = 3
-    depo = 0
-    distances = np.array([
-        [0,2,2],
-        [2,0,4],
-        [2,4,0]
-    ])
-    r = ORToolsRouting(locs, 3, depo)
-    dim,ind = r.add_dimension(distances, 0, 10, True, 'distance')
-    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-    s = r.solve()
-    assert r.objective == 8
-    print(s)
-
-    #s.plot()
-
 def test_sim_time_windows():
     locs = 5
     depo = 0
@@ -67,32 +35,19 @@ def test_sim_time_windows():
         [3,3,3,0,4],
         [4,4,4,4,0]
     ])
-    policies=[]
     distance, time, futile, delivered = sim(
         s, 
-        default_distance_function(np.zeros((5,5))), 
-        default_time_function(times), 
-        default_futile_function(0.0),
-        windows,
-        policies,
-        0
+        default_update_function(np.zeros((5,5)), times, windows)
     )
 
     assert all(distance) == 0
     assert max(time == 8)
     assert all(futile == 0)
 
-    # distance, time, futile, delivered = sim(
-    #     s, 
-    #     default_distance_function(distances), 
-    #     default_time_function(np.zeros((3,3))), 
-    #     default_futile_function(1)
-    # )
-    # assert max(distance) == 8
-    # assert all(time == 0)
-    # assert max(futile == 3)
-
-    #s.plot(times)
+    distance, time, futile, delivered = sim(
+        s, 
+        update_function2(distances, times, windows)
+    )
 
 if __name__ == "__main__":
     test_sim_time_windows()

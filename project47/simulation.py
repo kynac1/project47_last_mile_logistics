@@ -5,14 +5,13 @@ from copy import copy
 import json
 import os
 
-def sim(s:RoutingSolution, distance_function, time_function, futile_function, windows, policies:list=[], seed:int=0):
+def sim(s:RoutingSolution, update_function, start_times={},seed:int=0):
     """ Simple simulator
+
+    TODO: Docs need a rewrite
 
     The current behaviour is to have each vehicle travel along each route individually. Times, distances,
     and the futile deliveries are calculated and recorded according to the provided functions.
-
-    TODO: Implement some handling of time windows. We can already capture the customers behaviour using the futile
-    function, but how should we handle arriving too early, or knowing we'll arrive late?
 
     Vehicles are all assumed to leave at time 0, and travel without breaks.
 
@@ -58,23 +57,69 @@ def sim(s:RoutingSolution, distance_function, time_function, futile_function, wi
     futile = np.zeros(len(s.routes))
     delivered = []
 
+    for route, time in start_times:
+        times[route] = time
+
     for i,route in enumerate(s.routes):
         for j in range(len(route)-1):
-            distances[i] += distance_function(route[j], route[j+1], times[i])
-            times[i] += time_function(route[j], route[j+1], times[i]) # arrivel time for job j+1
-            isfail = False
-            isfail = tw_policy1(i, j, route, distances, times, windows)
-            # need to exclude the [0 0] case?
-            # if futile_function(route[j], route[j+1], times[i]): # and route[j] != route[j+1]:
-            #     isfail = True # to include failed delivery caused by other factors
-            if isfail:
+            distance, time, isfutile = update_function(route, j, times[i])
+            distances[i] += distance
+            times[i] += time
+            if isfutile:
                 futile[i] += 1
             else:
                 delivered.append(route[j])
-
-            for policy in policies:
-                policy(s, route, j, times[i])
+                
     return distances, times, futile, delivered
+
+def default_update_function(distance_matrix, time_matrix, time_windows):
+    '''
+    This time window policy makes the decision after arriving at the next place.
+    The deliver man checks the time once arrived. 
+    If the current time falls out of the time windows, then he will skip and go to the next place.
+    '''
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+    def h(route, i, time):
+        next_distance = f(route[i],route[i+1],time)
+        next_time = g(route[i],route[i+1],time)
+        if route[i+1] in time_windows:
+            futile = time+next_time < time_windows[route[i+1]][0] or time+next_time > time_windows[route[i+1]][1]
+        else:
+            futile = True
+        return next_distance, next_time, futile
+
+    return h
+
+def update_function2(distance_matrix, time_matrix, time_windows):
+    '''
+    This time window policy makes the decision after arriving at the next place.
+    The deliver man checks the time once arrived. 
+    If the current time is earlier than the time windows, then he will wait till the availabe time.
+    If the current time is later than the time windows, he will skip to next place.
+    '''
+
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+    def h(route, i, time):
+        next_distance = f(route[i],route[i+1],time)
+        next_time = g(route[i],route[i+1],time)
+        if route[i+1] in time_windows:
+            if time+next_time < time_windows[route[i+1]][0]:
+                # add on the waiting time
+                next_time = time_windows[route[i+1]][0] - time
+                futile = False
+            elif time+next_time > time_windows[route[i+1]][0]:
+                # skip i+1 job
+                futile = True
+            else:
+                futile = False
+        else:
+            futile = True
+        return next_distance, next_time, futile
+
+    return h
+
 
 def default_distance_function(distance_matrix):
     def f(i,j,time):
