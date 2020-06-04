@@ -1,4 +1,3 @@
-from project47.model import Location, Request
 from project47.routing import *
 from project47.simulation import *
 import numpy as np

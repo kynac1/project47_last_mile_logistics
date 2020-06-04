@@ -3,8 +3,6 @@ from ortools.constraint_solver import pywrapcp
 
 import numpy as np
 
-from project47.model import Location, Vehicle
-
 import matplotlib.pyplot as plt
 
 import cartopy.crs as ccrs
