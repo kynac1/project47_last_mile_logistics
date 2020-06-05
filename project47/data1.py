@@ -106,8 +106,8 @@ def get_dist(API_key, cd, coord_filename, latitude, longitude, save=False):
 
     # get distance (km) and durantion (hr) matrix
     result = lambda p1, p2: gmaps.distance_matrix(p1, p2, mode='driving')["rows"][0]["elements"][0]
-    dm = np.asarray([[result(p1, p2)["distance"]["value"]/1000   for p2 in destinations] for p1 in destinations])
-    tm = np.asarray([[result(p1, p2)["duration"]["value"]/3600   for p2 in destinations] for p1 in destinations])
+    dm = np.asarray([[result(p1, p2)["distance"]["value"]   for p2 in destinations] for p1 in destinations])
+    tm = np.asarray([[result(p1, p2)["duration"]["value"]   for p2 in destinations] for p1 in destinations])
     
     if save: 
         df = pd.DataFrame(dm)
@@ -143,9 +143,12 @@ def osrm_get_dist(cd, coord_filename, latitude, longitude, save=False, host='rou
     result = response.json()
     if result['code'] == 'Ok':
         tm = result['durations']
-        if local: dm = result['distances']
-        # convert to hrs
-        tm[:] = [[y / 3600 for y in x] for x in tm]
+        # round times into int
+        tm[:] = [[round(y) for y in x] for x in tm]
+        if local: 
+            dm = result['distances']
+            # round distances into int
+            dm[:] = [[round(y) for y in x] for x in dm]
         if save:
             if local:
                 df = pd.DataFrame(dm)
@@ -166,8 +169,8 @@ def main():
     CHC_data = os.path.join(cd,'christchurch_street.csv')
     # get a random sample of locations in Christchurch
     # get_sample(10, cd, sample_data, CHC_data)
-    latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
-    # latitude, longitude = '', ''
+    # latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
+    latitude, longitude = '', ''
 
     coord_filename = os.path.join(cd, 'random_subset.csv')
     # get_coordinates(API_key, cd, address_filename, coord_filename)
