@@ -22,8 +22,9 @@ def get_sample(n, seed, cd, sample_data, CHC_data, save):
     
     TOLLdata = pd.read_csv(sample_data, keep_default_na=False)
     CHCstreet = pd.read_csv(CHC_data, keep_default_na=False)
-    rd = np.random.randint(low=0, high=len(TOLLdata)-1, size=n)
-    random_subset = TOLLdata[(TOLLdata["Receiver Suburb"]!= "")].iloc[rd]#sample(n)
+    valid_data = TOLLdata[(TOLLdata["Receiver Suburb"]!= "")]
+    rd = np.random.randint(low=0, high=len(valid_data)-1, size=n)
+    random_subset = valid_data.iloc[rd]#sample(n)
 
     latitude = []
     longitude = []
