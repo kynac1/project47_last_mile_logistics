@@ -17,21 +17,39 @@ from pandas import DataFrame
 def read_data(sample_data_csv, CHC_data_csv):
     '''
     read in sample data and CHC data in csv once
-    return a list of unique suburbs in CHC
+    return a list of unique suburb names in CHC
+    returns a dictionary of number of streets for each suburb
     '''
     sample_df = pd.read_csv(sample_data_csv, keep_default_na=False)
     # filter out data with empty suburbs
     sample_df = sample_df[(sample_df["Receiver Suburb"]!= "")]
+    # read in CHC data
     CHC_df = pd.read_csv(CHC_data_csv, keep_default_na=False)
+    # select useful columns
+    CHC_df = CHC_df[["suburb_locality", "full_address", "gd2000_ycoord", "gd2000_xcoord"]]
     CHC_df["suburb_locality"] = CHC_df["suburb_locality"].str.upper()
-    # CHC_df["full_address"] = CHC_df["full_address"].astype(str) 
-    # extract a list of unique suburbs from CHC_df
-    CHC_sub = CHC_df["suburb_locality"].drop_duplicates().tolist()
-    # remove empty string
-    CHC_sub.pop(0)
-    return sample_df, CHC_df, CHC_sub
 
-def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, save):
+      # group CHC data by suburbs
+    CHC_df =  CHC_df.groupby("suburb_locality")
+    # get a list of unique suburb names
+    CHC_sub = list(CHC_df.groups.keys())
+    CHC_sub.pop(0) # remove empty string
+    # get number of addresses for each suburb
+    CHC_sub_size = CHC_df.size().tolist()
+    CHC_sub_size.pop(0) # remove size of empty string
+    # a dict of sub name and number of streets in each sub
+    CHC_sub_dict = dict(zip(CHC_sub, CHC_sub_size))
+
+    # ******************************** fall back if grouping does not speed up *************************
+    # # extract a list of unique suburbs from CHC_df
+    # CHC_sub = CHC_df["suburb_locality"].drop_duplicates().tolist()
+    # # remove empty string
+    # CHC_sub.remove('')
+    # ******************************** fall back if grouping does not speed up *************************
+  
+    return sample_df, CHC_df, CHC_sub, CHC_sub_dict
+
+def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save):
     '''
     n: sample size
     seed: random number generator id
@@ -72,12 +90,25 @@ def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, save):
             # row = sample_df.sample(n=1)
             sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"].values[0]).rstrip()
             row["Receiver Suburb"] = sub
-        # filtre on the same suburb in CHC street data
-        rd2 = np.random.randint(low=0, high=len(CHC_df[CHC_df["suburb_locality"] == sub])-1, size=1)
-        CHC_row = CHC_df[CHC_df["suburb_locality"] == sub].iloc[rd2] #sample(n=1) 
+        
+        # get a random number with the size of the suburb
+        rd2 = np.random.randint(low=0, high= CHC_sub_dict[sub]-1, size=1)
+        # randomly pick an address from CHC data based on the suburb
+        CHC_row = CHC_df.get_group(sub).iloc[rd2] #sample(n=1) 
+        # fill in address deets
         row["Receiver Addr2"] = CHC_row["full_address"].values[0]
         latitude.append(CHC_row["gd2000_ycoord"].values[0])
         longitude.append(CHC_row["gd2000_xcoord"].values[0])
+
+        # ******************************** fall back if grouping does not speed up *************************
+        # filtre on the same suburb in CHC street data
+        # rd2 = np.random.randint(low=0, high=len(CHC_df[CHC_df["suburb_locality"] == sub])-1, size=1)
+        # CHC_row = CHC_df[CHC_df["suburb_locality"] == sub].iloc[rd2] #sample(n=1) 
+        # row["Receiver Addr2"] = CHC_row["full_address"].values[0]
+        # latitude.append(CHC_row["gd2000_ycoord"].values[0])
+        # longitude.append(CHC_row["gd2000_xcoord"].values[0])
+        # ******************************** fall back if grouping does not speed up *************************
+      
         # coordinates.append(str(CHC_row["gd2000_ycoord"].values[0])+ ', ' + str(CHC_row["gd2000_xcoord"].values[0]))
     # save to a file if required
     if save: 
@@ -198,9 +229,9 @@ def main():
     cd = os.path.dirname(os.path.abspath(__file__)).strip('project47') + 'data' # direct to data folder
     sample_data_csv = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data_csv = os.path.join(cd,'christchurch_street.csv')
-    sample_df, CHC_df, CHC_sub= read_data(sample_data_csv, CHC_data_csv)
+    sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(sample_data_csv, CHC_data_csv)
 
-    latitude, longitude = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, save=False)
+    latitude, longitude = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
     # get a random sample of locations in Christchurch
     # get_sample(10, cd, sample_data, CHC_data)
     # latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
