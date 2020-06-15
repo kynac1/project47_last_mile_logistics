@@ -10,7 +10,8 @@ def test_ortools_with_osrm():
     cd = os.path.dirname(os.path.abspath(__file__)).strip('tests') + 'data'
     sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data = os.path.join(cd,'christchurch_street.csv')
-    lat, lon = get_sample(10, 0, '', sample_data, CHC_data, False)
+    sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(sample_data, CHC_data)
+    lat, lon = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
     dm,tm = osrm_get_dist('', '', lat, lon, host='0.0.0.0:5000', save=False)
     dm = np.array(dm)
     tm = np.array(tm)
@@ -55,18 +56,18 @@ def test_orsm_multiday():
     cd = os.path.dirname(os.path.abspath(__file__)).strip('tests') + 'data'
     sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data = os.path.join(cd,'christchurch_street.csv')
+    sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(sample_data, CHC_data)
     
     delivery_lats = np.array([-43.5111688])
     delivery_lons = np.array([172.7319266])
 
-
     data = []
 
     delivery_time_windows = {}
-    for day in range(2):
+    for day in range(10):
 
         # Generate new packages and distance matrix
-        lat, lon = get_sample(20, 0, '', sample_data, CHC_data, False)
+        lat, lon = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
         for i in range(max(len(delivery_lats),1), len(delivery_lats)+len(lat)):
             if np.random.rand() > 0.5:
                 delivery_time_windows[i] = [0,14400]
