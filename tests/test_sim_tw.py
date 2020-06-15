@@ -39,8 +39,8 @@ def test_sim_time_windows():
         default_update_function(np.zeros((5,5)), times, windows)
     )
 
-    assert all(distance) == 0
-    assert max(time == 8)
+    assert sum(sum(d) for d in distance) == 0
+    assert max(max(t) for t in time) == 8
     assert all(futile == 0)
 
     distance, time, futile, delivered = sim(

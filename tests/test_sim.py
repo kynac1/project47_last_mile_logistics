@@ -23,8 +23,10 @@ def test_simple_sim():
         default_update_function(distances, np.zeros((3,3)), {})
     )
 
-    assert max(distance) == 8
-    assert all(time == 0)
+    assert max(max(d) for d in distance) == 8
+    assert sum(sum(t) for t in time) == 0
     assert np.allclose(futile, [1,1,3])
     assert delivered == []
 
+if __name__ == "__main__":
+    test_simple_sim()

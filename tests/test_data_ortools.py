@@ -47,6 +47,9 @@ def test_ortools_with_osrm():
 
 def test_orsm_multiday():
     """ This test will only pass if the server is running
+
+    Also, pretty sure the time windows are bugged in this. They're getting overwritten, and are never removed.
+    It's fine for testing other stuff, but we shouldn't copy this behaviour.
     """
     # Setup input files
     cd = os.path.dirname(os.path.abspath(__file__)).strip('tests') + 'data'
@@ -56,9 +59,11 @@ def test_orsm_multiday():
     delivery_lats = np.array([-43.5111688])
     delivery_lons = np.array([172.7319266])
 
-    delivery_time_windows = {}
 
-    for day in range(10):
+    data = []
+
+    delivery_time_windows = {}
+    for day in range(2):
 
         # Generate new packages and distance matrix
         lat, lon = get_sample(20, 0, '', sample_data, CHC_data, False)
@@ -101,10 +106,15 @@ def test_orsm_multiday():
             if d != 0:
                 undelivered[d] = False
 
+        data.append(collect_data(day, 0, s, distances, times, futile, delivered, [0 for i in range(len(delivery_lats))], delivery_time_windows))
+        
         delivery_lats = delivery_lats[undelivered]
         delivery_lons = delivery_lons[undelivered]
         print(len(delivery_lats))
 
+
+    with open('test_orsm.json', 'w') as outfile:
+        json.dump(data, outfile, indent=4)
 
 
 if __name__ == "__main__":
