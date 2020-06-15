@@ -64,7 +64,7 @@ def test_orsm_multiday():
     data = []
 
     delivery_time_windows = {}
-    for day in range(10):
+    for day in range(100):
 
         # Generate new packages and distance matrix
         lat, lon = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
@@ -77,6 +77,9 @@ def test_orsm_multiday():
         delivery_lats = np.append(delivery_lats,lat)
         delivery_lons = np.append(delivery_lons,lon)
         dm,tm = osrm_get_dist('', '', delivery_lats, delivery_lons, host='0.0.0.0:5000', save=False)
+        if dm is None:
+            # We've exceeded the map bounds. Stop here for now, but we should really handle this more gracefully.
+            break
         dm = np.array(dm)
         tm = np.array(tm)
 
