@@ -14,37 +14,53 @@ import os
 import re
 from pandas import DataFrame 
 
-def get_sample(n, seed, cd, sample_data, CHC_data, save):
+def read_data(sample_data_csv, CHC_data_csv):
+    '''
+    read in sample data and CHC data in csv once
+    '''
+    sample_df = pd.read_csv(sample_data_csv, keep_default_na=False)
+    CHC_df = pd.read_csv(CHC_data_csv, keep_default_na=False)
+    return sample_df, CHC_df
+
+def get_sample(n, seed, cd, sample_df, CHC_df, save):
     '''
     n: sample size
+    seed: random number generator id
+    cd: current directory for the use of saving files
+    sample_df: sample data frame - output of 'read_data' function
+    CHC_df: CHC data frame - output of 'read_data' function
+    save: option of saving files
+
+    This function is to get a sample of suburbs from the sample_df and
+    then randomly get the street address in the CHC_df according
+    to the sample suburbs
+
     '''
     np.random.seed(seed)
     
-    TOLLdata = pd.read_csv(sample_data, keep_default_na=False)
-    CHCstreet = pd.read_csv(CHC_data, keep_default_na=False)
-    valid_data = TOLLdata[(TOLLdata["Receiver Suburb"]!= "")]
+    # TOLLdata = pd.read_csv(sample_data, keep_default_na=False)
+    # CHCstreet = pd.read_csv(CHC_data, keep_default_na=False)
+    valid_data = sample_df[(sample_df["Receiver Suburb"]!= "")]
     rd = np.random.randint(low=0, high=len(valid_data)-1, size=n)
     random_subset = valid_data.iloc[rd]#sample(n)
 
     latitude = []
     longitude = []
     # coordinates = []
-    CHCstreet["full_address"] = CHCstreet["full_address"].astype(str) 
-    # get rid of () and things within
+    CHC_df["full_address"] = CHC_df["full_address"].astype(str) 
+
     for index, row in random_subset.iterrows():
-        # if missing street address
-        # if row["Receiver Addr2"] == '':
-        # clean suburbs
+        # clean suburbs - get rid of () and things within
         sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"]).rstrip()
         row["Receiver Suburb"] = sub
         # if the suburb does not exsit in CHC data, get a new sample point that exists
-        while len(CHCstreet[CHCstreet["suburb_locality"].str.upper() == sub]) == 0:
-            row = TOLLdata[(TOLLdata["Receiver Suburb"]!= "")].sample(n=1)
+        while len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub]) == 0:
+            row = sample_df[(sample_df["Receiver Suburb"]!= "")].sample(n=1)
             sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"].values[0]).rstrip()
             row["Receiver Suburb"] = sub
         # filtre on the same suburb in CHC street data
-        rd1 = np.random.randint(low=0, high=len(CHCstreet[CHCstreet["suburb_locality"].str.upper() == sub])-1, size=1)
-        CHC_row = CHCstreet[CHCstreet["suburb_locality"].str.upper() == sub].iloc[rd1]#sample(n=1) 
+        rd1 = np.random.randint(low=0, high=len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub])-1, size=1)
+        CHC_row = CHC_df[CHC_df["suburb_locality"].str.upper() == sub].iloc[rd1]#sample(n=1) 
         row["Receiver Addr2"] = CHC_row["full_address"].values[0]
         latitude.append(CHC_row["gd2000_ycoord"].values[0])
         longitude.append(CHC_row["gd2000_xcoord"].values[0])
@@ -166,12 +182,15 @@ def osrm_get_dist(cd, coord_filename, latitude, longitude, save=False, host='rou
 def main():
     API_key = 'AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U'
     cd = os.path.dirname(os.path.abspath(__file__)).strip('project47') + 'data' # direct to data folder
-    sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
-    CHC_data = os.path.join(cd,'christchurch_street.csv')
+    sample_data_csv = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
+    CHC_data_csv = os.path.join(cd,'christchurch_street.csv')
+    sample_df, CHC_df= read_data(sample_data_csv, CHC_data_csv)
+
+    latitude, longitude = get_sample(5, 0, cd, sample_df, CHC_df, save=False)
     # get a random sample of locations in Christchurch
     # get_sample(10, cd, sample_data, CHC_data)
     # latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
-    latitude, longitude = '', ''
+    # latitude, longitude = '', ''
 
     coord_filename = os.path.join(cd, 'random_subset.csv')
     # get_coordinates(API_key, cd, address_filename, coord_filename)
