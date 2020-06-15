@@ -17,12 +17,20 @@ from pandas import DataFrame
 def read_data(sample_data_csv, CHC_data_csv):
     '''
     read in sample data and CHC data in csv once
+    return a list of unique suburbs in CHC
     '''
     sample_df = pd.read_csv(sample_data_csv, keep_default_na=False)
+    # filter out data with empty suburbs
+    sample_df = sample_df[(sample_df["Receiver Suburb"]!= "")]
     CHC_df = pd.read_csv(CHC_data_csv, keep_default_na=False)
-    return sample_df, CHC_df
+    # CHC_df["full_address"] = CHC_df["full_address"].astype(str) 
+    # extract a list of unique suburbs from CHC_df
+    CHC_sub = CHC_df["suburb_locality"].drop_duplicates().str.upper().tolist()
+    # remove empty string
+    CHC_sub.pop(0)
+    return sample_df, CHC_df, CHC_sub
 
-def get_sample(n, seed, cd, sample_df, CHC_df, save):
+def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, save):
     '''
     n: sample size
     seed: random number generator id
@@ -40,27 +48,32 @@ def get_sample(n, seed, cd, sample_df, CHC_df, save):
     
     # TOLLdata = pd.read_csv(sample_data, keep_default_na=False)
     # CHCstreet = pd.read_csv(CHC_data, keep_default_na=False)
-    valid_data = sample_df[(sample_df["Receiver Suburb"]!= "")]
-    rd = np.random.randint(low=0, high=len(valid_data)-1, size=n)
-    random_subset = valid_data.iloc[rd]#sample(n)
+
+    # extract random sample of suburbs from sample_df
+    rd = np.random.randint(low=0, high=len(sample_df)-1, size=n) # a list of random numbers
+    random_subset = sample_df.iloc[rd] #sample(n)
 
     latitude = []
     longitude = []
     # coordinates = []
-    CHC_df["full_address"] = CHC_df["full_address"].astype(str) 
+    # CHC_df["full_address"] = CHC_df["full_address"].astype(str) 
 
     for index, row in random_subset.iterrows():
         # clean suburbs - get rid of () and things within
         sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"]).rstrip()
         row["Receiver Suburb"] = sub
         # if the suburb does not exsit in CHC data, get a new sample point that exists
-        while len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub]) == 0:
-            row = sample_df[(sample_df["Receiver Suburb"]!= "")].sample(n=1)
+        # while len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub]) == 0:
+        while sub not in CHC_sub:
+            # get a new random row
+            rd1 = np.random.randint(low=0, high=len(sample_df)-1, size=1)
+            row = sample_df.iloc[rd1]
+            # row = sample_df.sample(n=1)
             sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"].values[0]).rstrip()
             row["Receiver Suburb"] = sub
         # filtre on the same suburb in CHC street data
-        rd1 = np.random.randint(low=0, high=len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub])-1, size=1)
-        CHC_row = CHC_df[CHC_df["suburb_locality"].str.upper() == sub].iloc[rd1]#sample(n=1) 
+        rd2 = np.random.randint(low=0, high=len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub])-1, size=1)
+        CHC_row = CHC_df[CHC_df["suburb_locality"].str.upper() == sub].iloc[rd2]#sample(n=1) 
         row["Receiver Addr2"] = CHC_row["full_address"].values[0]
         latitude.append(CHC_row["gd2000_ycoord"].values[0])
         longitude.append(CHC_row["gd2000_xcoord"].values[0])
@@ -184,9 +197,9 @@ def main():
     cd = os.path.dirname(os.path.abspath(__file__)).strip('project47') + 'data' # direct to data folder
     sample_data_csv = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data_csv = os.path.join(cd,'christchurch_street.csv')
-    sample_df, CHC_df= read_data(sample_data_csv, CHC_data_csv)
+    sample_df, CHC_df, CHC_sub= read_data(sample_data_csv, CHC_data_csv)
 
-    latitude, longitude = get_sample(5, 0, cd, sample_df, CHC_df, save=False)
+    latitude, longitude = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, save=False)
     # get a random sample of locations in Christchurch
     # get_sample(10, cd, sample_data, CHC_data)
     # latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
