@@ -23,9 +23,10 @@ def read_data(sample_data_csv, CHC_data_csv):
     # filter out data with empty suburbs
     sample_df = sample_df[(sample_df["Receiver Suburb"]!= "")]
     CHC_df = pd.read_csv(CHC_data_csv, keep_default_na=False)
+    CHC_df["suburb_locality"] = CHC_df["suburb_locality"].str.upper()
     # CHC_df["full_address"] = CHC_df["full_address"].astype(str) 
     # extract a list of unique suburbs from CHC_df
-    CHC_sub = CHC_df["suburb_locality"].drop_duplicates().str.upper().tolist()
+    CHC_sub = CHC_df["suburb_locality"].drop_duplicates().tolist()
     # remove empty string
     CHC_sub.pop(0)
     return sample_df, CHC_df, CHC_sub
@@ -72,8 +73,8 @@ def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, save):
             sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"].values[0]).rstrip()
             row["Receiver Suburb"] = sub
         # filtre on the same suburb in CHC street data
-        rd2 = np.random.randint(low=0, high=len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub])-1, size=1)
-        CHC_row = CHC_df[CHC_df["suburb_locality"].str.upper() == sub].iloc[rd2]#sample(n=1) 
+        rd2 = np.random.randint(low=0, high=len(CHC_df[CHC_df["suburb_locality"] == sub])-1, size=1)
+        CHC_row = CHC_df[CHC_df["suburb_locality"] == sub].iloc[rd2] #sample(n=1) 
         row["Receiver Addr2"] = CHC_row["full_address"].values[0]
         latitude.append(CHC_row["gd2000_ycoord"].values[0])
         longitude.append(CHC_row["gd2000_xcoord"].values[0])
