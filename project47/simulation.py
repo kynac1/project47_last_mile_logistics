@@ -52,8 +52,8 @@ def sim(s:RoutingSolution, update_function, start_times={},seed:int=0):
     """
     s = copy(s)
     np.random.seed(seed)
-    times = np.zeros(len(s.routes))
-    distances = np.zeros(len(s.routes))
+    times = []
+    distances = []
     futile = np.zeros(len(s.routes))
     delivered = []
 
@@ -61,10 +61,14 @@ def sim(s:RoutingSolution, update_function, start_times={},seed:int=0):
         times[route] = time
 
     for i,route in enumerate(s.routes):
+        times.append([])
+        times[-1].append(0)
+        distances.append([])
+        distances[-1].append(0)
         for j in range(len(route)-1):
-            distance, time, isfutile = update_function(route, j, times[i])
-            distances[i] += distance
-            times[i] += time
+            distance, time, isfutile = update_function(route, j, times[-1][-1])
+            distances[-1].append(distances[-1][-1] + distance)
+            times[-1].append(times[-1][-1] + time)
             if isfutile:
                 futile[i] += 1
             else:
@@ -167,42 +171,43 @@ def tw_policy2(i, j, route, distances, times, windows, time_function):
         # skip j+1 job
         isfail = True
     return isfail
-    
 
-
-
-
-    
-
-
-
-def collect_data(day, seed, s, distances, times, futile, delivered):
-    '''
-    day: day count over the week (i.e. 1-7)
-    '''
+def collect_data(day:int, seed:int, solution:RoutingSolution, distances:list, times:list, futile:np.array, 
+                delivered:np.array, arrival_days:list, time_windows:dict):
     data = {}
-    key = 'day'+str(day)+str(seed)
-    data[key] = []
-    time_deilvered = times[delivered]
-    print(type(distances))
-    data[key].append({
-        "number_of_packages": len(futile)+len(delivered),
-        "number_of_vehicles": len(s.routes), # is it number of used vehicles or just a total number?
-        "distances": { i : distances[i] for i in range(0,len(distances))},
-        "times": times.tolist(),
-        "deliveries_attempted": '',#{[1,3,6,0,0]}, # successful deliveries or total deliveries?
-        "futile_deliveries": { i : futile[i] for i in range(0,len(futile))},
-        "delivered_packages": {
-            "days_taken": '',#[1,4,2,7,32,2],
-            "time_deilvered":  { i : time_deilvered[i] for i in range(0,len(time_deilvered))},#times[delivered],
-            "time_window": ''#[[2,4],[2,3],[2,3],[1,4],[1,2]] 
-            },
-        "undelivered_packages": {
-            "days_taken": '',#[12,54,21,43,21],
-            "time_window": ''#[[3,7],[2,7],[5,9],[1,3],[4,5]] 
-            }
-    })
+    key = 'day'+str(day)+'_'+str(seed)
 
-    cd = os.path.dirname(os.path.abspath(__file__)).strip('project47') + 'data'
-    with open(os.path.join(cd,'simdata.json'), 'w') as outfile:
-        json.dump(data, outfile, indent=2)
+    time_delivered = []
+    for d in delivered:
+        if d != 0:
+            found = False
+            for i,route in enumerate(solution.routes):
+                for j,node in enumerate(route):
+                    if node == d:
+                        time_delivered.append(times[i][j])
+                        found = True
+                        break
+                if found:
+                    break
+            if not found:
+                time_delivered.append(-1) # Error. Hopefully negative time is obviously wrong.
+
+    data[key] = {
+        "number_of_packages": int(len(arrival_days)-1), # This could potentially be higher than the number of deliveries in the routes
+        "number_of_vehicles": int(len(solution.routes)), # is it number of used vehicles or just a total number? ## Either way, I think we don't actually need this; we can get it from other info
+        "distances": [int(sum(veh_dists)) for veh_dists in distances],
+        "times": [int(sum(veh_times)) for veh_times in times],
+        "deliveries_attempted": [int(len(route)-2) for route in solution.routes],#{[1,3,6,0,0]}, # successful deliveries or total deliveries? ## Attempted, so total. -2 for depo at start and end.
+        "futile_deliveries": [int(f) for f in futile],
+        "delivered_packages": {
+            "days_taken": [int(day - arrival_days[i]) for i in delivered if i != 0], #[1,4,2,7,32,2],
+            "time_delivered": [int(t) for t in time_delivered],
+            "time_window": [[int(time_windows[i][0]),int(time_windows[i][1])] for i in delivered if i != 0] #[[2,4],[2,3],[2,3],[1,4],[1,2]] 
+        },
+        "undelivered_packages": {
+            "days_taken": [int(day - arrival_days[i]) for i in range(len(arrival_days)) if i!=0 or i not in delivered],#[12,54,21,43,21],
+            "time_window": [[int(time_windows[i][0]),int(time_windows[i][1])] for i in range(len(arrival_days)) if i!=0 or i not in delivered]#[[3,7],[2,7],[5,9],[1,3],[4,5]] 
+        }
+    }
+
+    return data
