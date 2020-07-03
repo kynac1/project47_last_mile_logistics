@@ -1,63 +1,63 @@
-from project47.model import Location, Request
-from project47.routing import TimeWindows, BaseProblem
-from project47.simulation import *
+from project47.routing import *
 import numpy as np
 
-def test_base():
-    np.random.seed(0)
-    locs = [
-        Location(np.random.rand(), np.random.rand()) for _ in range(50)
-    ]
+def test_ortools():
+    locs = 3
+    depo = 0
+    distances = np.array([
+        [0,2,2],
+        [2,0,4],
+        [2,4,0]
+    ])
+    r = ORToolsRouting(locs, 3, depo)
+    dim,ind = r.add_dimension(distances, 0, 10, True, 'distance')
+    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
+    s = r.solve()
+    assert r.objective == 8
 
-    depo = Location(np.random.rand(), np.random.rand())
+    #s.plot()
 
-    prob = BaseProblem(depo, locs, 100)
-    def distance(a,b):
-        return a.distance_to(b)
+    locs = 3
+    depo = 0
+    distances = np.array([
+        [0,2,2],
+        [2,0,4],
+        [2,4,0]
+    ])
+    r = ORToolsRouting(locs, 3, depo)
+    dim,ind = r.add_dimension(distances, 0, 10, True, 'distance')
+    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
+    s = r.solve()
+    assert r.objective == 8
+    print(s)
 
-    dist_dim, dist_ind = prob.add_dimension(distance, 0, 300000, True, "Distance")
-    #dist_dim.SetGlobalSpanCostCoefficient(100)
-    prob.routing.SetArcCostEvaluatorOfAllVehicles(dist_ind)
-
-    solution = None
-    for i in range(3):
-        prob.search_parameters.first_solution_strategy = (
-            14
-        )
-
-        prob.search_parameters.local_search_metaheuristic = (
-            i
-        )
-        new = prob.solve(log=True,tlim=30)
-        if new:
-            solution = new
-
-    if solution:
-        print(str(solution))
-        print(static_sim(solution))
-        solution.plot()
+    #s.plot()
 
 def test_time_windows():
-    reqs = [
-        Request(np.random.rand(), np.random.rand(), round(np.random.rand()*10), 10+round(np.random.rand())*10) for _ in range(1)
-    ]
+    locs = 5
+    depo = 0
+    times = np.array([
+        [0,1,2,3,4],
+        [1,0,2,3,4],
+        [2,2,0,3,4],
+        [3,3,3,0,4],
+        [4,4,4,4,0]
+    ])
+    windows = np.array([
+        [0.,10000.],
+        [1.,2.],
+        [2.,3.],
+        [3.,4.],
+        [4.,5.]
+    ])
+    r = ORToolsRouting(locs, 3, depo)
+    dim,ind = r.add_time_windows(times, windows, 1, 10, False, 'time')
+    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
+    s = r.solve()
+    assert r.objective == 19
+    print(s)
 
-    depo = Location(np.random.rand(), np.random.rand())
-
-    prob = TimeWindows(depo, reqs, 5)
-    def distance(a,b):
-        a.distance_to(b)
-    def time(a,b):
-        a.time_to(b)
-
-    dist_dim,_ = prob.add_dimension(distance, 0, 100000000, True, "Distance")
-    dist_dim.SetGlobalSpanCostCoefficient(100)
-    prob.add_time_windows(time, 0, 23000000, False, "Time")
-
-    solution = prob.solve(log=True)
-    if solution:
-        print(str(solution))
-        solution.plot()
+    #s.plot(times)
 
 if __name__ == "__main__":
-    test_base()
+    test_time_windows()

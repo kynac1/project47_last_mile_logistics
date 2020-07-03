@@ -1,0 +1,33 @@
+{
+  "day10": [
+    {
+      "number_of_packages": 3,
+      "number_of_vehicles": 3,
+      "distances": {
+        "0": 0.0,
+        "1": 0.0,
+        "2": 8.0
+      },
+      "times": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "deliveries_attempted": "",
+      "futile_deliveries": {
+        "0": 1.0,
+        "1": 1.0,
+        "2": 3.0
+      },
+      "delivered_packages": {
+        "days_taken": "",
+        "time_deilvered": {},
+        "time_window": ""
+      },
+      "undelivered_packages": {
+        "days_taken": "",
+        "time_window": ""
+      }
+    }
+  ]
+}
