@@ -5,7 +5,7 @@ from copy import copy
 import json
 import os
 
-def sim(s:RoutingSolution, update_function, start_times={},seed:int=0):
+def sim(s:RoutingSolution, update_function, seed:int=0):
     """ Simple simulator
 
     TODO: Docs need a rewrite
@@ -56,9 +56,6 @@ def sim(s:RoutingSolution, update_function, start_times={},seed:int=0):
     distances = []
     futile = np.zeros(len(s.routes))
     delivered = []
-
-    for route, time in start_times:
-        times[route] = time
 
     for i,route in enumerate(s.routes):
         times.append([])
