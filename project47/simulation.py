@@ -124,6 +124,22 @@ def update_function2(distance_matrix, time_matrix, time_windows):
 
     return h
 
+def default_update_function3(distance_matrix, time_matrix, time_windows):
+    ''' Basically the same as above, but changed the format of time_windows to a np.array
+    This time window policy makes the decision after arriving at the next place.
+    The deliver man checks the time once arrived. 
+    If the current time falls out of the time windows, then he will skip and go to the next place.
+    '''
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+
+    def h(route, i, time):
+        next_distance = f(route[i],route[i+1],time)
+        next_time = g(route[i],route[i+1],time)
+        futile = time+next_time < time_windows[route[i+1]][0] or time+next_time > time_windows[route[i+1]][1]
+        return next_distance, next_time, futile
+
+    return h
 
 def default_distance_function(distance_matrix):
     def f(i,j,time):
@@ -209,5 +225,84 @@ def collect_data(day:int, seed:int, solution:RoutingSolution, distances:list, ti
             "time_window": [[int(time_windows[i][0]),int(time_windows[i][1])] for i in range(len(arrival_days)) if i!=0 or i not in delivered]#[[3,7],[2,7],[5,9],[1,3],[4,5]] 
         }
     }
+
+    return data
+
+
+def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator, n_days, day_start, day_end):
+    """
+    Paramters
+    ---------
+    depots : np.array
+        2*n_depots array of longitudes and latitudes of the depots.
+        This is set up to support multidepot problems. However, to do this properly we'll need to track which depots
+        have which packages. Need to think about this more.
+    sample_generator : function
+        Takes no inputs, returns two lists, longitudes and latitudes of the packages.
+    dist_and_time : function
+        Takes longitudes and latitudes, and returns a distance matrix, a time matrix, and a array of time windows.
+    route_optimizer : function
+        Inputs are the depot numbers, the distance and time matrices, the time windows as a np.array,
+        the current day, the day each package arrived, and the number of times each package was futile.
+        Outputs are a set of vehicle routes, and a list of packages that were not scheduled.
+    simulator : function
+        Simulates the deliveries for a set of routes, given the routes, distances, times and time windows.
+    n_days : int
+        The number of days to simulate.
+    day_start : int
+        The time for the start of a day
+    day_end : int
+        The time for the end of a day
+    """
+    data = []
+    delivery_lats = depots[0]
+    delivery_lons = depots[1]
+    n_depots = depots.shape[1]
+    delivery_time_windows = np.array([[day_start, day_end] for i in range(n_depots)])
+    arrival_days = np.zeros(n_depots)
+    futile_count = np.zeros(n_depots)
+
+    for day in range(n_days):
+        # Generate data 
+        lats, lons, new_time_windows = sample_generator()
+        delivery_lats = np.append(delivery_lats,lats)
+        delivery_lons = np.append(delivery_lons,lons)
+        delivery_time_windows = np.vstack((delivery_time_windows,new_time_windows))
+        arrival_days = np.append(arrival_days, [day for _ in range(len(lats))])
+        futile_count = np.append(futile_count, np.zeros(len(lats)))
+
+        # Get times and distances
+        dm,tm = dist_and_time(delivery_lats, delivery_lons)
+        if dm is None:
+            # We've exceeded the map bounds. Stop here for now, but we should really handle this more gracefully.
+            break
+        dm = np.array(dm)
+        tm = np.array(tm)
+        
+        # Calulate routes for the day TODO
+        routes, unscheduled = route_optimizer(
+            [i for i in range(n_depots)], 
+            dm, tm, delivery_time_windows, 
+            day, arrival_days, futile_count
+        )
+        futile_count[[i for i in range(len(delivery_lats)) if i not in unscheduled]] += 1
+
+        # Simulate behaviour
+        distances, times, futile, delivered = simulator(
+            routes, dm, tm, delivery_time_windows
+        )
+
+        # Data collection to save
+        data.append(collect_data(day, 0, routes, distances, times, futile, delivered, arrival_days, delivery_time_windows))
+
+        # Remove delivered packages
+        undelivered = np.ones(len(delivery_lats), dtype=bool)
+        undelivered[delivered] = False
+        undelivered[[i for i in range(n_depots)]] = True
+        delivery_lats = delivery_lats[undelivered]
+        delivery_lons = delivery_lons[undelivered]
+        delivery_time_windows = delivery_time_windows[undelivered]
+        arrival_days = arrival_days[undelivered]
+        futile_count = futile_count[undelivered]
 
     return data
