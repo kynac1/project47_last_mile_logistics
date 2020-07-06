@@ -260,6 +260,7 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
     futile_count = np.zeros(n_depots)
 
     for day in range(n_days):
+        np.random.seed(day)
         # Generate data 
         lats, lons, new_time_windows = sample_generator()
         delivery_lats = np.append(delivery_lats,lats)
