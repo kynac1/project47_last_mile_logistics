@@ -13,8 +13,8 @@ def no_time_windows(arrival_rate):
     sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data = os.path.join(cd,'christchurch_street.csv')
     sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(sample_data, CHC_data)
-    def sample_generator():
-        lat, lon = get_sample(np.random.poisson(arrival_rate), None, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
+    def sample_generator(seed=None):
+        lat, lon = get_sample(np.random.poisson(arrival_rate), seed, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
         time_windows = np.zeros((len(lat),2))
         for i in range(len(lat)):
             if np.random.rand() > 0.5:
@@ -33,7 +33,7 @@ def no_time_windows(arrival_rate):
         r = ORToolsRouting(locs, 5)
         dim,ind = r.add_dimension(dm, 0, 50000, True, 'distance')
         r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-        dim,ind = r.add_time_windows(tm, time_windows, 28800, 28800, True, 'time')
+        dim,ind = r.add_time_windows(tm, time_windows, 28800, 28800, False, 'time')
         for i in range(1,locs):
             r.add_disjunction(i,50000)
         
@@ -43,7 +43,7 @@ def no_time_windows(arrival_rate):
         r.search_parameters.local_search_metaheuristic = (
             routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
         )
-        s = r.solve(log=False)
+        s = r.solve(log=False, tlim=20)
         
         unscheduled = []
         scheduled = reduce(lambda x,y: x+y, s.routes)
@@ -52,11 +52,11 @@ def no_time_windows(arrival_rate):
                 unscheduled.append(i)
         return s, unscheduled
     
-    def simulator(routes, dm, tm, delivery_time_windows):
+    def simulator(routes, dm, tm, delivery_time_windows, seed=None):
         return sim(
             routes,
-            default_update_function3(dm, tm, delivery_time_windows),
-            None
+            constant_futility_update(dm, tm, delivery_time_windows, 0.1),
+            seed
         )
 
     data = multiday(
@@ -80,8 +80,8 @@ def time_windows(arrival_rate):
     sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data = os.path.join(cd,'christchurch_street.csv')
     sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(sample_data, CHC_data)
-    def sample_generator():
-        lat, lon = get_sample(np.random.poisson(arrival_rate), None, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
+    def sample_generator(seed=None):
+        lat, lon = get_sample(np.random.poisson(arrival_rate), seed, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
         time_windows = np.zeros((len(lat),2))
         for i in range(len(lat)):
             if np.random.rand() > 0.5:
@@ -100,7 +100,7 @@ def time_windows(arrival_rate):
         r = ORToolsRouting(locs, 5)
         dim,ind = r.add_dimension(dm, 0, 50000, True, 'distance')
         r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-        dim,ind = r.add_time_windows(tm, time_windows, 28800, 28800, True, 'time')
+        dim,ind = r.add_time_windows(tm, time_windows, 28800, 28800, False, 'time')
         for i in range(1,locs):
             r.add_disjunction(i,50000)
         
@@ -110,7 +110,7 @@ def time_windows(arrival_rate):
         r.search_parameters.local_search_metaheuristic = (
             routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
         )
-        s = r.solve(log=False)
+        s = r.solve(log=False, tlim=20)
         
         unscheduled = []
         scheduled = reduce(lambda x,y: x+y, s.routes)
@@ -119,11 +119,11 @@ def time_windows(arrival_rate):
                 unscheduled.append(i)
         return s, unscheduled
     
-    def simulator(routes, dm, tm, delivery_time_windows):
+    def simulator(routes, dm, tm, delivery_time_windows, seed=None):
         return sim(
             routes,
-            default_update_function3(dm, tm, delivery_time_windows),
-            None
+            constant_futility_update(dm, tm, delivery_time_windows, 0.1),
+            seed
         )
 
     data = multiday(
@@ -140,6 +140,23 @@ def time_windows(arrival_rate):
     with open(f'experiments_time_arrival_{arrival_rate}.json', 'w') as outfile:
         json.dump(data, outfile, indent=2)
 
+def constant_futility_update(distance_matrix, time_matrix, time_windows, futile_rate):
+    ''' Checks if the time to go to the next location will make them late.
+    If so they don't go.
+    However, the true futile rate is actually constant, and doesn't vary with time.
+    '''
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+
+    def h(route, i, time):
+        next_distance = f(route[i],route[i+1],time)
+        next_time = g(route[i],route[i+1],time)
+        if time + next_time > time_windows[route[i+1]][1]:
+            return 0, 0, True
+        futile = np.random.rand() < futile_rate 
+        return next_distance, next_time, futile
+
+    return h
 
 if __name__ == "__main__":
     p1 = Process(target=no_time_windows, args=(20,))
@@ -148,4 +165,5 @@ if __name__ == "__main__":
     p2.start()
     p2.join()
     p1.join()
+    #time_windows(20)
     

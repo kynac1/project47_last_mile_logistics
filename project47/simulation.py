@@ -260,9 +260,8 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
     futile_count = np.zeros(n_depots)
 
     for day in range(n_days):
-        np.random.seed(day)
         # Generate data 
-        lats, lons, new_time_windows = sample_generator()
+        lats, lons, new_time_windows = sample_generator(day)
         delivery_lats = np.append(delivery_lats,lats)
         delivery_lons = np.append(delivery_lons,lons)
         delivery_time_windows = np.vstack((delivery_time_windows,new_time_windows))
@@ -283,11 +282,13 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
             dm, tm, delivery_time_windows, 
             day, arrival_days, futile_count
         )
+        if False:
+            routes.plot(positions=[(delivery_lats[i], delivery_lons[i]) for i in range(len(delivery_lats))])
         futile_count[[i for i in range(len(delivery_lats)) if i not in unscheduled]] += 1
 
         # Simulate behaviour
         distances, times, futile, delivered = simulator(
-            routes, dm, tm, delivery_time_windows
+            routes, dm, tm, delivery_time_windows, seed=day
         )
 
         # Data collection to save
