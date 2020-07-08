@@ -162,18 +162,17 @@ class ORToolsRouting:
 
         # Place time windows on dimension
         for location_idx in range(self.locs):
-            if location_idx in time_windows:
-                index = self.manager.NodeToIndex(location_idx)
-                time_dimension.CumulVar(index).SetRange(int(time_windows[location_idx][0]), int(time_windows[location_idx][1]))
+            index = self.manager.NodeToIndex(location_idx)
+            time_dimension.CumulVar(index).SetRange(int(time_windows[location_idx][0]), int(time_windows[location_idx][1]))
 
         # This code was in the example, seems to be for minimizing time. Don't think it's needed here though.
-        '''for i in range(self.num_vehicles):
+        for i in range(self.num_vehicles):
             self.routing.AddVariableMinimizedByFinalizer(
                 time_dimension.CumulVar(self.routing.Start(i))
             )
             self.routing.AddVariableMinimizedByFinalizer(
                 time_dimension.CumulVar(self.routing.End(i))
-            )'''
+            )
 
         return time_dimension, transit_callback_index
         
@@ -275,7 +274,7 @@ class RoutingSolution:
                 G.add_edge(route[i],route[i+1])
                 
         if positions:
-            pos = {i:positions[i] for i in len(positions)}
+            pos = {i:positions[i] for i in range(len(positions))}
         else:
             pos = nx.spring_layout()
 
