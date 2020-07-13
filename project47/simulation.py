@@ -87,7 +87,7 @@ def default_update_function(distance_matrix, time_matrix, time_windows):
         if route[i+1] in time_windows:
             futile = time+next_time < time_windows[route[i+1]][0] or time+next_time > time_windows[route[i+1]][1]
         else:
-            futile = True
+            futile = True # why futile is true if it dpes have a tw?
         return next_distance, next_time, futile
 
     return h
@@ -305,3 +305,68 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
         futile_count = futile_count[undelivered]
 
     return data
+
+def rerouting(current_start, distance_matrix, time_matrix, time_windows):
+    '''
+    This function finds the optimal routes from the current location to depot 'O'.
+
+    Parameters
+    ---------------
+    current start: current starting place
+    distance_matrix: original distance matrix
+    time_matrix: original time matrix
+    time_windows: original time windows
+
+    Returns
+    ---------------
+    route: an optimal route from the current location to depot 'O'
+    '''
+    dm = default_distance_function(distance_matrix)
+    tm = default_time_function(time_matrix)
+
+    # compute rerouting time windows
+    time_windows = np.vstack ((time_windows, np.array([0.,99999999999999.])) )
+    print ("windows", str(time_windows)) 
+    # compute rerouting time matrix
+    time_matrix = rerouting_matrix(current_start, time_matrix)
+    # printing result 
+    print ("time_matrix", str(time_matrix)) 
+    locs = time_matrix.shape[0] 
+    depo = time_matrix.shape[0] - 1
+
+    # solve the problem
+    r = ORToolsRouting(locs, 1, depo)
+    dim,ind = r.add_time_windows(time_matrix, time_windows, 1, 10, False, 'time')
+    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
+    s = r.solve()
+    route = s.routes[0][1:-1]
+    return route
+    
+
+def rerouting_matrix(k, matrix):
+    '''
+    This function computes the dm or tm needed for rerouting.
+
+    Parameters
+    ---------------
+    k: current starting place
+    matrix: original distance matrix or time matrix
+
+    Returns
+    ---------------
+    matrix: dm or tm with an arbitrary depot 
+    '''
+    M = 99999999999999
+    # add an arbitrary depot 'E'
+    row_to_be_added = np.ones(matrix.shape[0]) * M
+    # Adding row to numpy array 
+    matrix = np.vstack ((matrix, row_to_be_added) ) 
+    col_to_be_added = np.ones(matrix.shape[0]) * M
+    # Adding col to numpy array 
+    matrix = np.hstack ((matrix, np.atleast_2d(col_to_be_added).T) )
+    # force an arc from 'E' to current place - to start from 'E'
+    matrix[-1][k] = 0
+    # force an arc from depot 'O' to 'E' - to arrive at 'O'
+    matrix[0][-1] = 0
+
+    return matrix
