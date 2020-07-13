@@ -133,7 +133,7 @@ def test_time_windows():
 
 if __name__ == "__main__":
     # test_ortools()
-    # test_time_windows()
+    test_time_windows()
 
     test_rerouting()
     # test_rerouting_tw()
