@@ -87,7 +87,7 @@ def default_update_function(distance_matrix, time_matrix, time_windows):
         if route[i+1] in time_windows:
             futile = time+next_time < time_windows[route[i+1]][0] or time+next_time > time_windows[route[i+1]][1]
         else:
-            futile = True # why futile is true if it dpes have a tw?
+            futile = True # why futile is true if it does not have a tw?
         return next_distance, next_time, futile
 
     return h
@@ -151,46 +151,46 @@ def update_function4(distance_matrix, time_matrix, time_windows):
     def h(route, i, time):
         next_distance = f(route[i],route[i+1],time)
         next_time = g(route[i],route[i+1],time)
-        if route[i+1] in time_windows:
-            if time+next_time < time_windows[route[i+1]][0]:
-                # add on the waiting time
-                next_time = time_windows[route[i+1]][0] - time
-                futile = False
-            elif time+next_time > time_windows[route[i+1]][1]:
-                # skip i+1 job and reroute
-                futile = True
-                # go straight to depot if the next place is depot after skipping
-                if route[i+2] == 0:
-                    next_distance = f(route[i],route[i+2],time)
-                    next_time = g(route[i],route[i+2],time)
-                else:
-                    # get the rest of the places that need to visit
-                    places_to_visit = route[i+2::]
-                    if i != 0:
-                        places_to_visit.append(route[i])
-                    places_to_visit.sort()
-                    keys = list(np.arange(len(places_to_visit)))
-                    # record both the places that their indices in rerouting
-                    places_to_visit_dic = dict(zip(keys, places_to_visit))
-                    # current place - starting place for rerouting
-                    k = places_to_visit.index(route[i])
-                    # slice the times for the places to visit
-                    tm = time_matrix[places_to_visit]
-                    tm = tm[:, places_to_visit]
-                    # slice the time windows for the places to visit
-                    w = time_windows[places_to_visit]
-                    # print(tm)
-                    route_new = rerouting(k, np.zeros((len(tm),len(tm))), tm, w)
-                    route_n = [places_to_visit_dic[x] for x in route_new]
-                    # print(route_n)
-
-                    next_distance = f(route_n[i],route_n[i+1],time)
-                    next_time = g(route_n[i],route_n[i+1],time)
-
-            else:
-                futile = False
-        else:
+        if time+next_time < time_windows[route[i+1]][0]:
+            # add on the waiting time
+            next_time = time_windows[route[i+1]][0] - time
+            futile = False
+        elif time+next_time > time_windows[route[i+1]][1]:
+            # skip i+1 job and reroute
             futile = True
+            # go straight to depot if the next place is depot after skipping
+            if route[i+2] == 0:
+                next_distance = f(route[i],route[i+2],time)
+                next_time = g(route[i],route[i+2],time)
+            else:
+                # # get the rest of the places that need to visit
+                # places_to_visit = route[i+2::]
+                # if i != 0:
+                #     places_to_visit.append(route[i])
+                # places_to_visit.sort()
+                # keys = list(np.arange(len(places_to_visit)))
+                # # record both the places that their indices in rerouting
+                # places_to_visit_dic = dict(zip(keys, places_to_visit))
+                # # current place - starting place for rerouting
+                # k = places_to_visit.index(route[i])
+                # # slice the times for the places to visit
+                # tm = time_matrix[places_to_visit]
+                # tm = tm[:, places_to_visit]
+                # # slice the time windows for the places to visit
+                # w = time_windows[places_to_visit]
+                # # print(tm)
+                # route_new = rerouting(k, np.zeros((len(tm),len(tm))), tm, w)
+                # route_n = [places_to_visit_dic[x] for x in route_new]
+                # # print(route_n)
+
+                route_new = rerouting1(i, route, distance_matrix,time_matrix, time_windows)
+                print(route_new)
+
+                next_distance = f(route_new[i],route_new[i+1],time)
+                next_time = g(route_new[i],route_new[i+1],time)
+        else:
+            futile = False
+        
         return next_distance, next_time, futile
 
     return h
@@ -399,6 +399,65 @@ def rerouting(current_start, distance_matrix, time_matrix, time_windows):
     route = s.routes[0][1:-1]
     return route
     
+
+def rerouting1(i, route, distance_matrix, time_matrix, time_windows):
+    '''
+    This function finds the optimal routes from the current location to depot 'O'.
+
+    Parameters
+    ---------------
+    current start: current starting place
+    distance_matrix: original distance matrix
+    time_matrix: original time matrix
+    time_windows: original time windows
+
+    Returns
+    ---------------
+    route: an optimal route from the current location to depot 'O'
+    '''
+    # dm = default_distance_function(distance_matrix)
+    # tm = default_time_function(time_matrix)
+
+    # if route[i+2] == 0:
+    #     next_distance = f(route[i],route[i+2],time)
+    #     next_time = g(route[i],route[i+2],time)
+
+    # get the rest of the places that need to visit
+    places_to_visit = route[i+2::]
+    if i != 0:
+        places_to_visit.append(route[i])
+    places_to_visit.sort()
+    keys = list(np.arange(len(places_to_visit)))
+    # record both the places that their indices in rerouting
+    places_to_visit_dic = dict(zip(keys, places_to_visit))
+    # current place - starting place for rerouting
+    k = places_to_visit.index(route[i])
+
+    # slice the times for the places to visit
+    tm = time_matrix[places_to_visit]
+    tm = tm[:, places_to_visit]
+    # slice the time windows for the places to visit
+    tw = time_windows[places_to_visit]
+
+    # add tw for arbitrary depot
+    tw = np.vstack ((tw, np.array([0.,99999999999999.])) )
+    # compute rerouting time matrix
+    tm = rerouting_matrix(k, tm)
+    # print ("time_matrix", str(tm)) # printing result 
+    locs = tm.shape[0] 
+    depo = tm.shape[0] - 1
+
+    # solve the problem
+    r = ORToolsRouting(locs, 1, depo)
+    dim,ind = r.add_time_windows(tm, tw, 1, 10, False, 'time')
+    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
+    s = r.solve()
+    route_new = s.routes[0][1:-1]
+
+    # route_n = places_to_visit_dic[route_new]
+    route_n = [places_to_visit_dic[x] for x in route_new]
+
+    return route_n
 
 def rerouting_matrix(k, matrix):
     '''
