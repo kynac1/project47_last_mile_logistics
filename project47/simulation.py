@@ -149,6 +149,7 @@ def update_function4(distance_matrix, time_matrix, time_windows):
     f = default_distance_function(distance_matrix)
     g = default_time_function(time_matrix)
     def h(route, i, time):
+        # route = [0, 3, 2, 1, 4, 0]
         next_distance = f(route[i],route[i+1],time)
         next_time = g(route[i],route[i+1],time)
         if time+next_time < time_windows[route[i+1]][0]:
@@ -433,6 +434,9 @@ def rerouting1(i, route, distance_matrix, time_matrix, time_windows):
     # current place - starting place for rerouting
     k = places_to_visit.index(route[i])
 
+    # slice the distances for the places to visit
+    dm = distance_matrix[places_to_visit]
+    dm = dm[:, places_to_visit]
     # slice the times for the places to visit
     tm = time_matrix[places_to_visit]
     tm = tm[:, places_to_visit]
@@ -443,6 +447,8 @@ def rerouting1(i, route, distance_matrix, time_matrix, time_windows):
     tw = np.vstack ((tw, np.array([0.,99999999999999.])) )
     # compute rerouting time matrix
     tm = rerouting_matrix(k, tm)
+    # compute rerouting distance matrix
+    dm = rerouting_matrix(k, dm)
     # print ("time_matrix", str(tm)) # printing result 
     locs = tm.shape[0] 
     depo = tm.shape[0] - 1
