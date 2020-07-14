@@ -2,28 +2,6 @@ from project47.data1 import *
 from project47.routing import *
 from project47.simulation import *
 
-
-def rerouting_matrix(k, matrix):
-    '''
-    k: current starting place
-    matrix: original distance matrix or time matrix
-    '''
-    M = 99999999999999
-    # add an arbitrary depot 'E'
-    row_to_be_added = np.ones(matrix.shape[0]) * M
-    # Adding row to numpy array 
-    matrix = np.vstack ((matrix, row_to_be_added) ) 
-    col_to_be_added = np.ones(matrix.shape[0]) * M
-    # Adding col to numpy array 
-    matrix = np.hstack ((matrix, np.atleast_2d(col_to_be_added).T) )
-    # force an arc from 'E' to current place - to start from 'E'
-    matrix[-1][k] = 0
-    # force an arc from depot 'O' to 'E' - to arrive at 'O'
-    matrix[0][-1] = 0
-
-    return matrix
-
-
 def test_rerouting():
     locs = 3
     depo = 0
