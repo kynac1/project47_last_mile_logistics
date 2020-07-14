@@ -14,45 +14,113 @@ import os
 import re
 from pandas import DataFrame 
 
-def get_sample(n, cd, sample_data, CHC_data):
+def read_data(sample_data_csv, CHC_data_csv):
+    '''
+    read in sample data and CHC data in csv once
+    return a list of unique suburb names in CHC
+    returns a dictionary of number of streets for each suburb
+    '''
+    sample_df = pd.read_csv(sample_data_csv, keep_default_na=False)
+    # filter out data with empty suburbs
+    sample_df = sample_df[(sample_df["Receiver Suburb"]!= "")]
+    # read in CHC data
+    CHC_df = pd.read_csv(CHC_data_csv, keep_default_na=False)
+    # select useful columns
+    CHC_df = CHC_df[["suburb_locality", "full_address", "gd2000_ycoord", "gd2000_xcoord"]]
+    CHC_df["suburb_locality"] = CHC_df["suburb_locality"].str.upper()
+
+      # group CHC data by suburbs
+    CHC_df =  CHC_df.groupby("suburb_locality")
+    # get a list of unique suburb names
+    CHC_sub = list(CHC_df.groups.keys())
+    CHC_sub.pop(0) # remove empty string
+    # get number of addresses for each suburb
+    CHC_sub_size = CHC_df.size().tolist()
+    CHC_sub_size.pop(0) # remove size of empty string
+    # a dict of sub name and number of streets in each sub
+    CHC_sub_dict = dict(zip(CHC_sub, CHC_sub_size))
+
+    # ******************************** fall back if grouping does not speed up *************************
+    # # extract a list of unique suburbs from CHC_df
+    # CHC_sub = CHC_df["suburb_locality"].drop_duplicates().tolist()
+    # # remove empty string
+    # CHC_sub.remove('')
+    # ******************************** fall back if grouping does not speed up *************************
+  
+    return sample_df, CHC_df, CHC_sub, CHC_sub_dict
+
+def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save):
     '''
     n: sample size
+    seed: random number generator id
+    cd: current directory for the use of saving files
+    sample_df: sample data frame - output of 'read_data' function
+    CHC_df: CHC data frame - output of 'read_data' function
+    save: option of saving files
+
+    This function is to get a sample of suburbs from the sample_df and
+    then randomly get the street address in the CHC_df according
+    to the sample suburbs
+
     '''
-    TOLLdata = pd.read_csv(sample_data, keep_default_na=False)
-    CHCstreet = pd.read_csv(CHC_data, keep_default_na=False)
-    random_subset = TOLLdata[(TOLLdata["Receiver Suburb"]!= "")].sample(n)
-    # random_subset = TOLLdata[:10]
+    np.random.seed(seed)
+    
+    # TOLLdata = pd.read_csv(sample_data, keep_default_na=False)
+    # CHCstreet = pd.read_csv(CHC_data, keep_default_na=False)
+
+    # extract random sample of suburbs from sample_df
+    rd = np.random.randint(low=0, high=len(sample_df)-1, size=n) # a list of random numbers
+    random_subset = sample_df.iloc[rd] #sample(n)
+
     latitude = []
     longitude = []
-    coordinates = []
-    CHCstreet["full_address"] = CHCstreet["full_address"].astype(str) 
-    # get rid of () and things within
+    # coordinates = []
+    # CHC_df["full_address"] = CHC_df["full_address"].astype(str) 
+
     for index, row in random_subset.iterrows():
-        # if missing street address
-        # if row["Receiver Addr2"] == '':
-        # clean suburbs
+        # clean suburbs - get rid of () and things within
         sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"]).rstrip()
         row["Receiver Suburb"] = sub
         # if the suburb does not exsit in CHC data, get a new sample point that exists
-        while len(CHCstreet[CHCstreet["suburb_locality"].str.upper() == sub]) == 0:
-            row = TOLLdata[(TOLLdata["Receiver Suburb"]!= "")].sample(n=1)
+        # while len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub]) == 0:
+        while sub not in CHC_sub:
+            # get a new random row
+            rd1 = np.random.randint(low=0, high=len(sample_df)-1, size=1)
+            row = sample_df.iloc[rd1]
+            # row = sample_df.sample(n=1)
             sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"].values[0]).rstrip()
             row["Receiver Suburb"] = sub
-        # filtre on the same suburb in CHC street data
-        CHC_row = CHCstreet[CHCstreet["suburb_locality"].str.upper() == sub].sample(n=1) 
+        
+        # get a random number with the size of the suburb
+        rd2 = np.random.randint(low=0, high= CHC_sub_dict[sub]-1, size=1)
+        # randomly pick an address from CHC data based on the suburb
+        CHC_row = CHC_df.get_group(sub).iloc[rd2] #sample(n=1) 
+        # fill in address deets
         row["Receiver Addr2"] = CHC_row["full_address"].values[0]
         latitude.append(CHC_row["gd2000_ycoord"].values[0])
         longitude.append(CHC_row["gd2000_xcoord"].values[0])
-        coordinates.append(str(CHC_row["gd2000_ycoord"].values[0])+ ', ' + str(CHC_row["gd2000_xcoord"].values[0]))
 
-    df = pd.DataFrame(random_subset)
-    df["latitude"] = latitude
-    df["longitude"] = longitude
-    df["coordinates"] = coordinates
-    df.to_csv(os.path.join(cd,'random_subset.csv'))
+        # ******************************** fall back if grouping does not speed up *************************
+        # filtre on the same suburb in CHC street data
+        # rd2 = np.random.randint(low=0, high=len(CHC_df[CHC_df["suburb_locality"] == sub])-1, size=1)
+        # CHC_row = CHC_df[CHC_df["suburb_locality"] == sub].iloc[rd2] #sample(n=1) 
+        # row["Receiver Addr2"] = CHC_row["full_address"].values[0]
+        # latitude.append(CHC_row["gd2000_ycoord"].values[0])
+        # longitude.append(CHC_row["gd2000_xcoord"].values[0])
+        # ******************************** fall back if grouping does not speed up *************************
+      
+        # coordinates.append(str(CHC_row["gd2000_ycoord"].values[0])+ ', ' + str(CHC_row["gd2000_xcoord"].values[0]))
+    # save to a file if required
+    if save: 
+        df = pd.DataFrame(random_subset)
+        df["latitude"] = latitude
+        df["longitude"] = longitude
+        # df["coordinates"] = coordinates
+        df.to_csv(os.path.join(cd,'random_subset.csv'))
+    return latitude, longitude
 
 
-def get_coordinates(API_key, cd, address_filename, coord_filename):
+def get_coordinates(API_key, cd, address_filename, coord_filename, save=False):
     gmaps = googlemaps.Client(key=API_key)
 
     # # Requires cities name 
@@ -60,55 +128,89 @@ def get_coordinates(API_key, cd, address_filename, coord_filename):
     df = pd.read_csv(address_filename, keep_default_na=False)
     df['Address'] = df['Street']+ ',' + df['Suburb'] + ',' + df['City'] + ',' + df['Country']
 
-    df['latitude'] = ""
-    df['longitude'] = ""
+    latitude = []
+    longitude = []
+    # df['latitude'] = ""
+    # df['longitude'] = ""
     # get longitude and latitude using the address
     for x in range(len(df)):
         geocode_result = gmaps.geocode(df['Address'][x])
-        df['latitude'][x] = geocode_result[0]['geometry']['location'] ['lat']
-        df['longitude'][x] = geocode_result[0]['geometry']['location']['lng']
+        latitude.append(geocode_result[0]['geometry']['location'] ['lat'])
+        longitude.append(geocode_result[0]['geometry']['location']['lng'])
+        # df['latitude'][x] = geocode_result[0]['geometry']['location'] ['lat']
+        # df['longitude'][x] = geocode_result[0]['geometry']['location']['lng']
     # combine latitude and longitude into coordinates
-    df['coordinates'] = [', '.join(str(x) for x in y) for y in map(tuple, df[['latitude', 'longitude']].values)]
-    df.to_csv(os.path.join(cd,coord_filename))
+    # df['coordinates'] = [', '.join(str(x) for x in y) for y in map(tuple, df[['latitude', 'longitude']].values)]
+    # save to a file if required
+    if save: 
+        df["latitude"] = latitude
+        df["longitude"] = longitude
+        # df["coordinates"] = coordinates
+        df.to_csv(os.path.join(cd,coord_filename))
+    return latitude, longitude
+    # return 
 
-def get_dist(API_key, cd, coord_filename):
+def get_dist(API_key, cd, coord_filename, latitude, longitude, save=False):
     gmaps = googlemaps.Client(key=API_key)
-    # read in coodinates
-    data = pd.read_csv(coord_filename, keep_default_na=False) 
-    destinations = data.coordinates
+    # get destination according to input data types
+    if len(latitude)!= 0 and len(longitude)!= 0:
+        # combine latitude and longitude into coordinates
+        destinations = list(zip(latitude, longitude))
+    elif coord_filename != '' and coord_filename != None:
+        # read in coodinates
+        data = pd.read_csv(coord_filename, keep_default_na=False) 
+        # combine latitude and longitude into coordinates
+        data['coordinates'] = [', '.join(str(x) for x in y) for y in map(tuple, data[['latitude', 'longitude']].values)]
+        destinations = data.coordinates
+    else:
+        print('Warning: No input data' )
+        return [],[]
+
     # get distance (km) and durantion (hr) matrix
     result = lambda p1, p2: gmaps.distance_matrix(p1, p2, mode='driving')["rows"][0]["elements"][0]
-    dm = np.asarray([[result(p1, p2)["distance"]["value"]/1000   for p2 in destinations] for p1 in destinations])
-    tm = np.asarray([[result(p1, p2)["duration"]["value"]/3600   for p2 in destinations] for p1 in destinations])
-    df = pd.DataFrame(dm)
-    df.to_csv(os.path.join(cd,'dm.csv'), float_format='%.3f', na_rep="NAN!")
-    df = pd.DataFrame(tm)
-    df.to_csv(os.path.join(cd,'tm.csv'), float_format='%.3f', na_rep="NAN!")
+    dm = np.asarray([[result(p1, p2)["distance"]["value"]   for p2 in destinations] for p1 in destinations])
+    tm = np.asarray([[result(p1, p2)["duration"]["value"]   for p2 in destinations] for p1 in destinations])
+    
+    if save: 
+        df = pd.DataFrame(dm)
+        df.to_csv(os.path.join(cd,'dm.csv'), float_format='%.3f', na_rep="NAN!")
+        df = pd.DataFrame(tm)
+        df.to_csv(os.path.join(cd,'tm.csv'), float_format='%.3f', na_rep="NAN!")
     return dm, tm
 
-def osrm_get_dist(cd, coord_filename, save=False, host='router.project-orsm.org'):
+def osrm_get_dist(cd, coord_filename, latitude, longitude, save=False, host='router.project-orsm.org'):
     local = host != 'router.project-orsm.org' # We assume it's local, and can get distances
-    # read in coodinates
-    data = pd.read_csv(coord_filename, keep_default_na=False) 
-    # combine latitude and longitude into coordinates
-    data['LonLat'] = [','.join(str(x) for x in y) for y in map(tuple, data[['longitude', 'latitude']].values)]
-    destinations = data.LonLat
+    # get destination according to input data types
+    if len(latitude)!= 0 and len(longitude)!= 0:
+        # combine latitude and longitude into coordinates
+        destinations = [','.join(str(x) for x in y) for y in map(list, zip(longitude, latitude))]
+    elif coord_filename != '' and coord_filename != None:
+        # read in coodinates
+        data = pd.read_csv(coord_filename, keep_default_na=False) 
+        # combine latitude and longitude into coordinates
+        data['coordinates'] = [','.join(str(x) for x in y) for y in map(tuple, data[['longitude', 'latitude']].values)]
+        destinations = data.coordinates
+    else:
+        print('Warning: No input data' )
+        return [],[]
+
+    # set up request
     dest_string = ''
     for i in destinations:
         dest_string = dest_string + i + ';'
-    dest_string = dest_string.rstrip(';') #+ '?annotations = distance'
-    # payload = {"annotations": "distance", "geometries":"geojson"}
+    dest_string = dest_string.rstrip(';') 
     url =  'http://' + host + '/table/v1/driving/' + dest_string 
     if local: url += '?annotations=distance,duration' #+ destinations[0]+";" +destinations[1]+";" +destinations[2] #+ '?annotations=distance'
-    response = requests.get(url) #, params = payload)
+    response = requests.get(url) 
     result = response.json()
-    # print(result)
     if result['code'] == 'Ok':
         tm = result['durations']
-        if local: dm = result['distances']
-        # print(tm)
-        # convert to hrs
-        tm[:] = [[y / 3600 for y in x] for x in tm]
+        # round times into int
+        tm[:] = [[round(y) for y in x] for x in tm]
+        if local: 
+            dm = result['distances']
+            # round distances into int
+            dm[:] = [[round(y) for y in x] for x in dm]
         if save:
             if local:
                 df = pd.DataFrame(dm)
@@ -123,17 +225,26 @@ def osrm_get_dist(cd, coord_filename, save=False, host='router.project-orsm.org'
         return None, None
 
 def main():
-    #API_key = 'AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U'
+    API_key = 'AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U'
     cd = os.path.dirname(os.path.abspath(__file__)).strip('project47') + 'data' # direct to data folder
-    sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
-    CHC_data = os.path.join(cd,'christchurch_street.csv')
+    sample_data_csv = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
+    CHC_data_csv = os.path.join(cd,'christchurch_street.csv')
+    sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(sample_data_csv, CHC_data_csv)
+
+    latitude, longitude = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
     # get a random sample of locations in Christchurch
     # get_sample(10, cd, sample_data, CHC_data)
+    # latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
+    # latitude, longitude = '', ''
 
     coord_filename = os.path.join(cd, 'random_subset.csv')
     # get_coordinates(API_key, cd, address_filename, coord_filename)
-    #dm, tm = get_dist(API_key, cd, coord_filename)
-    print(osrm_get_dist(cd, coord_filename, host='0.0.0.0:5000', save=True))
+    # coord_filename = None
+    # dm, tm = get_dist(API_key, cd, coord_filename, latitude, longitude, save=False)
+    dm, tm = osrm_get_dist(cd, coord_filename, latitude, longitude, host='0.0.0.0:5000', save=True)
+    # print(osrm_get_dist(cd, coord_filename, host='0.0.0.0:5000', save=True))
+    print(dm)
+    print(tm)
 
 
 if __name__ == "__main__":

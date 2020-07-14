@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from project47.simulation import *
-from project47.data1 import *
+from project47.data import *
 from project47.routing import *
 from functools import reduce
 from multiprocessing import Process

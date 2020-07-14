@@ -1,4 +1,4 @@
-from project47.data1 import *
+from project47.data import *
 
 def test_get_sample_performance():
 

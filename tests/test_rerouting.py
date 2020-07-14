@@ -1,4 +1,4 @@
-from project47.data1 import *
+from project47.data import *
 from project47.routing import *
 from project47.simulation import *
 
