@@ -184,15 +184,15 @@ def update_function4(distance_matrix, time_matrix, time_windows):
                 # route_n = [places_to_visit_dic[x] for x in route_new]
                 # # print(route_n)
 
-                route_new = rerouting1(i, route, distance_matrix,time_matrix, time_windows)
-                print(route_new)
+                route = rerouting1(i, route, distance_matrix,time_matrix, time_windows)
+                print(route)
 
-                next_distance = f(route_new[i],route_new[i+1],time)
-                next_time = g(route_new[i],route_new[i+1],time)
+                next_distance = f(route[0],route[1],time)
+                next_time = g(route[0],route[1],time)
         else:
             futile = False
         
-        return next_distance, next_time, futile
+        return next_distance, next_time, futile, route
 
     return h
 

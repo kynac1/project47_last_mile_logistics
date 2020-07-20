@@ -53,7 +53,7 @@ def test_reroute_sim_tw():
         [0.,10000.]
     ])
 
-    distance, time, futile, delivered = sim(
+    distance, time, futile, delivered = sim1(
         s, 
         update_function4(distances, times, windows)
     )
@@ -61,33 +61,40 @@ def test_reroute_sim_tw():
     # skip place 2
     i = 1
     routes = [[0, 3, 2, 1, 4, 0]]
-    
-    # seed = 0
-    # np.random.seed(seed)
-    # times = []
-    # distances = []
-    # futile = np.zeros(len(routes))
-    # delivered = []
-    # for i,route in enumerate(routes):
-    #     times.append([])
-    #     times[-1].append(0)
-    #     distances.append([])
-    #     distances[-1].append(0)
-    #     for j in range(len(route)-1):
-    #         # distance, time, isfutile
-    #         distance, time, isfutile = update_function4(distance_matrix, time_matrix, time_windows)
-    #         # distances[-1].append(distances[-1][-1] + distance)
-    #         times[-1].append(times[-1][-1] + time)
-    #         if isfutile:
-    #             futile[i] += 1
-    #         else:
-    #             delivered.append(route[j])
+ 
+def sim1(s:RoutingSolution, update_function, seed:int=0):
+    s = copy(s)
+    np.random.seed(seed)
+    times = []
+    distances = []
+    futile = np.zeros(len(s.routes))
+    delivered = []
 
+    for i,route in enumerate(s.routes):
+        times.append([])
+        times[-1].append(0)
+        distances.append([])
+        distances[-1].append(0)
 
-    # assert sum(sum(d) for d in distance) == 0
-    # assert max(max(t) for t in time) == 8
-    # assert all(futile == 0)
-
+        j = 0
+        while j < (len(route)-1):
+            distance, time, isfutile, route_new = update_function(route, j, times[-1][-1])
+            distances[-1].append(distances[-1][-1] + distance)
+            times[-1].append(times[-1][-1] + time)
+            # compare two routes, update the route and the index
+            if route != route_new:
+                j = 0
+                route = route_new
+                delivered.append(route[j])
+            
+            if isfutile:
+                futile[i] += 1
+            else:
+                delivered.append(route[j])
+            
+            j = j+1
+                
+    return distances, times, futile, delivered
 
 def test_rerouting_tw2():
     
