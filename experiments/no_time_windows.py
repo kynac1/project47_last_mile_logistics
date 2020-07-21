@@ -65,7 +65,7 @@ def no_time_windows(arrival_rate):
         dist_and_time,
         route_optimizer,
         simulator,
-        10,
+        100,
         0,
         28800
     )
@@ -84,11 +84,17 @@ def time_windows(arrival_rate):
         lat, lon = get_sample(np.random.poisson(arrival_rate), seed, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
         time_windows = np.zeros((len(lat),2))
         for i in range(len(lat)):
-            if np.random.rand() > 0.5:
+            if np.random.rand() > 0.75:
                 time_windows[i,0] = 0
+                time_windows[i,1] = 7200
+            elif np.random.rand() > 0.5:
+                time_windows[i,0] = 7200
                 time_windows[i,1] = 14400
-            else:
+            elif np.random.rand() > 0.25:
                 time_windows[i,0] = 14400
+                time_windows[i,1] = 14400+7200
+            else:
+                time_windows[i,0] = 14400+7200
                 time_windows[i,1] = 28800
         return lat, lon, time_windows
 
@@ -132,12 +138,12 @@ def time_windows(arrival_rate):
         dist_and_time,
         route_optimizer,
         simulator,
-        10,
+        100,
         0,
         28800
     )
 
-    with open(f'experiments_time_arrival_{arrival_rate}.json', 'w') as outfile:
+    with open(f'experiments_4_time_windows_arrival_{arrival_rate}.json', 'w') as outfile:
         json.dump(data, outfile, indent=2)
 
 def constant_futility_update(distance_matrix, time_matrix, time_windows, futile_rate):
@@ -159,11 +165,13 @@ def constant_futility_update(distance_matrix, time_matrix, time_windows, futile_
     return h
 
 if __name__ == "__main__":
-    p1 = Process(target=no_time_windows, args=(20,))
-    p2 = Process(target=time_windows, args=(20,))
+    p1 = Process(target=time_windows, args=(20,))
+    #p2 = Process(target=no_time_windows, args=(20,))
+    #p3 = Process(target=no_time_windows, args=(40,))
+    #p4 = Process(target=time_windows, args=(40,))
     p1.start()
-    p2.start()
-    p2.join()
+    #p2.start()
+    #p2.join()
     p1.join()
     #time_windows(20)
     
