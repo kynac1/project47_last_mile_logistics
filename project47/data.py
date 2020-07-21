@@ -29,7 +29,17 @@ def read_data(sample_data_csv, CHC_data_csv):
     CHC_df = CHC_df[["suburb_locality", "full_address", "gd2000_ycoord", "gd2000_xcoord"]]
     CHC_df["suburb_locality"] = CHC_df["suburb_locality"].str.upper()
 
-      # group CHC data by suburbs
+    # exclude the addresses that are out of bounds
+    lat_min = -10000
+    lat_max = 10000
+    lon_min = -10000
+    lon_max = 10000
+    CHC_df = CHC_df[CHC_df["gd2000_ycoord"] >= lat_min]
+    CHC_df = CHC_df[CHC_df["gd2000_ycoord"] <= lat_max]
+    CHC_df = CHC_df[CHC_df["gd2000_xcoord"] >= lon_min]
+    CHC_df = CHC_df[CHC_df["gd2000_xcoord"] <= lon_max]
+
+    # group CHC data by suburbs
     CHC_df =  CHC_df.groupby("suburb_locality")
     # get a list of unique suburb names
     CHC_sub = list(CHC_df.groups.keys())
