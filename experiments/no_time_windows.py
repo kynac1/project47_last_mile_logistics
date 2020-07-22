@@ -6,7 +6,7 @@ from project47.routing import *
 from functools import reduce
 from multiprocessing import Process
 
-def no_time_windows(arrival_rate):
+def no_time_windows(arrival_rate, num_vehicles):
     """ Still enforces that jobs are done within working hours, but nothing more.
     """
     cd = os.path.dirname(os.path.abspath(__file__)).strip('experiments') + 'data'
@@ -30,7 +30,7 @@ def no_time_windows(arrival_rate):
 
     def route_optimizer(depots, dm, tm, time_windows, day, arrival_days, futile_count):
         locs = dm.shape[0]
-        r = ORToolsRouting(locs, 5)
+        r = ORToolsRouting(locs, num_vehicles)
         dim,ind = r.add_dimension(dm, 0, 50000, True, 'distance')
         r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
         dim,ind = r.add_time_windows(tm, time_windows, 28800, 28800, False, 'time')
@@ -70,10 +70,10 @@ def no_time_windows(arrival_rate):
         28800
     )
 
-    with open(f'experiments_no_time_arrival_{arrival_rate}.json', 'w') as outfile:
+    with open(f'experiments/results/experiments_no_time_{arrival_rate}_{num_vehicles}.json', 'w') as outfile:
         json.dump(data, outfile, indent=2)
 
-def time_windows(arrival_rate):
+def time_windows(arrival_rate, num_vehicles):
     """ Still enforces that jobs are done within working hours, but nothing more.
     """
     cd = os.path.dirname(os.path.abspath(__file__)).strip('experiments') + 'data'
@@ -103,7 +103,7 @@ def time_windows(arrival_rate):
 
     def route_optimizer(depots, dm, tm, time_windows, day, arrival_days, futile_count):
         locs = dm.shape[0]
-        r = ORToolsRouting(locs, 5)
+        r = ORToolsRouting(locs, num_vehicles)
         dim,ind = r.add_dimension(dm, 0, 50000, True, 'distance')
         r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
         dim,ind = r.add_time_windows(tm, time_windows, 28800, 28800, False, 'time')
@@ -143,7 +143,7 @@ def time_windows(arrival_rate):
         28800
     )
 
-    with open(f'experiments_4_time_windows_arrival_{arrival_rate}.json', 'w') as outfile:
+    with open(f'experiments/results/experiments_4_time_windows_{arrival_rate}_{num_vehicles}.json', 'w') as outfile:
         json.dump(data, outfile, indent=2)
 
 def constant_futility_update(distance_matrix, time_matrix, time_windows, futile_rate):
@@ -165,13 +165,12 @@ def constant_futility_update(distance_matrix, time_matrix, time_windows, futile_
     return h
 
 if __name__ == "__main__":
-    p1 = Process(target=time_windows, args=(20,))
-    #p2 = Process(target=no_time_windows, args=(20,))
-    #p3 = Process(target=no_time_windows, args=(40,))
-    #p4 = Process(target=time_windows, args=(40,))
-    p1.start()
-    #p2.start()
-    #p2.join()
-    p1.join()
-    #time_windows(20)
-    
+    for rate in [10,20]:
+        for vehs in [3,5]:
+            p1 = Process(target=no_time_windows, args=(rate,vehs))
+            p2 = Process(target=time_windows, args=(rate,vehs))
+            p1.start()
+            p2.start()
+            p1.join()
+            p2.join()
+            
