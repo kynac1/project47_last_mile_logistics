@@ -19,6 +19,7 @@ def test_ortools_with_osrm():
 
     # Randomly assign delivery windows
     delivery_time_windows = {}
+    delivery_time_windows[0] = [0,28800]
     for i in range(1, len(lat)):
         if np.random.rand() > 0.5:
             delivery_time_windows[i] = [0,14400]
@@ -69,6 +70,7 @@ def test_orsm_multiday():
 
         # Generate new packages and distance matrix
         lat, lon = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
+        delivery_time_windows[0] = [0,28800]
         for i in range(max(len(delivery_lats),1), len(delivery_lats)+len(lat)):
             if np.random.rand() > 0.5:
                 delivery_time_windows[i] = [0,14400]
@@ -126,7 +128,7 @@ def test_new_multiday():
     sample_data = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data = os.path.join(cd,'christchurch_street.csv')
     sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(sample_data, CHC_data)
-    def sample_generator():
+    def sample_generator(day):
         lat, lon = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
         time_windows = np.zeros((len(lat),2))
         for i in range(len(lat)):
@@ -165,7 +167,7 @@ def test_new_multiday():
                 unscheduled.append(i)
         return s, unscheduled
     
-    def simulator(routes, dm, tm, delivery_time_windows):
+    def simulator(routes, dm, tm, delivery_time_windows, seed=0):
         return sim(
             routes,
             default_update_function3(dm, tm, delivery_time_windows)
@@ -186,4 +188,4 @@ def test_new_multiday():
         json.dump(data, outfile, indent=4)
 
 if __name__ == "__main__":
-    test_new_multiday()
+    test_ortools_with_osrm()
