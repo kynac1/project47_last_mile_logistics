@@ -4,8 +4,10 @@ from ortools.constraint_solver import pywrapcp
 import numpy as np
 
 import matplotlib.pyplot as plt
-
-import osmnx as ox
+try:
+    import osmnx as ox
+except:
+    pass
 import networkx as nx
 
 class ORToolsRouting:
