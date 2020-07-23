@@ -4,7 +4,8 @@ setup(
     name = "project47",
     version = '0.0.0',
     packages = find_packages(),
-    install_requires=[
+)
+"""install_requires=[
         'utm',
         'numpy',
         'matplotlib',
@@ -15,6 +16,4 @@ setup(
         'googlemaps',
         'geopy'
 
-    ]
-    
-)
+    ]"""
