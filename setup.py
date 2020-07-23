@@ -8,7 +8,6 @@ setup(
         'utm',
         'numpy',
         'matplotlib',
-        'cartopy',
         'ortools',
         'osmnx',
         'shapely',
