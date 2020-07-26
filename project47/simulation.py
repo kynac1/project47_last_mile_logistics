@@ -309,6 +309,7 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
     day_end : int
         The time for the end of a day
     """
+    np.random.seed(0)
     data = []
     delivery_lats = depots[0]
     delivery_lons = depots[1]
@@ -317,9 +318,19 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
     arrival_days = np.zeros(n_depots)
     futile_count = np.zeros(n_depots)
 
+    latitudes_per_day = []
+    longitudes_per_day = []
+    time_windows_per_day = []
+    
+    for day in range(n_days):
+        lats, lons, new_time_windows = sample_generator(None)
+        latitudes_per_day.append(lats)
+        longitudes_per_day.append(lons)
+        time_windows_per_day.append(new_time_windows)
+
     for day in range(n_days):
         # Generate data 
-        lats, lons, new_time_windows = sample_generator(day)
+        lats, lons, new_time_windows = latitudes_per_day[day], longitudes_per_day[day], time_windows_per_day[day]
         delivery_lats = np.append(delivery_lats,lats)
         delivery_lons = np.append(delivery_lons,lons)
         delivery_time_windows = np.vstack((delivery_time_windows,new_time_windows))
@@ -346,7 +357,7 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
 
         # Simulate behaviour
         distances, times, futile, delivered = simulator(
-            routes, dm, tm, delivery_time_windows, seed=day
+            routes, dm, tm, delivery_time_windows, seed=None
         )
 
         # Data collection to save
