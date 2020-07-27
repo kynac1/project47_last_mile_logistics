@@ -165,8 +165,16 @@ def constant_futility_update(distance_matrix, time_matrix, time_windows, futile_
     return h
 
 if __name__ == "__main__":
+    try:
+        with open(f'experiments/results/experiments_4_time_windows_20_5.json', 'w') as f:
+            pass
+        print("OK")
+    except:
+        print("Cannot open file location")
+        exit()
     for rate in [10,20]:
         for vehs in [3,5]:
+            print(f"Running {rate}, {vehs}")
             p1 = Process(target=no_time_windows, args=(rate,vehs))
             p2 = Process(target=time_windows, args=(rate,vehs))
             p1.start()
