@@ -202,10 +202,45 @@ def update_function4(distance_matrix, time_matrix, time_windows):
                 # route_new = rerouting(k, np.zeros((len(tm),len(tm))), tm, w)
                 # route_n = [places_to_visit_dic[x] for x in route_new]
                 # # print(route_n)
+                route = rerouting1(i, route, distance_matrix, time_matrix, time_windows)
+                print(route)
 
-                # get new tw
-                
-                
+                next_distance = f(route[0],route[1],time)
+                next_time = g(route[0],route[1],time)
+        else:
+            futile = False
+        
+        return next_distance, next_time, futile, route
+
+    return h
+
+def update_function5(distance_matrix, time_matrix, time_windows):
+    '''
+    This time window policy makes the decision before arriving at the next place.
+    The deliver man calls the next customer before departing from the current place. 
+    If the time window has changed, reroute.
+    If the time window stays the same, he continues the route
+    '''
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+    def h(route, i, time):
+        # route = [0, 3, 2, 1, 4, 0]
+        next_distance = f(route[i],route[i+1],time)
+        next_time = g(route[i],route[i+1],time)
+        if np.random.rand() > 0.5: # if the tw is changed after the call
+            time_windows[route[i+1]]= random_time_window_generator()
+        if time+next_time < time_windows[route[i+1]][0]:
+            # add on the waiting time
+            next_time = time_windows[route[i+1]][0] - time
+            futile = False
+        elif time+next_time > time_windows[route[i+1]][1]:
+            # skip i+1 job and reroute
+            futile = True
+            # go straight to depot if the next place is depot after skipping
+            if route[i+2] == 0:
+                next_distance = f(route[i],route[i+2],time)
+                next_time = g(route[i],route[i+2],time)
+            else:
                 route = rerouting1(i, route, distance_matrix, time_matrix, time_windows)
                 print(route)
 
@@ -232,6 +267,16 @@ def default_futile_function(prob):
     def f(i,j,time):
         return np.random.rand() < prob
     return f
+
+def random_time_window_generator():
+    time_windows = np.zeros(2)
+    if np.random.rand() > 0.5:
+        time_windows[0] = 0
+        time_windows[1] = 28800
+    else:
+        time_windows[0] = 0
+        time_windows[1] = 28800
+    return time_windows
 
 def tw_policy1(i, j, route, distances, times, windows):
     '''
