@@ -62,14 +62,33 @@ def sim(s:RoutingSolution, update_function, seed:int=0):
         times[-1].append(0)
         distances.append([])
         distances[-1].append(0)
-        for j in range(len(route)-1):
-            distance, time, isfutile = update_function(route, j, times[-1][-1])
+
+        j = 0
+        while j < (len(route)-1):
+            distance, time, isfutile, route_new = update_function(route, j, times[-1][-1])
             distances[-1].append(distances[-1][-1] + distance)
             times[-1].append(times[-1][-1] + time)
+            # compare two routes, update the route and the index
+            if route != route_new:
+                j = 0
+                route = route_new
+                delivered.append(route[j])
+            
             if isfutile:
                 futile[i] += 1
             else:
                 delivered.append(route[j])
+            
+            j = j+1
+
+        # for j in range(len(route)-1):
+        #     distance, time, isfutile = update_function(route, j, times[-1][-1])
+        #     distances[-1].append(distances[-1][-1] + distance)
+        #     times[-1].append(times[-1][-1] + time)
+        #     if isfutile:
+        #         futile[i] += 1
+        #     else:
+        #         delivered.append(route[j])
                 
     return distances, times, futile, delivered
 
