@@ -107,7 +107,7 @@ def default_update_function(distance_matrix, time_matrix, time_windows):
             futile = time+next_time < time_windows[route[i+1]][0] or time+next_time > time_windows[route[i+1]][1]
         else:
             futile = True # why futile is true if it does not have a tw?
-        return next_distance, next_time, futile
+        return next_distance, next_time, futile, route
 
     return h
 
@@ -136,7 +136,7 @@ def update_function2(distance_matrix, time_matrix, time_windows):
                 futile = False
         else:
             futile = True
-        return next_distance, next_time, futile
+        return next_distance, next_time, futile, route
 
     return h
 
@@ -153,7 +153,7 @@ def default_update_function3(distance_matrix, time_matrix, time_windows):
         next_distance = f(route[i],route[i+1],time)
         next_time = g(route[i],route[i+1],time)
         futile = time+next_time < time_windows[route[i+1]][0] or time+next_time > time_windows[route[i+1]][1]
-        return next_distance, next_time, futile
+        return next_distance, next_time, futile, route
 
     return h
 
@@ -203,7 +203,10 @@ def update_function4(distance_matrix, time_matrix, time_windows):
                 # route_n = [places_to_visit_dic[x] for x in route_new]
                 # # print(route_n)
 
-                route = rerouting1(i, route, distance_matrix,time_matrix, time_windows)
+                # get new tw
+                
+                
+                route = rerouting1(i, route, distance_matrix, time_matrix, time_windows)
                 print(route)
 
                 next_distance = f(route[0],route[1],time)
