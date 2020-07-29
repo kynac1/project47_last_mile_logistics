@@ -187,6 +187,9 @@ class ORToolsRouting:
         """
         self.routing.AddDisjunction([self.manager.NodeToIndex(node)], penalty)
     
+    def add_option(self, nodes:list, penalty):
+        self.routing.AddDisjunction(list(map(self.manager.NodeToIndex, nodes)), penalty, 1)
+    
     def solve(self, tlim=10, log=True):
         """ Solves the route. If the solution has a better objective, this saves the solution.
         """
