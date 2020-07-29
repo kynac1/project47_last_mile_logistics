@@ -1,4 +1,5 @@
 import numpy as np
+from project47.routing import *
 
 def collect_data(day:int, seed:int, solution:RoutingSolution, distances:list, times:list, futile:np.array, 
                 delivered:np.array, arrival_days:list, time_windows:dict):
