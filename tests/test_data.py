@@ -10,7 +10,7 @@ def test_get_sample_performance():
     lats = []
     lons = []
     for _ in range(10):
-        latitude, longitude = get_sample(20, 0, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
+        latitude, longitude = get_sample(20, np.random.Generator(np.random.PCG64()), cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
         lats.append(latitude)
         lons.append(longitude)
 

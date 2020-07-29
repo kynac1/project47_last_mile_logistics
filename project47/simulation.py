@@ -5,7 +5,7 @@ from copy import copy
 import json
 import os
 
-def sim(s:RoutingSolution, update_function, seed:int=0):
+def sim(s:RoutingSolution, update_function):
     """ Simple simulator
 
     TODO: Docs need a rewrite
@@ -35,9 +35,6 @@ def sim(s:RoutingSolution, update_function, seed:int=0):
         This is a bit weird, it doesn't really fit in the same framework as distance and time.
     policies : list
         A list of functions to execute on the current solution each time we travel between locations.
-    seed : int
-        The random seed. Defaults to 0 for reproducibility. We should try to stick with numpy random functions
-        throughout our code to assist with this.
     
     Returns
     -------
@@ -50,8 +47,6 @@ def sim(s:RoutingSolution, update_function, seed:int=0):
     delivered : list
         A list of all successful deliveries
     """
-    s = copy(s)
-    np.random.seed(seed)
     times = []
     distances = []
     futile = np.zeros(len(s.routes))
@@ -214,7 +209,7 @@ def update_function4(distance_matrix, time_matrix, time_windows):
 
     return h
 
-def update_function5(distance_matrix, time_matrix, time_windows):
+def update_function5(distance_matrix, time_matrix, time_windows, rg:np.random.Generator):
     '''
     This time window policy makes the decision before arriving at the next place.
     The deliver man calls the next customer before departing from the current place. 
@@ -227,8 +222,8 @@ def update_function5(distance_matrix, time_matrix, time_windows):
         # route = [0, 3, 2, 1, 4, 0]
         next_distance = f(route[i],route[i+1],time)
         next_time = g(route[i],route[i+1],time)
-        if np.random.rand() > 0.5: # if the tw is changed after the call
-            time_windows[route[i+1]]= random_time_window_generator()
+        if rg.random() > 0.5: # if the tw is changed after the call
+            time_windows[route[i+1]]= random_time_window_generator(rg)
         if time+next_time < time_windows[route[i+1]][0]:
             # add on the waiting time
             next_time = time_windows[route[i+1]][0] - time
@@ -263,14 +258,14 @@ def default_time_function(time_matrix):
         return time_matrix[i,j]
     return f
 
-def default_futile_function(prob):
+def default_futile_function(prob, rg:np.random.Generator):
     def f(i,j,time):
-        return np.random.rand() < prob
+        return rg.random() < prob
     return f
 
-def random_time_window_generator():
+def random_time_window_generator(rg):
     time_windows = np.zeros(2)
-    if np.random.rand() > 0.5:
+    if rg.random() > 0.5:
         time_windows[0] = 0
         time_windows[1] = 28800
     else:

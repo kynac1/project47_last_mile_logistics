@@ -59,10 +59,10 @@ def read_data(sample_data_csv, CHC_data_csv):
   
     return sample_df, CHC_df, CHC_sub, CHC_sub_dict
 
-def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save):
+def get_sample(n, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save):
     '''
     n: sample size
-    seed: random number generator id
+    rg: np.random.Generator
     cd: current directory for the use of saving files
     sample_df: sample data frame - output of 'read_data' function
     CHC_df: CHC data frame - output of 'read_data' function
@@ -72,14 +72,12 @@ def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save):
     then randomly get the street address in the CHC_df according
     to the sample suburbs
 
-    '''
-    np.random.seed(seed)
-    
+    '''    
     # TOLLdata = pd.read_csv(sample_data, keep_default_na=False)
     # CHCstreet = pd.read_csv(CHC_data, keep_default_na=False)
 
     # extract random sample of suburbs from sample_df
-    rd = np.random.randint(low=0, high=len(sample_df)-1, size=n) # a list of random numbers
+    rd = rg.integers(low=0, high=len(sample_df)-1, size=n) # a list of random numbers
     random_subset = sample_df.iloc[rd] #sample(n)
 
     latitude = []
@@ -95,14 +93,14 @@ def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save):
         # while len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub]) == 0:
         while sub not in CHC_sub:
             # get a new random row
-            rd1 = np.random.randint(low=0, high=len(sample_df)-1, size=1)
+            rd1 = rg.integers(low=0, high=len(sample_df)-1, size=1)
             row = sample_df.iloc[rd1]
             # row = sample_df.sample(n=1)
             sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"].values[0]).rstrip()
             row["Receiver Suburb"] = sub
         
         # get a random number with the size of the suburb
-        rd2 = np.random.randint(low=0, high= CHC_sub_dict[sub]-1, size=1)
+        rd2 = rg.integers(low=0, high= CHC_sub_dict[sub]-1, size=1)
         # randomly pick an address from CHC data based on the suburb
         CHC_row = CHC_df.get_group(sub).iloc[rd2] #sample(n=1) 
         # fill in address deets
@@ -112,7 +110,7 @@ def get_sample(n, seed, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save):
 
         # ******************************** fall back if grouping does not speed up *************************
         # filtre on the same suburb in CHC street data
-        # rd2 = np.random.randint(low=0, high=len(CHC_df[CHC_df["suburb_locality"] == sub])-1, size=1)
+        # rd2 = rg.integers(low=0, high=len(CHC_df[CHC_df["suburb_locality"] == sub])-1, size=1)
         # CHC_row = CHC_df[CHC_df["suburb_locality"] == sub].iloc[rd2] #sample(n=1) 
         # row["Receiver Addr2"] = CHC_row["full_address"].values[0]
         # latitude.append(CHC_row["gd2000_ycoord"].values[0])

@@ -1,10 +1,11 @@
 import numpy as np
 from project47.routing import *
+from numpy.random import Generator, PCG64
 
-def collect_data(day:int, seed:int, solution:RoutingSolution, distances:list, times:list, futile:np.array, 
+def collect_data(day:int, solution:RoutingSolution, distances:list, times:list, futile:np.array, 
                 delivered:np.array, arrival_days:list, time_windows:dict):
     data = {}
-    key = 'day'+str(day)+'_'+str(seed)
+    key = str(day)
 
     time_delivered = []
     for d in delivered:
@@ -42,7 +43,7 @@ def collect_data(day:int, seed:int, solution:RoutingSolution, distances:list, ti
     return data
 
 
-def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator, n_days, day_start, day_end):
+def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator, n_days, day_start, day_end, seed=None, replications=1):
     """
     Paramters
     ---------
@@ -67,7 +68,7 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
     day_end : int
         The time for the end of a day
     """
-    np.random.seed(0)
+    rg = Generator(PCG64(seed))
     data = []
     delivery_lats = depots[0]
     delivery_lons = depots[1]
@@ -81,7 +82,7 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
     time_windows_per_day = []
     
     for day in range(n_days):
-        lats, lons, new_time_windows = sample_generator(None)
+        lats, lons, new_time_windows = sample_generator(rg)
         latitudes_per_day.append(lats)
         longitudes_per_day.append(lons)
         time_windows_per_day.append(new_time_windows)
@@ -110,18 +111,19 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
             day, arrival_days, futile_count
         )
         if False:
-            routes.plot(positions=[(delivery_lats[i], delivery_lons[i]) for i in range(len(delivery_lats))])
+            routes.plot(positions=[(delivery_lats[i], delivery_lons[i]) for i in range(len(delivery_lats))], weights=dm)
         futile_count[[i for i in range(len(delivery_lats)) if i not in unscheduled]] += 1
 
-        # Simulate behaviour
-        distances, times, futile, delivered = simulator(
-            routes, dm, tm, delivery_time_windows, seed=None
-        )
+        for i in range(replications):
+            # Simulate behaviour
+            distances, times, futile, delivered = simulator(
+                routes, dm, tm, delivery_time_windows, rg
+            )
 
-        # Data collection to save
-        data.append(collect_data(day, 0, routes, distances, times, futile, delivered, arrival_days, delivery_time_windows))
+            # Data collection to save
+            data.append(collect_data(day, routes, distances, times, futile, delivered, arrival_days, delivery_time_windows))
 
-        # Remove delivered packages
+        # Remove delivered packages, using just the last result
         undelivered = np.ones(len(delivery_lats), dtype=bool)
         undelivered[delivered] = False
         undelivered[[i for i in range(n_depots)]] = True

@@ -62,9 +62,7 @@ def test_reroute_sim_tw():
     i = 1
     routes = [[0, 3, 2, 1, 4, 0]]
  
-def sim1(s:RoutingSolution, update_function, seed:int=0):
-    s = copy(s)
-    np.random.seed(seed)
+def sim1(s:RoutingSolution, update_function):
     times = []
     distances = []
     futile = np.zeros(len(s.routes))
