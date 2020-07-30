@@ -21,14 +21,14 @@ def test_new_multiday():
         for i in range(len(lat)):
             time_windows[i,0] = 0
             time_windows[i,1] = 28800
-        customers = [Customer(lat,lon, 0.9, 0.9, [time_windows[i,:]]) for i in range(len(lat))]
+        customers = [Customer(lat[i],lon[i], 0.9, 0.9, [time_windows[i,:]]) for i in range(len(lat))]
 
         return customers, time_windows
 
     def dist_and_time(customers):
         return osrm_get_dist('', '', [customer.lat for customer in customers], [customer.lon for customer in customers], host='0.0.0.0:5000', save=False)
 
-    def route_optimizer(depots, dm, tm, day, arrival_days, futile_count):
+    def route_optimizer(depots, dm, tm, time_windows, day, arrival_days, futile_count):
         locs = dm.shape[0]
         r = ORToolsRouting(locs, 5)
         dim,ind = r.add_dimension(dm, 0, 50000, True, 'distance')
@@ -62,6 +62,8 @@ def test_new_multiday():
         0,
         28800
     )
+
+    assert len(data) == 10
 
 def test_reproducible():
     """ Run two identical simulations with same random seed. Check they return the same results.

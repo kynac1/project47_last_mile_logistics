@@ -89,7 +89,7 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
     delivery_time_windows = np.array([[day_start, day_end] for i in range(n_depots)]) #These are our beliefs about the time windows, not their true value
     arrival_days = np.zeros(n_depots)
     futile_count = np.zeros(n_depots)
-    customers = np.array([Customer(depots[0], depots[1], 1, 1, []) for i in range(len(depots[0]))])
+    customers = np.array([Customer(depots[0,0], depots[1,0], 1, 1, []) for i in range(len(depots[0]))])
 
     for day in range(n_days):
         # Generate data 
