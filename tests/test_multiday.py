@@ -2,6 +2,7 @@ from project47.data import *
 from project47.routing import *
 from project47.simulation import *
 from project47.multiday_simulation import *
+from project47.customer import Customer
 from functools import reduce
 
 def test_new_multiday():
@@ -20,13 +21,14 @@ def test_new_multiday():
         for i in range(len(lat)):
             time_windows[i,0] = 0
             time_windows[i,1] = 28800
+        customers = [Customer(lat,lon, 0.9, 0.9, [time_windows[i,:]]) for i in range(len(lat))]
 
-        return lat, lon, time_windows
+        return customers, time_windows
 
-    def dist_and_time(lats, lons):
-        return osrm_get_dist('', '', lats, lons, host='0.0.0.0:5000', save=False)
+    def dist_and_time(customers):
+        return osrm_get_dist('', '', [customer.lat for customer in customers], [customer.lon for customer in customers], host='0.0.0.0:5000', save=False)
 
-    def route_optimizer(depots, dm, tm, time_windows, day, arrival_days, futile_count):
+    def route_optimizer(depots, dm, tm, day, arrival_days, futile_count):
         locs = dm.shape[0]
         r = ORToolsRouting(locs, 5)
         dim,ind = r.add_dimension(dm, 0, 50000, True, 'distance')
@@ -44,7 +46,7 @@ def test_new_multiday():
                 unscheduled.append(i)
         return s, unscheduled
     
-    def simulator(routes, dm, tm, delivery_time_windows, rg:np.random.Generator):
+    def simulator(routes, dm, tm, delivery_time_windows, customers, rg:np.random.Generator):
         return sim(
             routes,
             default_update_function3(dm, tm, delivery_time_windows)
@@ -74,11 +76,12 @@ def test_reproducible():
         for i in range(len(lat)):
             time_windows[i,0] = 0
             time_windows[i,1] = 28800
+        customers = [Customer(lat,lon, 0.9, 0.9, [time_windows[i,:]]) for i in range(len(lat))]
 
-        return lat, lon, time_windows
+        return customers, time_windows
 
-    def dist_and_time(lats, lons):
-        return osrm_get_dist('', '', lats, lons, host='0.0.0.0:5000', save=False)
+    def dist_and_time(customers):
+        return osrm_get_dist('', '', [customer.lat for customer in customers], [customer.lon for customer in customers], host='0.0.0.0:5000', save=False)
 
     def route_optimizer(depots, dm, tm, time_windows, day, arrival_days, futile_count):
         locs = dm.shape[0]

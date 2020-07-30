@@ -1,5 +1,6 @@
 import numpy as np
 from project47.routing import *
+from project47.customer import Customer
 from numpy.random import Generator, PCG64
 
 def collect_data(day:int, solution:RoutingSolution, distances:list, times:list, futile:np.array, 
@@ -69,35 +70,37 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
         The time for the end of a day
     """
     rg = Generator(PCG64(seed))
-    data = []
-    delivery_lats = depots[0]
-    delivery_lons = depots[1]
-    n_depots = depots.shape[1]
-    delivery_time_windows = np.array([[day_start, day_end] for i in range(n_depots)])
-    arrival_days = np.zeros(n_depots)
-    futile_count = np.zeros(n_depots)
 
+    # Pregenerate arrivals
     latitudes_per_day = []
     longitudes_per_day = []
     time_windows_per_day = []
+    customers_per_day = []
     
     for day in range(n_days):
-        lats, lons, new_time_windows = sample_generator(rg)
-        latitudes_per_day.append(lats)
-        longitudes_per_day.append(lons)
+        customers, new_time_windows = sample_generator(rg)
+        latitudes_per_day.append([c.lat for c in customers])
+        longitudes_per_day.append([c.lon for c in customers])
         time_windows_per_day.append(new_time_windows)
+        customers_per_day.append(customers)
+
+    data = []
+    n_depots = depots.shape[1]
+    delivery_time_windows = np.array([[day_start, day_end] for i in range(n_depots)]) #These are our beliefs about the time windows, not their true value
+    arrival_days = np.zeros(n_depots)
+    futile_count = np.zeros(n_depots)
+    customers = np.array([Customer(depots[0], depots[1], 1, 1, []) for i in range(len(depots[0]))])
 
     for day in range(n_days):
         # Generate data 
-        lats, lons, new_time_windows = latitudes_per_day[day], longitudes_per_day[day], time_windows_per_day[day]
-        delivery_lats = np.append(delivery_lats,lats)
-        delivery_lons = np.append(delivery_lons,lons)
+        new_time_windows, new_customers = time_windows_per_day[day], customers_per_day[day]
         delivery_time_windows = np.vstack((delivery_time_windows,new_time_windows))
-        arrival_days = np.append(arrival_days, [day for _ in range(len(lats))])
-        futile_count = np.append(futile_count, np.zeros(len(lats)))
+        arrival_days = np.append(arrival_days, [day for _ in range(len(new_customers))])
+        futile_count = np.append(futile_count, np.zeros(len(new_customers)))
+        customers = np.append(customers, new_customers)
 
         # Get times and distances
-        dm,tm = dist_and_time(delivery_lats, delivery_lons)
+        dm,tm = dist_and_time(customers)
         if dm is None:
             # We've exceeded the map bounds. Stop here for now, but we should really handle this more gracefully.
             break
@@ -111,27 +114,26 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
             day, arrival_days, futile_count
         )
         if False:
-            routes.plot(positions=[(delivery_lats[i], delivery_lons[i]) for i in range(len(delivery_lats))], weights=dm)
-        futile_count[[i for i in range(len(delivery_lats)) if i not in unscheduled]] += 1
+            routes.plot(positions=[(customer.lon, customer.lat) for customer in customers], weights=dm)
+        futile_count[[i for i in range(len(customers)) if i not in unscheduled]] += 1
 
         for i in range(replications):
             # Simulate behaviour
             distances, times, futile, delivered = simulator(
-                routes, dm, tm, delivery_time_windows, rg
+                routes, dm, tm, delivery_time_windows, customers, rg
             )
 
             # Data collection to save
             data.append(collect_data(day, routes, distances, times, futile, delivered, arrival_days, delivery_time_windows))
 
         # Remove delivered packages, using just the last result
-        undelivered = np.ones(len(delivery_lats), dtype=bool)
+        undelivered = np.ones(len(customers), dtype=bool)
         undelivered[delivered] = False
         undelivered[[i for i in range(n_depots)]] = True
-        delivery_lats = delivery_lats[undelivered]
-        delivery_lons = delivery_lons[undelivered]
         delivery_time_windows = delivery_time_windows[undelivered]
         arrival_days = arrival_days[undelivered]
         futile_count = futile_count[undelivered]
+        customers = customers[undelivered]
 
     return data
 
