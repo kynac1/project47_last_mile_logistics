@@ -1,7 +1,11 @@
 import numpy as np
 from project47.routing import *
 from project47.customer import Customer
+from project47.data import get_sample, read_data
 from numpy.random import Generator, PCG64
+import os
+import matplotlib.pyplot as plt
+from celluloid import Camera
 
 def collect_data(day:int, solution:RoutingSolution, distances:list, times:list, futile:np.array, 
                 delivered:np.array, arrival_days:list, time_windows:dict):
@@ -44,8 +48,9 @@ def collect_data(day:int, solution:RoutingSolution, distances:list, times:list, 
     return data
 
 
-def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator, n_days, day_start, day_end, seed=None, replications=1):
-    """
+def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator, n_days, day_start, day_end, seed=None, replications=1, plot=False):
+    """ Multiday Sim
+
     Paramters
     ---------
     depots : np.array
@@ -68,7 +73,19 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
         The time for the start of a day
     day_end : int
         The time for the end of a day
+    seed : int (Optional)
+        The seed to initialise the random number generator with
+    replications : int
+        Defaults to 1. The number of simulations to perform on the optimized route. Only the last is used as the input to the next day.
+        (Might be an idea to take the mode values if enough simulations are performed?)
+    plot : bool
+        Whether to display a plot of the current routes
     """
+
+    if plot:
+        #plt.ion()
+        pass        
+        
     rg = Generator(PCG64(seed))
 
     # Pregenerate arrivals
@@ -107,14 +124,30 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
         dm = np.array(dm)
         tm = np.array(tm)
         
-        # Calulate routes for the day TODO
+        # Setup list of alternate locations
+        alternate_locations = []
+        temp = customers.tolist()
+        while len(temp) > 0:
+            c = temp.pop()
+            location_index = []
+            for a in c.alternates:
+                location_index.append(customers.tolist().index(a))
+                if a in temp:
+                    temp.remove(a)
+            alternate_locations.append(location_index)
+        
+        # Calulate routes for the day
         routes, unscheduled = route_optimizer(
             [i for i in range(n_depots)], 
             dm, tm, delivery_time_windows, 
-            day, arrival_days, futile_count
+            day, arrival_days, futile_count, alternate_locations
         )
-        if False:
-            routes.plot(positions=[(customer.lon, customer.lat) for customer in customers], weights=dm)
+        if plot:
+            plt.clf()
+            routes.plot(positions=[(customer.lon, customer.lat) for customer in customers], weight_matrix=dm)
+            plt.show(block = False)
+            plt.pause(.001)
+
         futile_count[[i for i in range(len(customers)) if i not in unscheduled]] += 1
 
         for i in range(replications):
@@ -128,7 +161,9 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
 
         # Remove delivered packages, using just the last result
         undelivered = np.ones(len(customers), dtype=bool)
-        undelivered[delivered] = False
+        for alternates in alternate_locations: # Remove all alternate locations as well
+            if delivered in alternates:
+                undelivered[alternates] = False
         undelivered[[i for i in range(n_depots)]] = True
         delivery_time_windows = delivery_time_windows[undelivered]
         arrival_days = arrival_days[undelivered]
@@ -136,4 +171,3 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
         customers = customers[undelivered]
 
     return data
-

@@ -7,6 +7,20 @@ class Customer:
         self.responsiveness = responsiveness
         self.call_responsiveness = call_responsiveness
         self.presence = presence
+        self.alternates = set([self])
+    
+    def add_alternate(self, c):
+        self.alternates.add(c)
+        self.alternates |= c.alternates
+        c.alternates = self.alternates
+        added = True
+        while added:
+            added = False
+            for alternate in self.alternates:
+                if self.alternates != alternate.alternates:
+                    self.alternates |= alternate.alternates
+                    alternate.alternates = self.alternates
+                    added = True
 
     def visit(self, time):
         """ Called to determine whether a customer successfully recieves a package.
