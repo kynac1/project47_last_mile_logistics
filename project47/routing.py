@@ -285,8 +285,6 @@ class RoutingSolution:
         if weight_matrix is not None:
             labels = {e:str(weight_matrix[e[0],e[1]]) for e in G.edges}
             nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
-
-        plt.show()
         
     def plot_osm(self, latlons, G, nodes=None):
         
