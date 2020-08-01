@@ -236,7 +236,7 @@ def update_function5(distance_matrix, time_matrix, time_windows, rg:np.random.Ge
                 next_distance = f(route[i],route[i+2],time)
                 next_time = g(route[i],route[i+2],time)
             else:
-                route = rerouting1(i, route, distance_matrix, time_matrix, time_windows)
+                route = rerouting(i, route, distance_matrix, time_matrix, time_windows)
                 print(route)
 
                 next_distance = f(route[0],route[1],time)
@@ -272,76 +272,8 @@ def random_time_window_generator(rg):
         time_windows[0] = 0
         time_windows[1] = 28800
     return time_windows
-
-def tw_policy1(i, j, route, distances, times, windows):
-    '''
-    This time window policy makes the decision after arriving at the next place.
-    The deliver man checks the time once arrived. 
-    If the current time falls out of the time windows, then he will skip and go to the next place.
-    '''
-    # make the decision after arrival
-    # out of time windows
-    isfail = False
-    print(times[i])
-    if times[i] < windows[route[j+1]][0] or times[i] > windows[route[j+1]][1]:
-        # skip j+1 job
-        isfail = True
-    return isfail
-
-def tw_policy2(i, j, route, distances, times, windows, time_function):
-    '''
-    This time window policy makes the decision after arriving at the next place.
-    The deliver man checks the time once arrived. 
-    If the current time is earlier than the time windows, then he will wait till the availabe time.
-    If the current time is later than the time windows, he will skip to next place.
-    '''
-    # make the decision after arrival
-    # out of time windows
-    if times[i] < windows[route[j+1]][0]:
-        # add on the waiting time
-        times[i] += windows[route[j+1]][0] - time_function(route[j], route[j+1], times[i])
-    elif times[i] > windows[route[j+1]][0]:
-        # skip j+1 job
-        isfail = True
-    return isfail
-
-def rerouting(current_start, distance_matrix, time_matrix, time_windows):
-    '''
-    This function finds the optimal routes from the current location to depot 'O'.
-
-    Parameters
-    ---------------
-    current start: current starting place
-    distance_matrix: original distance matrix
-    time_matrix: original time matrix
-    time_windows: original time windows
-
-    Returns
-    ---------------
-    route: an optimal route from the current location to depot 'O'
-    '''
-    dm = default_distance_function(distance_matrix)
-    tm = default_time_function(time_matrix)
-
-    # compute rerouting time windows
-    time_windows = np.vstack ((time_windows, np.array([0.,99999999999999.])) )
-    print ("windows", str(time_windows)) 
-    # compute rerouting time matrix
-    time_matrix = rerouting_matrix(current_start, time_matrix)
-    # printing result 
-    print ("time_matrix", str(time_matrix)) 
-    locs = time_matrix.shape[0] 
-    depo = time_matrix.shape[0] - 1
-
-    # solve the problem
-    r = ORToolsRouting(locs, 1, depo)
-    dim,ind = r.add_time_windows(time_matrix, time_windows, 1, 10, False, 'time')
-    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-    s = r.solve()
-    route = s.routes[0][1:-1]
-    return route
     
-def rerouting1(i, route, distance_matrix, time_matrix, time_windows):
+def rerouting(i, route, distance_matrix, time_matrix, time_windows):
     '''
     This function finds the optimal routes from the current location to depot 'O'.
 
