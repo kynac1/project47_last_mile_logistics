@@ -197,7 +197,7 @@ def update_function4(distance_matrix, time_matrix, time_windows):
                 # route_new = rerouting(k, np.zeros((len(tm),len(tm))), tm, w)
                 # route_n = [places_to_visit_dic[x] for x in route_new]
                 # # print(route_n)
-                route = rerouting1(i, route, distance_matrix, time_matrix, time_windows)
+                route = rerouting(i, route, distance_matrix, time_matrix, time_windows)
                 print(route)
 
                 next_distance = f(route[0],route[1],time)
