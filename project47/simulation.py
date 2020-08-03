@@ -223,6 +223,7 @@ def update_function5(distance_matrix, time_matrix, time_windows, rg:np.random.Ge
         next_distance = f(route[i],route[i+1],time)
         next_time = g(route[i],route[i+1],time)
         if rg.random() > 0.5: # if the tw is changed after the call
+            
             time_windows[route[i+1]]= random_time_window_generator(rg)
         if time+next_time < time_windows[route[i+1]][0]:
             # add on the waiting time

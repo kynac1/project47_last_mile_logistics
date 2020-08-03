@@ -14,7 +14,7 @@ import os
 import re
 from pandas import DataFrame 
 
-def read_data(sample_data_csv, CHC_data_csv, lat_min=-1000, lat_max=1000, lon_min=-1000, lon_max=1000):
+def read_data(sample_data_csv, CHC_data_csv):
     '''
     read in sample data and CHC data in csv once
     return a list of unique suburb names in CHC
@@ -30,6 +30,11 @@ def read_data(sample_data_csv, CHC_data_csv, lat_min=-1000, lat_max=1000, lon_mi
     CHC_df["suburb_locality"] = CHC_df["suburb_locality"].str.upper()
 
     # exclude the addresses that are out of bounds
+    lat_min = -1000
+    lat_max = 1000
+    lon_min = -1000
+    lon_max = 1000
+
     CHC_df = CHC_df[CHC_df["gd2000_ycoord"] >= lat_min]
     CHC_df = CHC_df[CHC_df["gd2000_ycoord"] <= lat_max]
     CHC_df = CHC_df[CHC_df["gd2000_xcoord"] >= lon_min]
