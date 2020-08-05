@@ -13,7 +13,7 @@ import json
 import os
 import re
 from pandas import DataFrame 
-from numpy import Generator, PCG64
+from numpy.random import Generator, PCG64
 
 def read_data(sample_data_csv, CHC_data_csv):
     '''
