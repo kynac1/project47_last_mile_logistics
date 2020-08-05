@@ -143,7 +143,7 @@ def test_rerouting_tw2():
     w = windows[places_to_visit]
     print(tm)
 
-    route_new = rerouting(k, np.zeros((len(tm),len(tm))), tm, w)
+    route_new = rerouting(k, route, np.zeros((len(tm),len(tm))), tm, w)
     # route_n = places_to_visit_dic[route_new]
     route_n = [places_to_visit_dic[x] for x in route_new]
     print(route_n)
@@ -179,7 +179,7 @@ def test_rerouting_tw3():
     i = 1
     route = [0, 3, 2, 1, 4, 0]
     
-    route_new = rerouting1(i, route, np.zeros((len(times),len(times))), times, windows)
+    route_new = rerouting(i, route, np.zeros((len(times),len(times))), times, windows)
     print(route_new)
 
     l = 0

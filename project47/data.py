@@ -13,6 +13,7 @@ import json
 import os
 import re
 from pandas import DataFrame 
+from numpy import Generator, PCG64
 
 def read_data(sample_data_csv, CHC_data_csv):
     '''
@@ -239,8 +240,11 @@ def main():
     sample_data_csv = os.path.join(cd,'Toll_CHC_November_Sample_Data.csv')
     CHC_data_csv = os.path.join(cd,'christchurch_street.csv')
     sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(sample_data_csv, CHC_data_csv)
+    seed=123456789
+    rg = Generator(PCG64(seed))
 
-    latitude, longitude = get_sample(5, 0, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
+    latitude, longitude = get_sample(5, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False)
+    # get_sample(n, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save)
     # get a random sample of locations in Christchurch
     # get_sample(10, cd, sample_data, CHC_data)
     # latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
