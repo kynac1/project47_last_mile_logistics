@@ -1,13 +1,14 @@
 import numpy as np
 
 class Customer:
-    def __init__(self, lat, lon, responsiveness, call_responsiveness, presence):
+    def __init__(self, lat, lon, responsiveness, call_responsiveness, presence, rg):
         self.lat = lat
         self.lon = lon
         self.responsiveness = responsiveness
         self.call_responsiveness = call_responsiveness
         self.presence = presence
         self.alternates = set([self])
+        self.rg = rg
     
     def add_alternate(self, c):
         self.alternates.add(c)
@@ -28,7 +29,7 @@ class Customer:
         Returns True on a successful delivery
         """
         for tw in self.presence:
-            if time < tw[1] and time > tw[0]:
-                return np.random.rand() < self.responsiveness
+            if time <= tw[1] and time >= tw[0]:
+                return self.rg.random() < self.responsiveness
         return False
             

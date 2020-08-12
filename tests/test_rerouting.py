@@ -65,7 +65,7 @@ def test_rerouting_tw():
     dim,ind = r.add_time_windows(times, windows, 1, 10, False, 'time')
     r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
     s = r.solve()
-    assert r.objective == 8
+    assert r.objective == 6
     
 
 def test_ortools():

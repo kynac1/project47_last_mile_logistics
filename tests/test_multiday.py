@@ -16,7 +16,7 @@ def test_sample_generator():
         for i in range(len(lat)):
             time_windows[i,0] = 0
             time_windows[i,1] = 28800
-        customers = [Customer(lat[i],lon[i], 0.9, 0.9, [time_windows[i,:]]) for i in range(len(lat))]
+        customers = [Customer(lat[i],lon[i], 0.9, 0.9, [time_windows[i,:]], rg) for i in range(len(lat))]
 
         return customers, time_windows
     
@@ -115,7 +115,7 @@ def test_alternate_locations():
         for i in range(len(lat)):
             time_windows[i,0] = 0
             time_windows[i,1] = 28800
-        customers = [Customer(lat[i],lon[i], 0.9, 0.9, [time_windows[i,:]]) for i in range(len(lat))]
+        customers = [Customer(lat[i],lon[i], 0.9, 0.9, [time_windows[i,:]], rg) for i in range(len(lat))]
         for i in range(10):
             customers[i].add_alternate(customers[i+10])
 

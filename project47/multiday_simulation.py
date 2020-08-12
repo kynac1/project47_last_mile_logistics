@@ -27,7 +27,8 @@ def collect_data(day:int, solution:RoutingSolution, distances:list, times:list, 
             if not found:
                 time_delivered.append(-1) # Error. Hopefully negative time is obviously wrong.
 
-    data[key] = {
+    data = {
+        "day": day,
         "number_of_packages": int(len(arrival_days)-1), # This could potentially be higher than the number of deliveries in the routes
         "number_of_vehicles": int(len(solution.routes)), # is it number of used vehicles or just a total number? ## Either way, I think we don't actually need this; we can get it from other info
         "distances": [int(sum(veh_dists)) for veh_dists in distances],
@@ -48,7 +49,7 @@ def collect_data(day:int, solution:RoutingSolution, distances:list, times:list, 
     return data
 
 
-def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator, n_days, day_start, day_end, seed=None, replications=1, plot=False):
+def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator, n_days, day_start, day_end, seed=None, replications=1, plot=False, collection_points=None):
     """ Multiday Sim
 
     Paramters
@@ -106,7 +107,7 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
     delivery_time_windows = np.array([[day_start, day_end] for i in range(n_depots)]) #These are our beliefs about the time windows, not their true value
     arrival_days = np.zeros(n_depots)
     futile_count = np.zeros(n_depots)
-    customers = np.array([Customer(depots[0,0], depots[1,0], 1, 1, []) for i in range(len(depots[0]))])
+    customers = np.array([Customer(depots[0,0], depots[1,0], 1, 1, [[day_start, day_end]], rg) for i in range(len(depots[0]))])
 
     for day in range(n_days):
         # Generate data 
@@ -155,6 +156,10 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
             distances, times, futile, delivered = simulator(
                 routes, dm, tm, delivery_time_windows, customers, rg
             )
+            if collection_points:
+                collected_packages, cost = collection_points(
+                    unscheduled, futile_count, dm, tm, customers, rg
+                )
 
             # Data collection to save
             data.append(collect_data(day, routes, distances, times, futile, delivered, arrival_days, delivery_time_windows))
@@ -162,12 +167,19 @@ def multiday(depots, sample_generator, dist_and_time, route_optimizer, simulator
         # Remove delivered packages, using just the last result
         undelivered = np.ones(len(customers), dtype=bool)
         for alternates in alternate_locations: # Remove all alternate locations as well
-            if delivered in alternates:
-                undelivered[alternates] = False
+            for package in delivered:
+                if package in alternates:
+                    undelivered[alternates] = False
         undelivered[[i for i in range(n_depots)]] = True
         delivery_time_windows = delivery_time_windows[undelivered]
         arrival_days = arrival_days[undelivered]
         futile_count = futile_count[undelivered]
         customers = customers[undelivered]
 
+
+
     return data
+
+
+def collection_point_example(unscheduled, futile_count, dm, tm, customers, rg):
+    pass
