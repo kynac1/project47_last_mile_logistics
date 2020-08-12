@@ -55,13 +55,33 @@ def test_reroute_sim_tw():
 
     distance, time, futile, delivered = sim1(
         s, 
-        update_function4(distances, times, windows)
+        update_function4(distances, times, windows, customers)
     )
 
     # skip place 2
     i = 1
     routes = [[0, 3, 2, 1, 4, 0]]
- 
+
+def default_update_function(distance_matrix, time_matrix, time_windows, customers):
+    '''
+    This time window policy makes the decision after arriving at the next place.
+    The deliver man checks the time once arrived. 
+    If the current time falls out of the time windows, then he will skip and go to the next place.
+    '''
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+    # c = default_customers(time_matrix)
+    def h(route, i, time):
+        next_distance = f(route[i],route[i+1],time)
+        next_time = g(route[i],route[i+1],time)
+        if next_time
+        futile = customers[i].presence
+        if route[i+1] in time_windows:
+            futile = time+next_time < time_windows[route[i+1]][0] or time+next_time > time_windows[route[i+1]][1]
+        else:
+            futile = True # why futile is true if it does not have a tw?
+        return next_distance, next_time, futile, route
+
 def sim1(s:RoutingSolution, update_function):
     times = []
     distances = []
