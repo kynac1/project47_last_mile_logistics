@@ -1,7 +1,17 @@
 import numpy as np
 
+
 class Customer:
-    def __init__(self, lat=0, lon=0, responsiveness=1, call_responsiveness=1, presence=np.array([1]), presence_interval=28800, rg=np.random.Generator(np.random.PCG64(123))):
+    def __init__(
+        self,
+        lat=0,
+        lon=0,
+        responsiveness=1,
+        call_responsiveness=1,
+        presence=np.array([1]),
+        presence_interval=28800,
+        rg=np.random.Generator(np.random.PCG64(123)),
+    ):
         self.lat = lat
         self.lon = lon
         self.responsiveness = responsiveness
@@ -10,7 +20,7 @@ class Customer:
         self.presence_interval = presence_interval
         self.alternates = set([self])
         self.rg = rg
-    
+
     def add_alternate(self, c):
         self.alternates.add(c)
         self.alternates |= c.alternates
@@ -31,4 +41,4 @@ class Customer:
         """
         indp = int(time) / self.presence_interval
         return bool(self.presence[indp])
-            
+
