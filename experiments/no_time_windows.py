@@ -102,12 +102,11 @@ if __name__ == "__main__":
         exit()
     for rate in [10,20]:
         for vehs in [3,5]:
-            for num_time_windows in [1,4]:
-                print(f"Running {rate}, {vehs}")
-                p1 = Process(target=no_time_windows_comparison, args=(rate,vehs,num_time_windows))
-                p2 = Process(target=no_time_windows_comparison, args=(rate,vehs,num_time_windows))
-                p1.start()
-                p2.start()
-                p1.join()
-                p2.join()
+            print(f"Running {rate}, {vehs}")
+            p1 = Process(target=no_time_windows_comparison, args=(rate,vehs,1))
+            p2 = Process(target=no_time_windows_comparison, args=(rate,vehs,4))
+            p1.start()
+            p2.start()
+            p1.join()
+            p2.join()
             
