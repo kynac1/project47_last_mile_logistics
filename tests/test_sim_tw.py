@@ -41,10 +41,6 @@ def test_sim_time_windows():
     assert max(max(t) for t in time) == 8
     assert all(futile == 0)
 
-    distance, time, futile, delivered = sim(
-        s, update_function2(distances, times, windows)
-    )
-
 
 if __name__ == "__main__":
     test_sim_time_windows()

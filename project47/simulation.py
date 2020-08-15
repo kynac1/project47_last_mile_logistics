@@ -67,7 +67,7 @@ def sim(s: RoutingSolution, update_function):
             times[-1].append(times[-1][-1] + time)
             # compare two routes, update the route and the index
             if route != route_new:
-                j = 0
+                j = 1
                 route = route_new
                 # delivered.append(route[j])
 
@@ -81,26 +81,31 @@ def sim(s: RoutingSolution, update_function):
     return distances, times, futile, delivered
 
 
+def default_update_function(distance_matrix, time_matrix, time_windows):
+    """
+    This time window policy makes the decision after arriving at the next place.
+    The deliver man checks the time once arrived. 
+    If the current time falls out of the time windows, then he will skip and go to the next place.
+    """
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+
+    def h(route, i, time):
+        next_distance = f(route[i], route[i + 1], time)
+        next_time = g(route[i], route[i + 1], time)
+        if route[i + 1] in time_windows:
+            futile = (
+                time + next_time < time_windows[route[i + 1]][0]
+                or time + next_time > time_windows[route[i + 1]][1]
+            )
+        else:
+            futile = True  # why futile is true if it does not have a tw?
+        return next_distance, next_time, futile, route
+
+    return h
+
+
 """
-    def default_update_function(distance_matrix, time_matrix, time_windows):
-        '''
-        This time window policy makes the decision after arriving at the next place.
-        The deliver man checks the time once arrived. 
-        If the current time falls out of the time windows, then he will skip and go to the next place.
-        '''
-        f = default_distance_function(distance_matrix)
-        g = default_time_function(time_matrix)
-        def h(route, i, time):
-            next_distance = f(route[i],route[i+1],time)
-            next_time = g(route[i],route[i+1],time)
-            if route[i+1] in time_windows:
-                futile = time+next_time < time_windows[route[i+1]][0] or time+next_time > time_windows[route[i+1]][1]
-            else:
-                futile = True # why futile is true if it does not have a tw?
-            return next_distance, next_time, futile, route
-
-        return h
-
     def update_function2(distance_matrix, time_matrix, time_windows):
         '''
         This time window policy makes the decision after arriving at the next place.
@@ -246,67 +251,63 @@ def sim(s: RoutingSolution, update_function):
 """
 
 
-def base_policy(distance_matrix, time_matrix, time_windows, customers, rg):
-    """
-    This time window policy makes the decision after arriving at the next place.
-    The deliver man checks the time once arrived. 
-    If the current time falls out of the time windows, then he will skip and go to the next place.
-    """
+def base_policy(
+    distance_matrix,
+    time_matrix,
+    time_windows,
+    customers,
+    rg=np.random.Generator(np.random.PCG64(123)),
+):
+
     f = default_distance_function(distance_matrix)
     g = default_time_function(time_matrix)
 
     def h(route, i, time):
-        interval_presence = 1.6
         next_distance = f(route[i], route[i + 1], time)
         next_time = g(route[i], route[i + 1], time)
-        indp = int((time + next_time) / interval_presence)
-        futile = not bool(
-            customers[route[i]].presence[indp]
+        futile = not customers[route[i + 1]].visit(
+            time + next_time
         )  # check if the next delivery is going to be futile
         return next_distance, next_time, futile, route
 
     return h
 
 
-def estimate_ahead_policy(distance_matrix, time_matrix, time_windows, customers, rg):
-    """
-    This time window policy makes the decision after arriving at the next place.
-    The deliver man checks the time once arrived. 
-    If the current time falls out of the time windows, then he will skip and go to the next place.
-    """
+def estimate_ahead_policy(
+    distance_matrix,
+    time_matrix,
+    time_windows,
+    customers,
+    rg=np.random.Generator(np.random.PCG64(123)),
+):
+
     f = default_distance_function(distance_matrix)
     g = default_time_function(time_matrix)
-    # c = default_customers(time_matrix)
+
     def h(route, i, time):
-        interval_presence = 3600
         next_distance = f(route[i], route[i + 1], time)
         next_time = g(route[i], route[i + 1], time)
         if (
-            route[i + 1] in time_windows
-        ):  # not sure if this line is needed as all loc has a tw?
-            # out of time window
-            if (
-                time + next_time < time_windows[route[i + 1]][0]
-                or time + next_time > time_windows[route[i + 1]][1]
-            ):
-                # go straight to depot if the next place is depot after skipping
-                if route[i + 2] == 0:
-                    next_distance = f(route[i], route[i + 2], time)
-                    next_time = g(route[i], route[i + 2], time)
-                    route = [0]
-                    futile = True  # manually set to Ture to avoid appending depot to the delivery list in the simulation
-                    return next_distance, next_time, futile, route
-                # skip i+1 job and reroute
-                else:
-                    route = rerouting(
-                        i, route, distance_matrix, time_matrix, time_windows
-                    )
-                    print(route)
-                    next_distance = f(route[0], route[1], time)
-                    next_time = g(route[0], route[1], time)
-        # index of presence according to next arrival time
-        indp = int((time + next_time) / interval_presence)
-        futile = not bool(customers[i].presence[indp])
+            time + next_time < time_windows[route[i + 1]][0]
+            or time + next_time > time_windows[route[i + 1]][1]
+        ):
+            # go straight to depot if the next place is depot after skipping
+            if route[i + 2] == 0:
+                next_distance = f(route[i], route[i + 2], time)
+                next_time = g(route[i], route[i + 2], time)
+                route = [0]
+                futile = True  # manually set to True to avoid appending depot to the delivery list in the simulation.
+                # This should actually be unnecessary. We can strip those out after the simulation.
+                return next_distance, next_time, futile, route
+            # skip i+1 job and reroute
+            else:
+                route = rerouting(i, route, distance_matrix, time_matrix, time_windows)
+                print(route)
+                next_distance = f(route[0], route[1], time)
+                next_time = g(route[0], route[1], time)
+                futile = not customers[route[1]].visit(time + next_time)
+        else:
+            futile = not customers[route[i + 1]].visit(time + next_time)
 
         return next_distance, next_time, futile, route
 
@@ -314,47 +315,35 @@ def estimate_ahead_policy(distance_matrix, time_matrix, time_windows, customers,
 
 
 def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
-    """
-    This time window policy makes the decision after arriving at the next place.
-    The deliver man checks the time once arrived. 
-    If the current time falls out of the time windows, then he will skip and go to the next place.
-    """
+
     f = default_distance_function(distance_matrix)
     g = default_time_function(time_matrix)
-    # c = default_customers(time_matrix)
+
     def h(route, i, time):
-        interval_presence = 3600
         next_distance = f(route[i], route[i + 1], time)
         next_time = g(route[i], route[i + 1], time)
-        if rg.random() > 0.5:  # if the tw is changed after the call
-            time_windows[route[i + 1]] = random_time_window_generator(rg)
 
         if (
-            route[i + 1] in time_windows
-        ):  # not sure if this line is needed as all loc has a tw?
-            # out of time window
-            if (
-                time + next_time < time_windows[route[i + 1]][0]
-                or time + next_time > time_windows[route[i + 1]][1]
-            ):
-                # go straight to depot if the next place is depot after skipping
-                if route[i + 2] == 0:
-                    next_distance = f(route[i], route[i + 2], time)
-                    next_time = g(route[i], route[i + 2], time)
-                    route = [0]
-                    futile = True  # manually set to Ture to avoid appending depot to the delivery list in the simulation
-                    return next_distance, next_time, futile, route
-                # skip i+1 job and reroute
-                else:
-                    route = rerouting(
-                        i, route, distance_matrix, time_matrix, time_windows
-                    )
-                    print(route)
-                    next_distance = f(route[0], route[1], time)
-                    next_time = g(route[0], route[1], time)
-        # index of presence according to next arrival time
-        indp = int((time + next_time) / interval_presence)
-        futile = not bool(customers[i].presence[indp])
+            time + next_time < time_windows[route[i + 1]][0]
+            or time + next_time > time_windows[route[i + 1]][1]
+        ) and not customers[route[i + 1]].call_ahead(next_time):
+            # go straight to depot if the next place is depot after skipping
+            if route[i + 2] == 0:
+                next_distance = f(route[i], route[i + 2], time)
+                next_time = g(route[i], route[i + 2], time)
+                route = [0]
+                futile = True  # manually set to True to avoid appending depot to the delivery list in the simulation.
+                # This should actually be unnecessary. We can strip those out after the simulation.
+                return next_distance, next_time, futile, route
+            # skip i+1 job and reroute
+            else:
+                route = rerouting(i, route, distance_matrix, time_matrix, time_windows)
+                print(route)
+                next_distance = f(route[0], route[1], time)
+                next_time = g(route[0], route[1], time)
+                futile = not customers[route[1]].visit(time + next_time)
+        else:
+            futile = not customers[route[i + 1]].visit(time + next_time)
 
         return next_distance, next_time, futile, route
 
@@ -373,24 +362,6 @@ def default_time_function(time_matrix):
         return time_matrix[i, j]
 
     return f
-
-
-def default_futile_function(prob, rg: np.random.Generator):
-    def f(i, j, time):
-        return rg.random() < prob
-
-    return f
-
-
-def random_time_window_generator(rg):
-    time_windows = np.zeros(2)
-    if rg.random() > 0.5:
-        time_windows[0] = 0
-        time_windows[1] = 28800
-    else:
-        time_windows[0] = 0
-        time_windows[1] = 28800
-    return time_windows
 
 
 def rerouting(i, route, distance_matrix, time_matrix, time_windows):

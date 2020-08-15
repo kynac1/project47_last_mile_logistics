@@ -27,10 +27,7 @@ def test_sample_generator():
         for i in range(len(lat)):
             time_windows[i, 0] = 0
             time_windows[i, 1] = 28800
-        customers = [
-            Customer(lat[i], lon[i], 0.9, 0.9, [time_windows[i, :]], rg)
-            for i in range(len(lat))
-        ]
+        customers = [Customer(lat[i], lon[i], 0.9, 0.9, rg=rg) for i in range(len(lat))]
 
         return customers, time_windows
 
@@ -72,7 +69,7 @@ def route_optimizer(
 def simulator(
     routes, dm, tm, delivery_time_windows, customers, rg: np.random.Generator
 ):
-    return sim(routes, default_update_function3(dm, tm, delivery_time_windows))
+    return sim(routes, base_policy(dm, tm, delivery_time_windows, customers, rg))
 
 
 def test_multiday():
@@ -146,10 +143,7 @@ def test_alternate_locations():
         for i in range(len(lat)):
             time_windows[i, 0] = 0
             time_windows[i, 1] = 28800
-        customers = [
-            Customer(lat[i], lon[i], 0.9, 0.9, [time_windows[i, :]], rg)
-            for i in range(len(lat))
-        ]
+        customers = [Customer(lat[i], lon[i], 0.9, 0.9, rg=rg) for i in range(len(lat))]
         for i in range(10):
             customers[i].add_alternate(customers[i + 10])
 

@@ -39,6 +39,12 @@ class Customer:
 
         Returns True on a successful delivery
         """
-        indp = int(time) / self.presence_interval
+        indp = int(time) // self.presence_interval
         return bool(self.presence[indp])
 
+    def get_time_window(self, options=[]):
+        pass
+
+    def call_ahead(self, arrival_time):
+        if self.rg.random() < self.call_responsiveness:
+            return self.visit(arrival_time)

@@ -155,7 +155,7 @@ def multiday(
     futile_count = np.zeros(n_depots)
     customers = np.array(
         [
-            Customer(depots[0, 0], depots[1, 0], 1, 1, [[day_start, day_end]], rg)
+            Customer(depots[0, 0], depots[1, 0], 1, 1, rg=rg)
             for i in range(len(depots[0]))
         ]
     )
