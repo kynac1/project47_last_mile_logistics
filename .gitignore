@@ -5,3 +5,6 @@ __pycache__/
 *.osm*
 cache/
 *.osrm*
+prof/*
+cov.xml
+.coverage
