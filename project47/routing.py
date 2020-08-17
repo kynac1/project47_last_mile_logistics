@@ -4,11 +4,13 @@ from ortools.constraint_solver import pywrapcp
 import numpy as np
 
 import matplotlib.pyplot as plt
+
 try:
     import osmnx as ox
 except:
     pass
 import networkx as nx
+
 
 class ORToolsRouting:
     """
@@ -28,11 +30,11 @@ class ORToolsRouting:
         A list of finish locations for vehicles. Length must be equal to number of vehicles
     """
 
-    def __init__(self, locs:int, num_vehicles=int, depo=0, starts=None, ends=None):
+    def __init__(self, locs: int, num_vehicles=int, depo=0, starts=None, ends=None):
         self.locs = locs
         self.num_vehicles = num_vehicles
         self.depo = depo
-        self.starts = starts 
+        self.starts = starts
         self.ends = ends
 
         self.manager = None
@@ -50,22 +52,24 @@ class ORToolsRouting:
         """
         if self.starts is None and self.ends is None:
             self.manager = pywrapcp.RoutingIndexManager(
-                self.locs,
-                self.num_vehicles,
-                self.depo
+                self.locs, self.num_vehicles, self.depo
             )
         else:
             assert len(self.starts) == len(self.ends) == self.num_vehicles
             self.manager = pywrapcp.RoutingIndexManager(
-                self.locs,
-                self.num_vehicles,
-                self.starts,
-                self.ends
+                self.locs, self.num_vehicles, self.starts, self.ends
             )
-            
+
         self.routing = pywrapcp.RoutingModel(self.manager)
-    
-    def add_dimension(self, distance_matrix:np.array, slack_max:int, capactity:int, fix_start_cumul_to_zero:bool, name:str):
+
+    def add_dimension(
+        self,
+        distance_matrix: np.array,
+        slack_max: int,
+        capactity: int,
+        fix_start_cumul_to_zero: bool,
+        name: str,
+    ):
         """ This pattern is reused a lot, so I've rewritten a wrapper to make it less messy
 
         https://developers.google.com/optimization/reference/python/constraint_solver/pywrapcp#adddimension
@@ -94,7 +98,7 @@ class ORToolsRouting:
         if self.routing is None:
             self.create_model()
 
-        def callback(from_index:int, to_index:int):
+        def callback(from_index: int, to_index: int):
             """ This is the callback passed to the routing solver. It is a closure over the data in the distance matrix.
             """
             from_node = self.manager.IndexToNode(from_index)
@@ -115,7 +119,15 @@ class ORToolsRouting:
 
         return dimension, transit_callback_index
 
-    def add_time_windows(self, time_matrix:np.array, time_windows:dict, slack_max:int, capacity:int, fix_start_cumul_to_zero:bool, name:str):
+    def add_time_windows(
+        self,
+        time_matrix: np.array,
+        time_windows: dict,
+        slack_max: int,
+        capacity: int,
+        fix_start_cumul_to_zero: bool,
+        name: str,
+    ):
         """ Adds a time windowed constraint
 
         https://developers.google.com/optimization/reference/python/constraint_solver/pywrapcp#adddimension
@@ -141,7 +153,7 @@ class ORToolsRouting:
         if self.routing is None:
             self.create_model()
 
-        def callback(from_index:int, to_index:int):
+        def callback(from_index: int, to_index: int):
             from_node = self.manager.IndexToNode(from_index)
             to_node = self.manager.IndexToNode(to_index)
             return time_matrix[from_node, to_node]
@@ -151,18 +163,16 @@ class ORToolsRouting:
         self.routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
         time = name
         self.routing.AddDimension(
-            transit_callback_index,
-            slack_max,
-            capacity,
-            fix_start_cumul_to_zero,
-            time,
+            transit_callback_index, slack_max, capacity, fix_start_cumul_to_zero, time,
         )
         time_dimension = self.routing.GetDimensionOrDie(time)
 
         # Place time windows on dimension
         for location_idx in range(self.locs):
             index = self.manager.NodeToIndex(location_idx)
-            time_dimension.CumulVar(index).SetRange(int(time_windows[location_idx][0]), int(time_windows[location_idx][1]))
+            time_dimension.CumulVar(index).SetRange(
+                int(time_windows[location_idx][0]), int(time_windows[location_idx][1])
+            )
 
         # This code was in the example, seems to be for minimizing time. Don't think it's needed here though.
         for i in range(self.num_vehicles):
@@ -174,7 +184,7 @@ class ORToolsRouting:
             )
 
         return time_dimension, transit_callback_index
-        
+
     def add_disjunction(self, node, penalty):
         """ Allows the solver to drop the node
 
@@ -186,10 +196,12 @@ class ORToolsRouting:
             The cost for dropping the node
         """
         self.routing.AddDisjunction([self.manager.NodeToIndex(node)], penalty)
-    
-    def add_option(self, nodes:list, penalty):
-        self.routing.AddDisjunction(list(map(self.manager.NodeToIndex, nodes)), penalty, 1)
-    
+
+    def add_option(self, nodes: list, penalty):
+        self.routing.AddDisjunction(
+            list(map(self.manager.NodeToIndex, nodes)), penalty, 1
+        )
+
     def solve(self, tlim=10, log=True):
         """ Solves the route. If the solution has a better objective, this saves the solution.
         """
@@ -205,7 +217,9 @@ class ORToolsRouting:
         if self.routing.status() == 1:
             v = sol.ObjectiveValue()
             if log:
-                print(f"Solved: {self.routing.status()} ({SearchStatus[self.routing.status()]})")
+                print(
+                    f"Solved: {self.routing.status()} ({SearchStatus[self.routing.status()]})"
+                )
                 print(f"Objective: {v}")
             if v < self.objective:
                 self._solution = sol
@@ -218,7 +232,8 @@ class ORToolsRouting:
         """ Returns the solution in a format independent of ortools.
         """
 
-        if ortools_sol is None: ortools_sol = self._solution
+        if ortools_sol is None:
+            ortools_sol = self._solution
 
         if self.routing is not None and ortools_sol is not None:
             routes = []
@@ -237,17 +252,19 @@ class ORToolsRouting:
             # Construct, save and return solution object
             self.solution = RoutingSolution(routes)
             return self.solution
-        
+
         # None if routing not completed at all
         return None
 
+
 SearchStatus = {
-    0 : "ROUTING_NOT_SOLVED: Problem not solved yet.",
-    1 : "ROUTING_SUCCESS: Problem solved successfully.",
-    2 :	"ROUTING_FAIL: No solution found to the problem.",
-    3 :	"ROUTING_FAIL_TIMEOUT: Time limit reached before finding a solution.",
-    4 :	"ROUTING_INVALID: Model, model parameters, or flags are not valid."
+    0: "ROUTING_NOT_SOLVED: Problem not solved yet.",
+    1: "ROUTING_SUCCESS: Problem solved successfully.",
+    2: "ROUTING_FAIL: No solution found to the problem.",
+    3: "ROUTING_FAIL_TIMEOUT: Time limit reached before finding a solution.",
+    4: "ROUTING_INVALID: Model, model parameters, or flags are not valid.",
 }
+
 
 class RoutingSolution:
     """ Independent solution object
@@ -256,8 +273,8 @@ class RoutingSolution:
     If we try new methods, they should still return routes in this format. This means that we can still use the
     simulation functions with new methods.
     """
-    
-    def __init__(self, routes:list):
+
+    def __init__(self, routes: list):
         self.routes = routes
 
     def __str__(self):
@@ -268,26 +285,26 @@ class RoutingSolution:
             s += "->".join(str(loc) for loc in route) + "\n"
         return s
 
-    def plot(self,weight_matrix=None, positions=None):
+    def plot(self, weight_matrix=None, positions=None):
         G = nx.DiGraph()
 
         for route in self.routes:
-            for i in range(len(route)-1):
-                G.add_edge(route[i],route[i+1])
-                
+            for i in range(len(route) - 1):
+                G.add_edge(route[i], route[i + 1])
+
         if positions:
-            pos = {i:positions[i] for i in range(len(positions))}
+            pos = {i: positions[i] for i in range(len(positions))}
         else:
             pos = nx.spring_layout()
 
         nx.draw(G, pos, with_labels=True)
 
         if weight_matrix is not None:
-            labels = {e:str(weight_matrix[e[0],e[1]]) for e in G.edges}
+            labels = {e: str(weight_matrix[e[0], e[1]]) for e in G.edges}
             nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
-        
+
     def plot_osm(self, latlons, G, nodes=None):
-        
+
         if nodes is None:
             nodes = [ox.get_nearest_node(G, latlon) for latlon in latlons]
 
@@ -296,14 +313,15 @@ class RoutingSolution:
         nodecolorlist = []
         for route in self.routes:
             color = np.random.rand(3)
-            for i in range(len(route)-1):
+            for i in range(len(route) - 1):
                 orig_node = nodes[route[i]]
-                dest_node = nodes[route[i+1]]
-                path =nx.shortest_path(G, orig_node, dest_node, weight='length')
+                dest_node = nodes[route[i + 1]]
+                path = nx.shortest_path(G, orig_node, dest_node, weight="length")
                 osm_routes.append(path)
-                colorlist += [color]*(len(path)-1)
-                nodecolorlist += [color]*2
+                colorlist += [color] * (len(path) - 1)
+                nodecolorlist += [color] * 2
 
-        return ox.plot_graph_routes(G, osm_routes, route_color=colorlist, orig_dest_node_color=nodecolorlist)
+        return ox.plot_graph_routes(
+            G, osm_routes, route_color=colorlist, orig_dest_node_color=nodecolorlist
+        )
 
-            
