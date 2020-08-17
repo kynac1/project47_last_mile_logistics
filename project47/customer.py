@@ -48,3 +48,5 @@ class Customer:
     def call_ahead(self, arrival_time):
         if self.rg.random() < self.call_responsiveness:
             return self.visit(arrival_time)
+        else:
+            return False
