@@ -19,8 +19,7 @@ def collect_data(
     time_windows: dict,
 ):
     data = {}
-    key = str(day)
-
+    """
     time_delivered = []
     for d in delivered:
         if d != 0:
@@ -36,7 +35,7 @@ def collect_data(
             if not found:
                 time_delivered.append(
                     -1
-                )  # Error. Hopefully negative time is obviously wrong.
+                )  # Error. Hopefully negative time is obviously wrong."""
 
     data = {
         "day": day,
@@ -56,7 +55,7 @@ def collect_data(
             "days_taken": [
                 int(day - arrival_days[i]) for i in delivered if i != 0
             ],  # [1,4,2,7,32,2],
-            "time_delivered": [int(t) for t in time_delivered],
+            # "time_delivered": [int(t) for t in time_delivered],
             "time_window": [
                 [int(time_windows[i][0]), int(time_windows[i][1])]
                 for i in delivered
