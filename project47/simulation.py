@@ -297,44 +297,54 @@ def rerouting(i, route, distance_matrix, time_matrix, time_windows):
     #     next_time = g(route[i],route[i+2],time)
 
     # get the rest of the places that need to visit
-    places_to_visit = route[i+2::]
-    if i != 0:
+    if i == 0:
+        # solve the problem
+        locs = time_matrix.shape[0] 
+        r = ORToolsRouting(locs, 1, 0)
+        dim,ind = r.add_time_windows(time_matrix, time_windows, 1, 10, False, 'time')
+        r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
+        r.add_disjunction(route[i+1],0)
+        s = r.solve()
+        route_n = s.routes[0]
+
+    else:
+        places_to_visit = route[i+2::]
         places_to_visit.append(route[i])
-    places_to_visit.sort()
-    keys = list(np.arange(len(places_to_visit)))
-    # record both the places that their indices in rerouting
-    places_to_visit_dic = dict(zip(keys, places_to_visit))
-    # current place - starting place for rerouting
-    k = places_to_visit.index(route[i])
+        places_to_visit.sort()
+        keys = list(np.arange(len(places_to_visit)))
+        # record both the places that their indices in rerouting
+        places_to_visit_dic = dict(zip(keys, places_to_visit))
+        # current place - starting place for rerouting
+        k = places_to_visit.index(route[i])
 
-    # slice the distances for the places to visit
-    dm = distance_matrix[places_to_visit]
-    dm = dm[:, places_to_visit]
-    # slice the times for the places to visit
-    tm = time_matrix[places_to_visit]
-    tm = tm[:, places_to_visit]
-    # slice the time windows for the places to visit
-    tw = time_windows[places_to_visit]
+        # slice the distances for the places to visit
+        dm = distance_matrix[places_to_visit]
+        dm = dm[:, places_to_visit]
+        # slice the times for the places to visit
+        tm = time_matrix[places_to_visit]
+        tm = tm[:, places_to_visit]
+        # slice the time windows for the places to visit
+        tw = time_windows[places_to_visit]
 
-    # add tw for arbitrary depot
-    tw = np.vstack ((tw, np.array([0.,99999999999999.])) )
-    # compute rerouting time matrix
-    tm = rerouting_matrix(k, tm)
-    # compute rerouting distance matrix
-    dm = rerouting_matrix(k, dm)
-    # print ("time_matrix", str(tm)) # printing result 
-    locs = tm.shape[0] 
-    depo = tm.shape[0] - 1
+        # add tw for arbitrary depot
+        tw = np.vstack ((tw, np.array([0.,99999999999999.])) )
+        # compute rerouting time matrix
+        tm = rerouting_matrix(k, tm)
+        # compute rerouting distance matrix
+        dm = rerouting_matrix(k, dm)
+        # print ("time_matrix", str(tm)) # printing result 
+        locs = tm.shape[0] 
+        depo = tm.shape[0] - 1
 
-    # solve the problem
-    r = ORToolsRouting(locs, 1, depo)
-    dim,ind = r.add_time_windows(tm, tw, 1, 10, False, 'time')
-    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-    s = r.solve()
-    route_new = s.routes[0][1:-1]
+        # solve the problem
+        r = ORToolsRouting(locs, 1, depo)
+        dim,ind = r.add_time_windows(tm, tw, 1, 10, False, 'time')
+        r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
+        s = r.solve()
+        route_new = s.routes[0][1:-1]
 
-    # route_n = places_to_visit_dic[route_new]
-    route_n = [places_to_visit_dic[x] for x in route_new]
+        # route_n = places_to_visit_dic[route_new]
+        route_n = [places_to_visit_dic[x] for x in route_new]
 
     return route_n
 

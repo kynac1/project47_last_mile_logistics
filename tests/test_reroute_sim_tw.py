@@ -50,9 +50,9 @@ def test_reroute_sim_tw():
     s.routes = [[0, 3, 2, 1, 4, 0]]
     print(s)
 
-    seed=123456789
-    rg = Generator(PCG64(seed))
-    tw, customers = sample_generator(rg, 3)
+    # seed=123456789
+    # rg = Generator(PCG64(seed))
+    # tw, customers = sample_generator(rg, 3)
 
     windows = np.array([
         [0.,10000.],
@@ -62,9 +62,17 @@ def test_reroute_sim_tw():
         [0.,10000.]
     ])
 
+    # windows = np.array([
+    #     [0.,10000.],
+    #     [0.,10000.],
+    #     [0.,10000.],
+    #     [0.,1.],
+    #     [0.,10000.]
+    # ])
+
     distance, time, futile, delivered = sim1(
         s, 
-        update_function10(distances, times, windows, customers)
+        update_function4(distances, times, windows)#, customers)
     )
 
     # skip place 2
@@ -82,7 +90,7 @@ def update_function10(distance_matrix, time_matrix, time_windows, customers):
     g = default_time_function(time_matrix)
     # c = default_customers(time_matrix)
     def h(route, i, time):
-        interval_presence = 1.6
+        interval_presence = 3600
         next_distance = f(route[i],route[i+1],time)
         next_time = g(route[i],route[i+1],time)
         indp = int( (time+next_time)/interval_presence )
