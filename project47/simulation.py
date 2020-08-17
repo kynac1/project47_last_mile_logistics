@@ -67,7 +67,7 @@ def sim(s: RoutingSolution, update_function):
             times[-1].append(times[-1][-1] + time)
             # compare two routes, update the route and the index
             if route != route_new:
-                j = 1
+                j = 0
                 route = route_new
                 # delivered.append(route[j])
 
@@ -322,11 +322,13 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
     def h(route, i, time):
         next_distance = f(route[i], route[i + 1], time)
         next_time = g(route[i], route[i + 1], time)
-
-        if (
-            time + next_time < time_windows[route[i + 1]][0]
-            or time + next_time > time_windows[route[i + 1]][1]
-        ) and not customers[route[i + 1]].call_ahead(next_time):
+        if i != 0 and (
+            (
+                time + next_time < time_windows[route[i + 1]][0]
+                or time + next_time > time_windows[route[i + 1]][1]
+            )
+            or not customers[route[i + 1]].call_ahead(next_time)
+        ):
             # go straight to depot if the next place is depot after skipping
             if route[i + 2] == 0:
                 next_distance = f(route[i], route[i + 2], time)
@@ -339,11 +341,18 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
             else:
                 route = rerouting(i, route, distance_matrix, time_matrix, time_windows)
                 print(route)
+                if len(route) == 1:
+                    return 0, 0, True, route
                 next_distance = f(route[0], route[1], time)
                 next_time = g(route[0], route[1], time)
                 futile = not customers[route[1]].visit(time + next_time)
         else:
+
             futile = not customers[route[i + 1]].visit(time + next_time)
+            wait_time = 0
+            while futile and wait_time < 10:
+                wait_time += 1
+                futile = not customers[route[i + 1]].visit(time + next_time + wait_time)
 
         return next_distance, next_time, futile, route
 
@@ -418,9 +427,14 @@ def rerouting(i, route, distance_matrix, time_matrix, time_windows):
 
     # solve the problem
     r = ORToolsRouting(locs, 1, depo)
-    dim, ind = r.add_time_windows(tm, tw, 1, 10, False, "time")
+    dim, ind = r.add_time_windows(
+        tm, tw, 28800, 28800, False, "time"
+    )  # Previous bound and slack seem like a bug?
     r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-    s = r.solve()
+    s = r.solve(tlim=10)
+    if s is None:
+        # Rerouting failed. Just return old route
+        return route
     route_new = s.routes[0][1:-1]
 
     # route_n = places_to_visit_dic[route_new]
