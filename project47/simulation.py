@@ -394,15 +394,15 @@ def rerouting(i, route, distance_matrix, time_matrix, time_windows):
     # if route[i+2] == 0:
     #     next_distance = f(route[i],route[i+2],time)
     #     next_time = g(route[i],route[i+2],time)
-    
+
     # drop next location if current place is depot
     if i == 0:
         # solve the problem
-        locs = time_matrix.shape[0] 
+        locs = time_matrix.shape[0]
         r = ORToolsRouting(locs, 1, 0)
-        dim,ind = r.add_time_windows(time_matrix, time_windows, 1, 10, False, 'time')
+        dim, ind = r.add_time_windows(time_matrix, time_windows, 1, 10, False, "time")
         r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-        r.add_disjunction(route[i+1],0)
+        r.add_disjunction(route[i + 1], 0)
         s = r.solve()
         if s is None:
             # Rerouting failed. Just return old route
@@ -483,3 +483,59 @@ def rerouting_matrix(k, matrix):
     matrix[0][-1] = 0
 
     return matrix
+
+
+def rerouting_new(
+    i, route, distance_matrix, time_matrix, time_windows,
+):
+    """
+    i is current start
+    routes from i to end of route only, ignoring previous locations
+    returns a new route from previous_route[i] back to the depot
+    """
+    places_to_visit = route[
+        i:
+    ]  # I'm not removing locations yet. Quicker to implement that way.
+    # Seems like changing the time window input and recomputing is a more general approach as well, which allows for more reorderings, and
+    # easier to support alternate locations.
+
+    # slice the distances for the places to visit
+    dm = distance_matrix[places_to_visit]
+    dm = dm[:, places_to_visit]
+    # slice the times for the places to visit
+    tm = time_matrix[places_to_visit]
+    tm = tm[:, places_to_visit]
+    # slice the time windows for the places to visit
+    tw = time_windows[places_to_visit]
+
+    # The start location is route[i], which becomes 0 in the subset
+    # The end location is route[-1], which should be 0. Will be the size of the submatrix - 1 (cause 0 based indexing)
+    N = len(route) - i
+    r = ORToolsRouting(N, 1, starts=[0], ends=[N - 1])
+
+    dim, ind = r.add_time_windows(tm, tw, 28800, 28800, False, "time")
+
+    r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
+    s = r.solve()
+    if s is None:
+        # Rerouting failed. Just return old route
+        return route
+    else:
+        return [
+            places_to_visit[i] for i in s.routes[0][1:]
+        ]  # I think this does the same as previously? Not too sure. Makes sense though
+
+
+if __name__ == "__main__":
+    tw = np.zeros((10, 2))
+    tw[:, 1] = np.ones(10) * 10
+    print(
+        rerouting_new(
+            3,
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0],
+            np.ones((10, 10)),
+            np.ones((10, 10)),
+            tw,
+        )
+    )
+

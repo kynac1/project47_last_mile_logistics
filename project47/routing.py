@@ -169,10 +169,14 @@ class ORToolsRouting:
 
         # Place time windows on dimension
         for location_idx in range(self.locs):
-            index = self.manager.NodeToIndex(location_idx)
-            time_dimension.CumulVar(index).SetRange(
-                int(time_windows[location_idx][0]), int(time_windows[location_idx][1])
-            )
+            if location_idx not in self.starts and location_idx not in self.ends:
+                # Ends have no cumulative variable to set a range on.
+                print(location_idx)
+                index = self.manager.NodeToIndex(location_idx)
+                time_dimension.CumulVar(index).SetRange(
+                    int(time_windows[location_idx][0]),
+                    int(time_windows[location_idx][1]),
+                )
 
         # This code was in the example, seems to be for minimizing time. Don't think it's needed here though.
         for i in range(self.num_vehicles):
