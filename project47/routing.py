@@ -169,7 +169,9 @@ class ORToolsRouting:
 
         # Place time windows on dimension
         for location_idx in range(self.locs):
-            if location_idx not in self.starts and location_idx not in self.ends:
+            if (self.starts is None or self.ends is None) or (
+                location_idx not in self.starts and location_idx not in self.ends
+            ):
                 # Ends have no cumulative variable to set a range on.
                 print(location_idx)
                 index = self.manager.NodeToIndex(location_idx)
