@@ -163,7 +163,11 @@ class ORToolsRouting:
         self.routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
         time = name
         self.routing.AddDimension(
-            transit_callback_index, slack_max, capacity, fix_start_cumul_to_zero, time,
+            transit_callback_index,
+            slack_max,
+            int(capacity),
+            fix_start_cumul_to_zero,
+            time,
         )
         time_dimension = self.routing.GetDimensionOrDie(time)
 
@@ -173,7 +177,6 @@ class ORToolsRouting:
                 location_idx not in self.starts and location_idx not in self.ends
             ):
                 # Ends have no cumulative variable to set a range on.
-                print(location_idx)
                 index = self.manager.NodeToIndex(location_idx)
                 time_dimension.CumulVar(index).SetRange(
                     int(time_windows[location_idx][0]),
