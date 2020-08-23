@@ -54,7 +54,7 @@ def test_reroute_sim_tw():
 
     seed = 123456789
     rg = Generator(PCG64(seed))
-    tw, customers = sample_generator(rg, 3)
+    tw, customers = sample_generator(rg, 5)
 
     windows = np.array(
         [[0.0, 10000.0], [0.0, 10000.0], [0.0, 1.0], [2.0, 3.0], [0.0, 10000.0]]
