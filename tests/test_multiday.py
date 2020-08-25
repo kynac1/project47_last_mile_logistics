@@ -32,7 +32,7 @@ def test_sample_generator():
                 time_windows[i, 0] = 14400
                 time_windows[i, 1] = 28800
 
-        customers = [Customer(lat[i], lon[i], 0.1, 0.1, rg=rg) for i in range(len(lat))]
+        customers = [Customer(lat[i], lon[i], 0.8, 0.8, rg=rg) for i in range(len(lat))]
 
         return customers, time_windows
 
@@ -61,7 +61,14 @@ def route_optimizer(
     for alternates in alternate_locations:
         r.add_option(alternates, 50000)
 
-    s = r.solve(log=False)
+    r.search_parameters.first_solution_strategy = (
+        routing_enums_pb2.FirstSolutionStrategy.SAVINGS
+    )
+
+    r.search_parameters.local_search_metaheuristic = (
+        routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT
+    )
+    s = r.solve(tlim=100, log=True)
 
     unscheduled = []
     scheduled = reduce(lambda x, y: x + y, s.routes)
@@ -203,3 +210,6 @@ def test_plot():
         plot=True,
     )
 
+
+if __name__ == "__main__":
+    test_multiday()
