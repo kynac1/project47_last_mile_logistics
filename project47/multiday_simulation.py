@@ -66,12 +66,12 @@ def collect_data(
             "days_taken": [
                 int(day - arrival_days[i])
                 for i in range(len(arrival_days))
-                if i != 0 or i not in delivered
+                if i != 0 and i not in delivered
             ],  # [12,54,21,43,21],
             "time_window": [
                 [int(time_windows[i][0]), int(time_windows[i][1])]
                 for i in range(len(arrival_days))
-                if i != 0 or i not in delivered
+                if i != 0 and i not in delivered
             ],  # [[3,7],[2,7],[5,9],[1,3],[4,5]]
         },
     }
@@ -160,6 +160,7 @@ def multiday(
     )
 
     for day in range(n_days):
+        print(day)
         # Generate data
         new_time_windows, new_customers = (
             time_windows_per_day[day],
