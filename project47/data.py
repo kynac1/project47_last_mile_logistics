@@ -214,7 +214,13 @@ def get_dist(API_key, cd, coord_filename, latitude, longitude, save=False):
 
 
 def osrm_get_dist(
-    cd, coord_filename, latitude, longitude, save=False, host="router.project-orsm.org"
+    cd,
+    coord_filename,
+    latitude,
+    longitude,
+    source=None,
+    save=False,
+    host="router.project-orsm.org",
 ):
     local = (
         host != "router.project-orsm.org"
@@ -246,6 +252,14 @@ def osrm_get_dist(
     url = "http://" + host + "/table/v1/driving/" + dest_string
     if local:
         url += "?annotations=distance,duration"  # + destinations[0]+";" +destinations[1]+";" +destinations[2] #+ '?annotations=distance'
+    if source:
+        url += "&sources="
+        for i in source[:-1]:
+            url += f"{i};"
+        url += f"{source[-1]}"
+        url += "&destinations=" + ";".join(
+            f"{i}" for i in range(len(latitude)) if i not in source
+        )
     response = requests.get(url)
     result = response.json()
     if result["code"] == "Ok":
