@@ -5,7 +5,7 @@ from project47.data import get_sample, read_data
 from numpy.random import Generator, PCG64
 import os
 import matplotlib.pyplot as plt
-from celluloid import Camera
+# from celluloid import Camera
 
 
 def collect_data(
