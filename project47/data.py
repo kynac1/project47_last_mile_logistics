@@ -252,7 +252,7 @@ def osrm_get_dist(
     url = "http://" + host + "/table/v1/driving/" + dest_string
     if local:
         url += "?annotations=distance,duration"  # + destinations[0]+";" +destinations[1]+";" +destinations[2] #+ '?annotations=distance'
-    if source:
+    if len(source) != 0:
         url += "&sources="
         for i in source[:-1]:
             url += f"{i};"
