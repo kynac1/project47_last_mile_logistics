@@ -4,6 +4,10 @@ from copy import copy
 import json
 import os
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def sim(s: RoutingSolution, update_function):
     """ Simple simulator
@@ -35,18 +39,26 @@ def sim(s: RoutingSolution, update_function):
     delivered : list
         A list of all successful deliveries
     """
+    logger.debug("Start simulation")
     times = []
     distances = []
     futile = np.zeros(len(s.routes))
     delivered = []
 
     for i, route in enumerate(s.routes):
+        logger.debug("Vehicle %i" % i)
         times.append([])
         times[-1].append(0)
         distances.append([])
         distances[-1].append(0)
 
         j = 0
+
+        logger.debug(
+            "Route: %s, distance: %i, time: %i, futile: %s"
+            % (route[j:], distances[-1][-1], times[-1][-1], futile[i],)
+        )
+
         while j < (len(route) - 1):
             distance, time, isfutile, route_new = update_function(
                 route, j, times[-1][-1]
@@ -57,6 +69,7 @@ def sim(s: RoutingSolution, update_function):
             if route != route_new:
                 j = 0
                 route = route_new
+                # futile[i] += len()
                 # delivered.append(route[j])
             else:
                 if isfutile:
@@ -65,6 +78,12 @@ def sim(s: RoutingSolution, update_function):
                     delivered.append(route[j + 1])
                 j = j + 1
 
+            logger.debug(
+                "Route: %s, distance: %i, time: %i, futile: %s"
+                % (route[j:], distances[-1][-1], times[-1][-1], futile[i],)
+            )
+
+    logger.debug("End simulation")
     return distances, times, futile, delivered
 
 
@@ -342,6 +361,7 @@ def estimate_ahead_policy(
                 return next_distance, next_time, futile, route
             # skip i+1 job and reroute
             else:
+                logger.debug("Late for next delivery")
                 route = rerouting_new(
                     i,
                     route,
@@ -422,6 +442,7 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
                 return next_distance, next_time, futile, route
             # skip i+1 job and reroute
             else:
+                logger.debug("Late for delivery, or customer unresponsive")
                 temp_time_windows = time_windows.copy()
                 temp_time_windows[route[i + 1], 0] = 0
                 temp_time_windows[route[i + 1], 1] = 1
@@ -615,6 +636,7 @@ def rerouting_new(
     route : list
         The updated route. If solving fails, then returns route[i:] as the new route, without removing or changing locations.
     """
+    logger.debug("Rerouting started")
     places_to_visit = np.array(
         route[i:]
     )  # I'm not removing locations yet. Quicker to implement that way.
@@ -667,18 +689,18 @@ def rerouting_new(
     r.search_parameters.local_search_metaheuristic = (
         routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT
     )
-
-    s = r.solve(tlim=1)
-    print(places_to_visit)
-    print(s)
+    s = r.solve(
+        tlim=1, log=logger.getEffectiveLevel() <= 10
+    )  # This solves the problem, logging if level is debug or less
     if s is None:
+        logger.warning("Rerouting Failed")
         # Rerouting failed. Just return old route
         res = route[i:]
     else:
+        logger.debug("Rerouting Successful")
         res = [
             places_to_visit[i] for i in s.routes[0]
         ]  # I think this does the same as previously? Not too sure. Makes sense though
-    print(res)
     return res
 
 

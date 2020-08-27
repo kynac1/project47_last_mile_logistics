@@ -15,6 +15,10 @@ import re
 from pandas import DataFrame
 from numpy.random import Generator, PCG64
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def read_data(
     sample_data_csv,
@@ -185,7 +189,8 @@ def get_dist(API_key, cd, coord_filename, latitude, longitude, save=False):
         ]
         destinations = data.coordinates
     else:
-        print("Warning: No input data")
+        logger.error("No Input Data")
+        # print("Warning: No input data")
         return [], []
 
     # get distance (km) and durantion (hr) matrix
@@ -241,7 +246,8 @@ def osrm_get_dist(
         ]
         destinations = data.coordinates
     else:
-        print("Warning: No input data")
+        logger.error("No Input Data")
+        # print("Warning: No input data")
         return [], []
 
     # set up request
@@ -285,6 +291,8 @@ def osrm_get_dist(
         else:
             return None, tm
     else:
+        logger.critical("OSRM request failed")
+        logger.critical("%s" % result)
         return None, None
 
 

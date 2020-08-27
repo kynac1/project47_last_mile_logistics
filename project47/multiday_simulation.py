@@ -7,6 +7,10 @@ import os
 import matplotlib.pyplot as plt
 from celluloid import Camera
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def collect_data(
     day: int,
@@ -126,9 +130,7 @@ def multiday(
         Whether to display a plot of the current routes
     """
 
-    if plot:
-        # plt.ion()
-        pass
+    logger.debug("Start multiday sim")
 
     rg = Generator(PCG64(seed))
 
@@ -137,6 +139,8 @@ def multiday(
     longitudes_per_day = []
     time_windows_per_day = []
     customers_per_day = []
+
+    logger.debug("Generating incoming packages")
 
     for day in range(n_days):
         customers, new_time_windows = sample_generator(rg)
@@ -160,7 +164,7 @@ def multiday(
     )
 
     for day in range(n_days):
-        print(day)
+        logger.debug("Start day %i" % day)
         # Generate data
         new_time_windows, new_customers = (
             time_windows_per_day[day],
@@ -171,13 +175,21 @@ def multiday(
         futile_count = np.append(futile_count, np.zeros(len(new_customers)))
         customers = np.append(customers, new_customers)
 
+        logger.debug("Number of incoming packages: %i" % len(new_customers))
+        logger.debug("Current number of packages: %i" % len(customers))
+
+        logger.debug("Calculating distance and time matrix")
+
         # Get times and distances
         dm, tm = dist_and_time(customers)
         if dm is None:
+            logger.critical("Distance computation failed. Stopping simulation.")
             # We've exceeded the map bounds. Stop here for now, but we should really handle this more gracefully.
             break
         dm = np.array(dm)
         tm = np.array(tm)
+
+        logger.debug("Compute alternate locations")
 
         # Setup list of alternate locations
         alternate_locations = []
@@ -190,6 +202,8 @@ def multiday(
                 if a in temp:
                     temp.remove(a)
             alternate_locations.append(location_index)
+
+        logger.debug("Optimise routes")
 
         # Calulate routes for the day
         routes, unscheduled = route_optimizer(
@@ -213,7 +227,10 @@ def multiday(
 
         futile_count[[i for i in range(len(customers)) if i not in unscheduled]] += 1
 
+        logger.debug("Start simulations")
+
         for i in range(replications):
+            logger.debug("Replication %i" % i)
             # Simulate behaviour
             distances, times, futile, delivered = simulator(
                 routes, dm, tm, delivery_time_windows, customers, rg
@@ -248,6 +265,8 @@ def multiday(
         arrival_days = arrival_days[undelivered]
         futile_count = futile_count[undelivered]
         customers = customers[undelivered]
+
+        logger.debug("Number of remaining Packages: %i" % len(customers))
 
     return data
 

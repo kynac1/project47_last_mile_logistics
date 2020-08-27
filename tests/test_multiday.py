@@ -5,6 +5,10 @@ from project47.multiday_simulation import *
 from project47.customer import Customer
 from functools import reduce
 
+import logging
+
+logging.basicConfig(level="DEBUG")  # Set the global logging level
+
 
 def test_sample_generator():
     cd = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
