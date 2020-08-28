@@ -5,10 +5,6 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-try:
-    import osmnx as ox
-except:
-    pass
 import networkx as nx
 
 
@@ -20,7 +16,7 @@ class ORToolsRouting:
     ----------
     locs : int
         The number of locations. Includes depos.
-    
+
     depo : int, optional
         The location to use as the depo. Ignored if starts and ends are set. Defaults to location 0.
 
@@ -45,7 +41,7 @@ class ORToolsRouting:
         self.objective = np.Inf
 
     def create_model(self):
-        """ Creates required ortools objects and stores them in class variables.
+        """Creates required ortools objects and stores them in class variables.
 
         This could potentially be moved into the init function, but I'm concerned we may need to reset these objects,
         which is easier if this is wrapped separately.
@@ -70,7 +66,7 @@ class ORToolsRouting:
         fix_start_cumul_to_zero: bool,
         name: str,
     ):
-        """ This pattern is reused a lot, so I've rewritten a wrapper to make it less messy
+        """This pattern is reused a lot, so I've rewritten a wrapper to make it less messy
 
         https://developers.google.com/optimization/reference/python/constraint_solver/pywrapcp#adddimension
 
@@ -78,8 +74,8 @@ class ORToolsRouting:
         ----------
         distance_matrix : array-like
             A 2D np.array of integers that has the distances from all nodes to all other nodes.
-        
-        Otherwise, see the above link. 
+
+        Otherwise, see the above link.
 
         Warning
         -------
@@ -92,15 +88,14 @@ class ORToolsRouting:
             An ortools dimension object. We can set certain types of objectives on this, mostly span costs (cost for having routes with different lengths)
         callback_index : int
             The index of the callback in the routing model.
-            This is used with self.routing to add some other types of objectives (more classical distance measures)        
+            This is used with self.routing to add some other types of objectives (more classical distance measures)
         """
 
         if self.routing is None:
             self.create_model()
 
         def callback(from_index: int, to_index: int):
-            """ This is the callback passed to the routing solver. It is a closure over the data in the distance matrix.
-            """
+            """This is the callback passed to the routing solver. It is a closure over the data in the distance matrix."""
             from_node = self.manager.IndexToNode(from_index)
             to_node = self.manager.IndexToNode(to_index)
             return distance_matrix[from_node, to_node]
@@ -128,7 +123,7 @@ class ORToolsRouting:
         fix_start_cumul_to_zero: bool,
         name: str,
     ):
-        """ Adds a time windowed constraint
+        """Adds a time windowed constraint
 
         https://developers.google.com/optimization/reference/python/constraint_solver/pywrapcp#adddimension
 
@@ -138,8 +133,8 @@ class ORToolsRouting:
             A 2D np.array of integers that has the times from all nodes to all other nodes.
         time_windows : dict
             A dict that is indexed by the location number, returning an 1d array-like structure with [start_window, end_window]
-        
-        Otherwise, see the above link. 
+
+        Otherwise, see the above link.
 
         Warning
         -------
@@ -195,7 +190,7 @@ class ORToolsRouting:
         return time_dimension, transit_callback_index
 
     def add_disjunction(self, node, penalty):
-        """ Allows the solver to drop the node
+        """Allows the solver to drop the node
 
         Parameters
         ----------
@@ -212,8 +207,7 @@ class ORToolsRouting:
         )
 
     def solve(self, tlim=10, log=True):
-        """ Solves the route. If the solution has a better objective, this saves the solution.
-        """
+        """Solves the route. If the solution has a better objective, this saves the solution."""
 
         if self.routing is None:
             self.create_model()
@@ -238,8 +232,7 @@ class ORToolsRouting:
         return None
 
     def get_solution(self, ortools_sol=None):
-        """ Returns the solution in a format independent of ortools.
-        """
+        """Returns the solution in a format independent of ortools."""
 
         if ortools_sol is None:
             ortools_sol = self._solution
@@ -276,7 +269,7 @@ SearchStatus = {
 
 
 class RoutingSolution:
-    """ Independent solution object
+    """Independent solution object
 
     The idea is that this can be produced by the routing model. This can then be sent to a simulation function.
     If we try new methods, they should still return routes in this format. This means that we can still use the
@@ -287,8 +280,7 @@ class RoutingSolution:
         self.routes = routes
 
     def __str__(self):
-        """ String representation of the solution for printing
-        """
+        """String representation of the solution for printing"""
         s = "Routing solution:\n"
         for route in self.routes:
             s += "->".join(str(loc) for loc in route) + "\n"
@@ -311,26 +303,3 @@ class RoutingSolution:
         if weight_matrix is not None:
             labels = {e: str(weight_matrix[e[0], e[1]]) for e in G.edges}
             nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
-
-    def plot_osm(self, latlons, G, nodes=None):
-
-        if nodes is None:
-            nodes = [ox.get_nearest_node(G, latlon) for latlon in latlons]
-
-        osm_routes = []
-        colorlist = []
-        nodecolorlist = []
-        for route in self.routes:
-            color = np.random.rand(3)
-            for i in range(len(route) - 1):
-                orig_node = nodes[route[i]]
-                dest_node = nodes[route[i + 1]]
-                path = nx.shortest_path(G, orig_node, dest_node, weight="length")
-                osm_routes.append(path)
-                colorlist += [color] * (len(path) - 1)
-                nodecolorlist += [color] * 2
-
-        return ox.plot_graph_routes(
-            G, osm_routes, route_color=colorlist, orig_dest_node_color=nodecolorlist
-        )
-
