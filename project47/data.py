@@ -223,7 +223,7 @@ def osrm_get_dist(
     coord_filename,
     latitude,
     longitude,
-    source=None,
+    source=[],
     save=False,
     host="router.project-orsm.org",
 ):
@@ -387,4 +387,3 @@ points = random_points_within(poly,1000)
 for p in points:
     print(p.x,",",p.y)
 """
-
