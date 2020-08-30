@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "project47"
+version = "0.1.0"
+description = ""
+authors = ["Michael Sundvick <kynac1@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+ortools = "^7.5"
+matplotlib = "^3.2"
+pandas = "^1.0"
+numpy = "^1.18"
+networkx = "^2.4"
+requests = "^2.23"
+geopandas = "^0.7"
+shapely = "^1.7.1"
+googlemaps = "^2.5"
+geopy = "^1.22"
+pulp = "^2.3"
+pytest-cov = "^2.10.1"
+pytest-profiling = "^1.7.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.0.1"
+pylint = "^2.6.0"
+black = {version = "^20.8b1", allow-prereleases = true}
+
+[build-system]
+requires = ["poetry-core>=1.0.0a5"]
+build-backend = "poetry.core.masonry.api"
