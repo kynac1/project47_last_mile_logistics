@@ -23,6 +23,7 @@ dist = {'f1': {1: 4, 2: 5, 3: 6, 4: 8, 5: 10},
         'f2': {1: 6, 2: 4, 3: 3, 4: 5, 5: 8},
         'f3': {1: 9, 2: 7, 3: 4, 4: 3, 5: 4}}
 
+k = 10
 
 # set problem
 prob = LpProblem("FacilityLocation", LpMinimize)
@@ -37,7 +38,7 @@ serv_vars = LpVariable.dicts("x",
 use_vars = LpVariable.dicts("y", FACILITY, cat=LpBinary)
 
 # objective function
-prob += lpSum(dist[j][i] * serv_vars[i, j] for j in FACILITY for i in CUSTOMERS) + lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
+prob += lpSum(dist[j][i] * serv_vars[i, j] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
 
 # constraints
 # each package should be delivered to a facility
@@ -47,6 +48,10 @@ for i in CUSTOMERS:
 # capacity constraint
 for j in FACILITY:
     prob += lpSum(serv_vars[(i, j)] for i in CUSTOMERS) <= Fac_cap[j] * use_vars[j]
+
+# number of collection points
+    prob += lpSum(use_vars[j] for j in FACILITY) <= k
+
 
 # upper bound for x, tight formlation
 for i in CUSTOMERS:
