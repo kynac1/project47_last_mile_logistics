@@ -136,8 +136,8 @@ def test_sample_generator():
 
 
 if __name__ == "__main__":
+    # routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC,
     fss_list = [
-        routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC,
         routing_enums_pb2.FirstSolutionStrategy.ALL_UNPERFORMED,
         routing_enums_pb2.FirstSolutionStrategy.CHRISTOFIDES,
         routing_enums_pb2.FirstSolutionStrategy.FIRST_UNBOUND_MIN_VALUE,
@@ -174,15 +174,15 @@ if __name__ == "__main__":
         for lsm in lsm_list:
             print("FSS: ", fss_indexer[fss])
             print("LSM: ", lsm_indexer[lsm])
-            for tlim in range(1, 10):
+            for tlim in range(1, 2):
                 try:
                     benchmarker(
                         fss,
                         lsm,
-                        tlim * 10,
+                        tlim,
                     )
                 except:
                     print("FAILED")
 
-                with open("current_results.json", "w") as f:
+                with open("current_results3.json", "w") as f:
                     json.dump(data, f)

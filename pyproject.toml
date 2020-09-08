@@ -19,6 +19,8 @@ geopy = "^1.22"
 pulp = "^2.3"
 pytest-cov = "^2.10.1"
 pytest-profiling = "^1.7.0"
+jupyter = "^1.0.0"
+pyqt5 = "^5.15.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0.1"
