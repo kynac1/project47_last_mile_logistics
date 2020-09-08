@@ -10,7 +10,7 @@ from numpy.random import Generator, PCG64
 import os
 import matplotlib.pyplot as plt
 
-from mpl_toolkits.basemap import Basemap
+# from mpl_toolkits.basemap import Basemap
 import matplotlib.pylab as pylab
 import string
 import matplotlib.cm as cm
@@ -44,6 +44,7 @@ serv_vars = LpVariable.dicts("x",
 use_vars = LpVariable.dicts("y", FACILITY, cat=LpBinary)
 
 # objective function
+# prob += lpSum(dist[j][i] * serv_vars[i, j]* weight[i] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
 prob += lpSum(dist[j][i] * serv_vars[i, j] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
 
 # constraints
@@ -82,17 +83,17 @@ for j in FACILITY:
 
 print("The cost of production in dollars for one year= ", value(prob.objective))
 
-m = Basemap(llcrnrlon=172.4768000,llcrnrlat=-43.6147000,urcrnrlon=172.7816000,urcrnrlat=-43.4375000,lat_ts=20,
-            resolution='h',projection='merc',lon_0=172.4768000,lat_0=-43.6147000)
-lat1, lon1 = m(lat, lon)
-m.drawmapboundary(fill_color='white') # fill to edge
-m.scatter(lat1, lon1 ,s=5,c='r',marker="o",cmap=cm.jet,alpha=1.0)
+# m = Basemap(llcrnrlon=172.4768000,llcrnrlat=-43.6147000,urcrnrlon=172.7816000,urcrnrlat=-43.4375000,lat_ts=20,
+#             resolution='h',projection='merc',lon_0=172.4768000,lat_0=-43.6147000)
+# lat1, lon1 = m(lat, lon)
+# m.drawmapboundary(fill_color='white') # fill to edge
+# m.scatter(lat1, lon1 ,s=5,c='r',marker="o",cmap=cm.jet,alpha=1.0)
 
-# fig, axs = plt.subplots()
-# plt.scatter(lat, lon, s = 5, c="black", alpha=0.5)
-# plt.scatter(fac_lat, fac_lon, s = 20, c="blue", marker="^", alpha=0.5)
-# plt.scatter(sol_fac_lat, sol_fac_lon, s = 50 , c="red", marker="*", alpha=0.5)
-# plt.title('Scatter plot pythonspot.com')
-# plt.xlabel('x')
-# plt.ylabel('y')
+fig, axs = plt.subplots()
+plt.scatter(lat, lon, s = 5, c="black", alpha=0.5)
+plt.scatter(fac_lat, fac_lon, s = 20, c="blue", marker="^", alpha=0.5)
+plt.scatter(sol_fac_lat, sol_fac_lon, s = 50 , c="red", marker="*", alpha=0.5)
+plt.title('Scatter plot pythonspot.com')
+plt.xlabel('x')
+plt.ylabel('y')
 plt.show()

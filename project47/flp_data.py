@@ -43,7 +43,7 @@ def centroid(n, lat, lon):
     lat, lon = closest_coord.transpose()
     return list(lat), list(lon)
 
-def centroid_loc_sample(n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, save):
+def centroid_loc_sample(n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr, save):
     """
     rg: np.random.Generator
     CHC_df_grouped: CHC data frame - output of 'read_data' function
@@ -53,10 +53,9 @@ def centroid_loc_sample(n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, C
     """
     latitude = []
     longitude = []
-    lat_closest = []
-    lon_closest = []
+    address = []
     coord_closest = []
-    
+    df_addr = pd.DataFrame(columns=['lat', 'lon', 'address'])
     for sub in sample_sub_dict.keys():
         # fill in address deets
         if sub not in CHC_sub_dict.keys():
@@ -67,6 +66,7 @@ def centroid_loc_sample(n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, C
         CHC_row = CHC_df_grouped.get_group(sub).iloc[rd2]
         lat_sub = CHC_row["gd2000_ycoord"].values
         lon_sub = CHC_row["gd2000_xcoord"].values
+        address_sub = CHC_row["full_address"].values
         coord_sub = np.array(list(zip(lat_sub, lon_sub))).reshape(len(lat_sub), 2)
 
         # find the centroid of each suburb
@@ -77,11 +77,47 @@ def centroid_loc_sample(n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, C
         # all sampled locations
         latitude += list(lat_sub)
         longitude += list(lon_sub)
-    
+        address += list(address_sub)
+    df_addr['lat'] = latitude
+    df_addr['lon'] = longitude
+    df_addr['address'] = address
+
+    # group by street
+    if gp_addr == True:
+        coord_closest = []
+        # set up a dataframe grouped by street
+        df_addr[['number','street']] = df_addr.address.str.split(" ", n=1, expand=True)
+        addr_gb = df_addr.groupby('street')
+        sample_street = list(addr_gb.groups.keys())
+        sample_street_size = addr_gb.size().tolist()
+        sample_street_dict = dict(zip(sample_street, sample_street_size))
+
+        for street in sample_street_dict.keys():
+            street_gp = addr_gb.get_group(street)
+            lat_street = street_gp['lat'].values
+            lon_street = street_gp['lon'].values
+            coord_street = np.array(list(zip(lat_street, lon_street))).reshape(len(lat_street), 2)
+            if sample_street_dict[street]!=1:
+                # find the centroid of each suburb
+                centroid_street = centeroidnp(lat_street, lon_street)
+                # find the location in each sample suburb that's closest to its corresponding centroid
+                coord_closest.append(closest_node(centroid_street, coord_street))
+            else: 
+                coord_closest.append(coord_street)
+        sample_sub_dict = sample_street_dict
+    # sample_sub.pop(0)  # remove empty string
+    # # get number of addresses for each suburb
+    # sample_sub_size = sample_gb.size().tolist()
+    # sample_sub_size.pop(0)  # remove size of empty string
+
     # a list of centriod locations for all suburbs
     lat_cen, lon_cen = np.vstack(coord_closest).transpose()
+    # compute weight 
+    weight = list(sample_sub_dict.values())
+    sum_w = sum(weight)
+    weight = [w/sum_w for w in weight]
 
-    return list(lat_cen), list(lon_cen)
+    return list(lat_cen), list(lon_cen), weight
 
 def centeroidnp(latitude, longitude):
     length = len(latitude)
@@ -115,7 +151,7 @@ def get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict):
     return latitude, longitude
 
 # number of collection points
-k = 3
+k = 1
 
 # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
 cd = (os.path.dirname(os.path.abspath(__file__)).strip("project47") + "data")  # direct to data folder
@@ -139,9 +175,26 @@ sample_df, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict = read_data(
     lon_max=172.7816000,
 )
 
+# # weighting factor for each centroid according to its occurrence frequency
+# weight = list(sample_sub_dict.values())
+# # print(weight)
+# # print(weight.index(max(weight)))
+# # print(weight[18])
+# # print(weight[11])
+# # print(weight[19])
+# sum_w = sum(weight)
+# weight = [w/sum_w for w in weight]
+# # flipped_weight = [sum_w-w for w in weight]
+# # sum_fw = sum(flipped_weight)
+# # flipped_weight= [w/sum_fw for w in flipped_weight]
+# # # print(flipped_weight)
+# # # print(sum(flipped_weight))
+# # weight = flipped_weight
 
-lat, lon = centroid_loc_sample(k, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, save=False)
 
+lat, lon, weight = centroid_loc_sample(k, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr = True, save=False)
+print(len(weight))
+print(weight)
 #  lat = CHC_df["gd2000_ycoord"].array
 # lon = CHC_df["gd2000_xcoord"].array
 
