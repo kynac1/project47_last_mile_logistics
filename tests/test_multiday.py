@@ -14,7 +14,7 @@ def test_sample_generator():
     cd = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
     sample_data = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
     CHC_data = os.path.join(cd, "christchurch_street.csv")
-    sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(
+    sample_df, CHC_df, _, CHC_sub, CHC_sub_dict = read_data(
         sample_data,
         CHC_data,
         lat_min=-43.6147000,
@@ -25,7 +25,7 @@ def test_sample_generator():
 
     def sample_generator(rg: np.random.Generator):
         lat, lon = get_sample(
-            10, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False
+            100, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False
         )
         time_windows = np.zeros((len(lat), 2))
         for i in range(len(lat)):
@@ -55,24 +55,30 @@ def dist_and_time(customers):
 
 
 def route_optimizer(
-    depots, dm, tm, time_windows, day, arrival_days, futile_count, alternate_locations
+    depots,
+    dm,
+    tm,
+    time_windows,
+    day,
+    arrival_days,
+    futile_count,
+    alternate_locations,
+    fss=routing_enums_pb2.FirstSolutionStrategy.SAVINGS,
+    lsm=routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT,
+    tlim=100,
 ):
     locs = dm.shape[0]
     r = ORToolsRouting(locs, 5)
     dim, ind = r.add_dimension(dm, 0, 50000, True, "distance")
     r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
-    dim, ind = r.add_time_windows(tm, time_windows, 28800, 28800, True, "time")
+    dim, ind = r.add_time_windows(tm, time_windows, 28800, 28800, False, "time")
     for alternates in alternate_locations:
         r.add_option(alternates, 50000)
 
-    r.search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.SAVINGS
-    )
+    r.search_parameters.first_solution_strategy = fss
 
-    r.search_parameters.local_search_metaheuristic = (
-        routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT
-    )
-    s = r.solve(tlim=100, log=True)
+    r.search_parameters.local_search_metaheuristic = lsm
+    s = r.solve(tlim=tlim, log=True)
 
     unscheduled = []
     scheduled = reduce(lambda x, y: x + y, s.routes)
@@ -89,7 +95,7 @@ def simulator(
 
 
 def test_multiday():
-    """ This is the main example of all the functionality.
+    """This is the main example of all the functionality.
 
     The idea is that when we create a new experiment to run, we'd copy the structure of this function and replace
     parts so that it implements the new policies
@@ -113,8 +119,7 @@ def test_multiday():
 
 
 def test_reproducible():
-    """ Run two identical simulations with same random seed. Check they return the same results.
-    """
+    """Run two identical simulations with same random seed. Check they return the same results."""
     sample_generator = test_sample_generator()
 
     data1 = multiday(
@@ -149,7 +154,7 @@ def test_alternate_locations():
     cd = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
     sample_data = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
     CHC_data = os.path.join(cd, "christchurch_street.csv")
-    sample_df, CHC_df, CHC_sub, CHC_sub_dict = read_data(sample_data, CHC_data)
+    sample_df, CHC_df, _, CHC_sub, CHC_sub_dict = read_data(sample_data, CHC_data)
 
     def sample_generator(rg: np.random.Generator):
         lat, lon = get_sample(
