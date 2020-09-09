@@ -151,7 +151,7 @@ def get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict):
     return latitude, longitude
 
 # number of collection points
-k = 1
+k = 2
 
 # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
 cd = (os.path.dirname(os.path.abspath(__file__)).strip("project47") + "data")  # direct to data folder
@@ -192,7 +192,7 @@ sample_df, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict = read_data(
 # # weight = flipped_weight
 
 
-lat, lon, weight = centroid_loc_sample(k, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr = True, save=False)
+lat, lon, weight = centroid_loc_sample(k, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr = False, save=False)
 print(len(weight))
 print(weight)
 #  lat = CHC_df["gd2000_ycoord"].array

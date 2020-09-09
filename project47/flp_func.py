@@ -44,8 +44,8 @@ serv_vars = LpVariable.dicts("x",
 use_vars = LpVariable.dicts("y", FACILITY, cat=LpBinary)
 
 # objective function
-# prob += lpSum(dist[j][i] * serv_vars[i, j]* weight[i] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
-prob += lpSum(dist[j][i] * serv_vars[i, j] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
+prob += lpSum(dist[j][i] * serv_vars[i, j]* weight[i] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
+# prob += lpSum(dist[j][i] * serv_vars[i, j] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
 
 # constraints
 # each package should be delivered to a facility
@@ -77,7 +77,7 @@ for j in FACILITY:
         sol_fac_lat.append(fac_lat[j])
         sol_fac_lon.append(fac_lon[j])
         print("Establish facility at site ", j)
-
+print(weight)
 # for v in prob.variables():
 #     print(v.name, ' = ', v.varValue)
 
@@ -90,10 +90,11 @@ print("The cost of production in dollars for one year= ", value(prob.objective))
 # m.scatter(lat1, lon1 ,s=5,c='r',marker="o",cmap=cm.jet,alpha=1.0)
 
 fig, axs = plt.subplots()
-plt.scatter(lat, lon, s = 5, c="black", alpha=0.5)
-plt.scatter(fac_lat, fac_lon, s = 20, c="blue", marker="^", alpha=0.5)
-plt.scatter(sol_fac_lat, sol_fac_lon, s = 50 , c="red", marker="*", alpha=0.5)
-plt.title('Scatter plot pythonspot.com')
-plt.xlabel('x')
-plt.ylabel('y')
+plt.scatter(lon,lat, s = 5, c=weight)
+plt.gray()
+plt.scatter( fac_lon, fac_lat, s = 20, c="blue", marker="^", alpha=0.5)
+plt.scatter( sol_fac_lon, sol_fac_lat, s = 50 , c="red", marker="*", alpha=0.5)
+# plt.title('Scatter plot pythonspot.com')
+plt.xlabel('lon')
+plt.ylabel('lat')
 plt.show()
