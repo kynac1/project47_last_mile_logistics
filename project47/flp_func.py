@@ -39,7 +39,7 @@ prob = LpProblem("FacilityLocation", LpMinimize)
 serv_vars = LpVariable.dicts("x",
                                  [(i, j) for i in CUSTOMERS
                                          for j in FACILITY],
-                                 cat=LpBinary)
+                                 0)
 # if facility j is used
 use_vars = LpVariable.dicts("y", FACILITY, cat=LpBinary)
 
@@ -50,7 +50,7 @@ prob += lpSum(dist[j][i] * serv_vars[i, j]* weight[i] for j in FACILITY for i in
 # constraints
 # each package should be delivered to a facility
 for i in CUSTOMERS:
-    prob += lpSum(serv_vars[(i, j)] for j in FACILITY) == 1
+    prob += lpSum(serv_vars[(i, j)] for j in FACILITY) >= demand[i]
 
 # capacity constraint
 for j in FACILITY:
@@ -60,10 +60,10 @@ for j in FACILITY:
     prob += lpSum(use_vars[j] for j in FACILITY) == k
 
 
-# upper bound for x, tight formlation
+# upper bound for x, tight formulation
 for i in CUSTOMERS:
     for j in FACILITY:
-        prob += serv_vars[(i, j)] <= use_vars[j]
+        prob += serv_vars[(i, j)] <= use_vars[j] * demand[i]
 
 # solution
 prob.solve()
@@ -72,14 +72,15 @@ print("Status: ", LpStatus[prob.status])
 sol_fac_lat = []
 sol_fac_lon = []
 TOL = .00001
+
 for j in FACILITY:
     if use_vars[j].varValue > TOL:
         sol_fac_lat.append(fac_lat[j])
         sol_fac_lon.append(fac_lon[j])
         print("Establish facility at site ", j)
-print(weight)
-# for v in prob.variables():
-#     print(v.name, ' = ', v.varValue)
+
+for v in prob.variables():
+    print(v.name, ' = ', v.varValue)
 
 print("The cost of production in dollars for one year= ", value(prob.objective))
 
@@ -93,7 +94,7 @@ fig, axs = plt.subplots()
 plt.scatter(lon,lat, s = 5, c=weight)
 plt.gray()
 plt.scatter( fac_lon, fac_lat, s = 20, c="blue", marker="^", alpha=0.5)
-plt.scatter( sol_fac_lon, sol_fac_lat, s = 50 , c="red", marker="*", alpha=0.5)
+plt.scatter( sol_fac_lon, sol_fac_lat, s = 50 , c="red", marker="*")
 # plt.title('Scatter plot pythonspot.com')
 plt.xlabel('lon')
 plt.ylabel('lat')

@@ -191,10 +191,10 @@ sample_df, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict = read_data(
 # # # print(sum(flipped_weight))
 # # weight = flipped_weight
 
+demand = list(sample_sub_dict.values())
 
 lat, lon, weight = centroid_loc_sample(k, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr = False, save=False)
-print(len(weight))
-print(weight)
+
 #  lat = CHC_df["gd2000_ycoord"].array
 # lon = CHC_df["gd2000_xcoord"].array
 
@@ -240,4 +240,4 @@ dist, tm = osrm_get_dist(
 CUSTOMERS = np.arange(len(lat))
 FACILITY = np.arange(len(fac_lat))
 
-Fac_cap = np.ones(len(fac_lat))* math.ceil(len(lat)/k)
+Fac_cap = np.ones(len(fac_lat))* math.ceil(sample_df.shape[0]/k)
