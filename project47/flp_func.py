@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.pylab as pylab
 import string
 import matplotlib.cm as cm
-
+import pandas as pd
 # CUSTOMERS = [1,2,3,4,5]
 # FACILITY = ['f1','f2','f3']
 # Fac_cost = {'f1': 5,
@@ -82,7 +82,7 @@ for j in FACILITY:
 for v in prob.variables():
     print(v.name, ' = ', v.varValue)
 
-print("The cost of production in dollars for one year= ", value(prob.objective))
+print("The cost of travel = ", value(prob.objective))
 
 # m = Basemap(llcrnrlon=172.4768000,llcrnrlat=-43.6147000,urcrnrlon=172.7816000,urcrnrlat=-43.4375000,lat_ts=20,
 #             resolution='h',projection='merc',lon_0=172.4768000,lat_0=-43.6147000)
@@ -90,12 +90,15 @@ print("The cost of production in dollars for one year= ", value(prob.objective))
 # m.drawmapboundary(fill_color='white') # fill to edge
 # m.scatter(lat1, lon1 ,s=5,c='r',marker="o",cmap=cm.jet,alpha=1.0)
 
-fig, axs = plt.subplots()
-plt.scatter(lon,lat, s = 5, c=weight)
-plt.gray()
-plt.scatter( fac_lon, fac_lat, s = 20, c="blue", marker="^", alpha=0.5)
-plt.scatter( sol_fac_lon, sol_fac_lat, s = 50 , c="red", marker="*")
-# plt.title('Scatter plot pythonspot.com')
-plt.xlabel('lon')
-plt.ylabel('lat')
-plt.show()
+sol_fac_coord = list(map(list, zip( sol_fac_lat, sol_fac_lon)))
+coord = list(map(list, zip(lat, lon)))
+fac_coord = list(map(list, zip(fac_lat, fac_lon)))
+# fig, axs = plt.subplots()
+# plt.scatter(lon,lat, s = 5, c=weight)
+# plt.gray()
+# plt.scatter( fac_lon, fac_lat, s = 20, c="blue", marker="^", alpha=0.5)
+# plt.scatter( sol_fac_lon, sol_fac_lat, s = 50 , c="red", marker="*")
+# # plt.title('Scatter plot pythonspot.com')
+# plt.xlabel('lon')
+# plt.ylabel('lat')
+# plt.show()
