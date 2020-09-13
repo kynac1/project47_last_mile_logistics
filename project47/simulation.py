@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def sim(s: RoutingSolution, update_function):
-    """ Simple simulator
+    """Simple simulator
 
     TODO: Docs need a rewrite
 
@@ -27,7 +27,7 @@ def sim(s: RoutingSolution, update_function):
         The solution for a single day for the routes each vehicle travels
     update_function
         Calculates the behaviour at each step
-    
+
     Returns
     -------
     distances : np.array
@@ -56,7 +56,12 @@ def sim(s: RoutingSolution, update_function):
 
         logger.debug(
             "Route: %s, distance: %i, time: %i, futile: %s"
-            % (route[j:], distances[-1][-1], times[-1][-1], futile[i],)
+            % (
+                route[j:],
+                distances[-1][-1],
+                times[-1][-1],
+                futile[i],
+            )
         )
 
         while j < (len(route) - 1):
@@ -80,7 +85,12 @@ def sim(s: RoutingSolution, update_function):
 
             logger.debug(
                 "Route: %s, distance: %i, time: %i, futile: %s"
-                % (route[j:], distances[-1][-1], times[-1][-1], futile[i],)
+                % (
+                    route[j:],
+                    distances[-1][-1],
+                    times[-1][-1],
+                    futile[i],
+                )
             )
 
     logger.debug("End simulation")
@@ -88,10 +98,10 @@ def sim(s: RoutingSolution, update_function):
 
 
 def default_update_function(distance_matrix, time_matrix, time_windows):
-    """ This should be seen as a basic example for testing. Should not use for actual simulation.
-     
+    """This should be seen as a basic example for testing. Should not use for actual simulation.
+
     This time window policy makes the decision after arriving at the next place.
-    The deliver man checks the time once arrived. 
+    The deliver man checks the time once arrived.
     If the current time falls out of the time windows, then he will skip and go to the next place.
     """
     f = default_distance_function(distance_matrix)
@@ -265,7 +275,7 @@ def base_policy(
     customers,
     rg=np.random.Generator(np.random.PCG64(123)),
 ):
-    """ Does the most basic behaviour possible
+    """Does the most basic behaviour possible
 
     Travels to each location without rechecking anything, and no special behaviour for futile deliveries.
 
@@ -309,7 +319,7 @@ def estimate_ahead_policy(
     customers,
     rg=np.random.Generator(np.random.PCG64(123)),
 ):
-    """ Does the most basic behaviour possible
+    """Does the most basic behaviour possible
 
     Checks for lateness at each stage. If late, reroute. Should basically just remove the next location, but some reordering of other locations may occur.
 
@@ -384,7 +394,7 @@ def estimate_ahead_policy(
 
 
 def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
-    """ Does the most basic behaviour possible
+    """Does the most basic behaviour possible
 
     Calls the next customer at each stage. If customer is unresponsive, reroute.
     Should basically just remove the next location, but some reordering of other locations may occur.
@@ -423,6 +433,7 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
         ]
         for i in range(len(customers))
     }
+    time_windows = time_windows
 
     def h(route, i, time):
         next_distance = f(route[i], route[i + 1], time)
@@ -443,15 +454,15 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
             # skip i+1 job and reroute
             else:
                 logger.debug("Late for delivery, or customer unresponsive")
-                temp_time_windows = time_windows.copy()
-                temp_time_windows[route[i + 1], 0] = 0
-                temp_time_windows[route[i + 1], 1] = 1
+                time_windows
+                time_windows[route[i + 1], 0] = 0
+                time_windows[route[i + 1], 1] = 1
                 route = rerouting_new(
                     i,
                     route,
                     distance_matrix,
                     time_matrix,
-                    temp_time_windows,
+                    time_windows,
                     time,
                     alternates,
                 )
@@ -472,7 +483,7 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
 
 
 def default_distance_function(distance_matrix):
-    """ Basically makes an index into a function call. Might be useful if
+    """Basically makes an index into a function call. Might be useful if
     we want to swap in some randomness at some stage
     """
 
@@ -483,8 +494,7 @@ def default_distance_function(distance_matrix):
 
 
 def default_time_function(time_matrix):
-    """ See above. Could probably merge these actually.
-    """
+    """See above. Could probably merge these actually."""
 
     def f(i, j, time):
         return time_matrix[i, j]
@@ -588,7 +598,7 @@ def rerouting_matrix(k, matrix):
 
     Returns
     ---------------
-    matrix: dm or tm with an arbitrary depot 
+    matrix: dm or tm with an arbitrary depot
     """
     M = 99999999999999
     # add an arbitrary depot 'E'
@@ -607,9 +617,19 @@ def rerouting_matrix(k, matrix):
 
 
 def rerouting_new(
-    i, route, distance_matrix, time_matrix, time_windows, current_time, alternates={}
+    i,
+    route,
+    distance_matrix,
+    time_matrix,
+    time_windows,
+    current_time,
+    alternates={},
+    tlim=5,
+    fss=routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC,
+    lsm=routing_enums_pb2.LocalSearchMetaheuristic.TABU_SEARCH,
+    return_obj=False,
 ):
-    """ This function finds the optimal routes from the current location to the end of the route.
+    """This function finds the optimal routes from the current location to the end of the route.
 
 
     Parameters
@@ -630,7 +650,7 @@ def rerouting_new(
         Maps each location index to all other location indices that can be used instead.
         So {1:[2,3]} says that location 1 can be replaced with locations 2 or 3.
         Obviously only one ends up being in the final route.
-    
+
     Returns
     -------
     route : list
@@ -645,7 +665,8 @@ def rerouting_new(
 
     for k, v in alternates.items():
         if (
-            k in route[i:] and len(v) > 0
+            k in route[i + 1 : -1]
+            and len(v) > 0  # index route to ignore starts and ends
         ):  # Need the length check; appending empty list does datatype conversion
             places_to_visit = np.append(places_to_visit, v)
     places_to_visit = places_to_visit.tolist()
@@ -683,14 +704,10 @@ def rerouting_new(
 
     # I've worked out these parameters are generally the fastest. Greedy descent is problematic in that it
     # can't escape local optima, but we should generally be close enough to optimal that it doesn't matter.
-    r.search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC
-    )
-    r.search_parameters.local_search_metaheuristic = (
-        routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT
-    )
+    r.search_parameters.first_solution_strategy = fss
+    r.search_parameters.local_search_metaheuristic = lsm
     s = r.solve(
-        tlim=1, log=logger.getEffectiveLevel() <= 10
+        tlim=tlim, log=logger.getEffectiveLevel() <= 0
     )  # This solves the problem, logging if level is debug or less
     if s is None:
         logger.warning("Rerouting Failed")
@@ -701,7 +718,10 @@ def rerouting_new(
         res = [
             places_to_visit[i] for i in s.routes[0]
         ]  # I think this does the same as previously? Not too sure. Makes sense though
-    return res
+    if return_obj:
+        return r.objective
+    else:
+        return res
 
 
 import time
@@ -725,4 +745,3 @@ if __name__ == "__main__":
     )
 
     print(time.time() - start)
-
