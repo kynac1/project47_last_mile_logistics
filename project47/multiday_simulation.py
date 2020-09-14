@@ -166,11 +166,13 @@ def multiday(
 
     for day in range(n_days):
         logger.debug("Start day %i" % day)
+
         # Generate data
         new_time_windows, new_customers = (
             time_windows_per_day[day],
             customers_per_day[day],
         )
+
         delivery_time_windows = np.vstack((delivery_time_windows, new_time_windows))
         arrival_days = np.append(arrival_days, [day for _ in range(len(new_customers))])
         futile_count = np.append(futile_count, np.zeros(len(new_customers)))
@@ -182,6 +184,10 @@ def multiday(
         )  # -1 for depo
 
         logger.debug("Calculating distance and time matrix")
+
+        ## TODO: Remove packages from collection points
+        ## TODO: Add customers to collections points, and add visited collection points to customers
+        ## TODO: Remove packages sent to collection points from customers
 
         # Get times and distances
         dm, tm = dist_and_time(customers)
@@ -242,10 +248,6 @@ def multiday(
                 routes, dm, tm, delivery_time_windows, customers, rg
             )
             logger.debug("Delivered: %s" % delivered)
-            if collection_points:
-                collected_packages, cost = collection_points(
-                    unscheduled, futile_count, dm, tm, customers, rg
-                )
 
             # Data collection to save
             data.append(
