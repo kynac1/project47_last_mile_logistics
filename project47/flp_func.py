@@ -10,6 +10,11 @@ from numpy.random import Generator, PCG64
 import os
 import matplotlib.pyplot as plt
 
+# from mpl_toolkits.basemap import Basemap
+import matplotlib.pylab as pylab
+import string
+import matplotlib.cm as cm
+import pandas as pd
 # CUSTOMERS = [1,2,3,4,5]
 # FACILITY = ['f1','f2','f3']
 # Fac_cost = {'f1': 5,
@@ -34,17 +39,18 @@ prob = LpProblem("FacilityLocation", LpMinimize)
 serv_vars = LpVariable.dicts("x",
                                  [(i, j) for i in CUSTOMERS
                                          for j in FACILITY],
-                                 cat=LpBinary)
+                                 0)
 # if facility j is used
 use_vars = LpVariable.dicts("y", FACILITY, cat=LpBinary)
 
 # objective function
-prob += lpSum(dist[j][i] * serv_vars[i, j] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
+prob += lpSum(dist[j][i] * serv_vars[i, j]* weight[i] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
+# prob += lpSum(dist[j][i] * serv_vars[i, j] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
 
 # constraints
 # each package should be delivered to a facility
 for i in CUSTOMERS:
-    prob += lpSum(serv_vars[(i, j)] for j in FACILITY) == 1
+    prob += lpSum(serv_vars[(i, j)] for j in FACILITY) >= demand[i]
 
 # capacity constraint
 for j in FACILITY:
@@ -54,21 +60,45 @@ for j in FACILITY:
     prob += lpSum(use_vars[j] for j in FACILITY) == k
 
 
-# upper bound for x, tight formlation
+# upper bound for x, tight formulation
 for i in CUSTOMERS:
     for j in FACILITY:
-        prob += serv_vars[(i, j)] <= use_vars[j]
+        prob += serv_vars[(i, j)] <= use_vars[j] * demand[i]
 
 # solution
 prob.solve()
 print("Status: ", LpStatus[prob.status])
 
+sol_fac_lat = []
+sol_fac_lon = []
 TOL = .00001
+
 for j in FACILITY:
     if use_vars[j].varValue > TOL:
+        sol_fac_lat.append(fac_lat[j])
+        sol_fac_lon.append(fac_lon[j])
         print("Establish facility at site ", j)
 
-# for v in prob.variables():
-#     print(v.name, ' = ', v.varValue)
+for v in prob.variables():
+    print(v.name, ' = ', v.varValue)
 
-print("The cost of production in dollars for one year= ", value(prob.objective))
+print("The cost of travel = ", value(prob.objective))
+
+# m = Basemap(llcrnrlon=172.4768000,llcrnrlat=-43.6147000,urcrnrlon=172.7816000,urcrnrlat=-43.4375000,lat_ts=20,
+#             resolution='h',projection='merc',lon_0=172.4768000,lat_0=-43.6147000)
+# lat1, lon1 = m(lat, lon)
+# m.drawmapboundary(fill_color='white') # fill to edge
+# m.scatter(lat1, lon1 ,s=5,c='r',marker="o",cmap=cm.jet,alpha=1.0)
+
+sol_fac_coord = list(map(list, zip( sol_fac_lat, sol_fac_lon)))
+coord = list(map(list, zip(lat, lon)))
+fac_coord = list(map(list, zip(fac_lat, fac_lon)))
+# fig, axs = plt.subplots()
+# plt.scatter(lon,lat, s = 5, c=weight)
+# plt.gray()
+# plt.scatter( fac_lon, fac_lat, s = 20, c="blue", marker="^", alpha=0.5)
+# plt.scatter( sol_fac_lon, sol_fac_lat, s = 50 , c="red", marker="*")
+# # plt.title('Scatter plot pythonspot.com')
+# plt.xlabel('lon')
+# plt.ylabel('lat')
+# plt.show()
