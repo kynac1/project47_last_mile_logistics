@@ -33,8 +33,16 @@ class ORToolsRouting:
         self.starts = starts
         self.ends = ends
 
-        self.manager = None
-        self.routing = None
+        if self.starts is None and self.ends is None:
+            self.manager = pywrapcp.RoutingIndexManager(
+                self.locs, self.num_vehicles, self.depo
+            )
+        else:
+            assert len(self.starts) == len(self.ends) == self.num_vehicles
+            self.manager = pywrapcp.RoutingIndexManager(
+                self.locs, self.num_vehicles, self.starts, self.ends
+            )
+        self.routing = pywrapcp.RoutingModel(self.manager)
         self.solution = None
         self.search_parameters = pywrapcp.DefaultRoutingSearchParameters()
         self._solution = None

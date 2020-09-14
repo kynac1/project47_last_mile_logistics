@@ -5,6 +5,7 @@ import json
 import os
 
 import logging
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +41,8 @@ def sim(s: RoutingSolution, update_function):
         A list of all successful deliveries
     """
     logger.debug("Start simulation")
-    times = []
-    distances = []
+    times: List[List[int]] = []
+    distances: List[List[int]] = []
     futile = np.zeros(len(s.routes))
     delivered = []
 
@@ -80,7 +81,10 @@ def sim(s: RoutingSolution, update_function):
                 if isfutile:
                     futile[i] += 1
                 else:
-                    delivered.append(route[j + 1])
+                    if (
+                        route[j + 1] != 0
+                    ):  # Getting annoyed at all the depo nodes getting added here. We're only using 0 for depo, so this is fine as a quick hack
+                        delivered.append(route[j + 1])
                 j = j + 1
 
             logger.debug(

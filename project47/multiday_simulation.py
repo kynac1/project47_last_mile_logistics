@@ -5,6 +5,7 @@ from project47.data import get_sample, read_data
 from numpy.random import Generator, PCG64
 import os
 import matplotlib.pyplot as plt
+
 # from celluloid import Camera
 
 import logging
@@ -97,7 +98,7 @@ def multiday(
     plot=False,
     collection_points=None,
 ):
-    """ Multiday Sim
+    """Multiday Sim
 
     Paramters
     ---------
@@ -176,7 +177,9 @@ def multiday(
         customers = np.append(customers, new_customers)
 
         logger.debug("Number of incoming packages: %i" % len(new_customers))
-        logger.debug("Current number of packages: %i" % len(customers))
+        logger.debug(
+            "Current number of packages: %i" % (len(customers) - 1)
+        )  # -1 for depo
 
         logger.debug("Calculating distance and time matrix")
 
@@ -227,6 +230,9 @@ def multiday(
 
         futile_count[[i for i in range(len(customers)) if i not in unscheduled]] += 1
 
+        logger.debug(routes)
+        logger.debug("Unscheduled: %s" % unscheduled)
+
         logger.debug("Start simulations")
 
         for i in range(replications):
@@ -235,6 +241,7 @@ def multiday(
             distances, times, futile, delivered = simulator(
                 routes, dm, tm, delivery_time_windows, customers, rg
             )
+            logger.debug("Delivered: %s" % delivered)
             if collection_points:
                 collected_packages, cost = collection_points(
                     unscheduled, futile_count, dm, tm, customers, rg
@@ -266,7 +273,9 @@ def multiday(
         futile_count = futile_count[undelivered]
         customers = customers[undelivered]
 
-        logger.debug("Number of remaining Packages: %i" % len(customers))
+        logger.debug(
+            "Number of remaining Packages: %i" % (len(customers) - 1)
+        )  # -1 for depo
 
     return data
 

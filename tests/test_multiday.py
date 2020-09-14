@@ -25,7 +25,7 @@ def test_sample_generator():
 
     def sample_generator(rg: np.random.Generator):
         lat, lon = get_sample(
-            100, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False
+            10, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False
         )
         time_windows = np.zeros((len(lat), 2))
         for i in range(len(lat)):
@@ -63,9 +63,9 @@ def route_optimizer(
     arrival_days,
     futile_count,
     alternate_locations,
-    fss=routing_enums_pb2.FirstSolutionStrategy.SAVINGS,
-    lsm=routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT,
-    tlim=100,
+    fss=routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC,
+    lsm=routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH,
+    tlim=10,
 ):
     locs = dm.shape[0]
     r = ORToolsRouting(locs, 5)
@@ -78,7 +78,7 @@ def route_optimizer(
     r.search_parameters.first_solution_strategy = fss
 
     r.search_parameters.local_search_metaheuristic = lsm
-    s = r.solve(tlim=tlim, log=True)
+    s = r.solve(tlim=tlim, log=logger.getEffectiveLevel() <= 0)
 
     unscheduled = []
     scheduled = reduce(lambda x, y: x + y, s.routes)
@@ -176,10 +176,10 @@ def test_alternate_locations():
         dist_and_time,
         route_optimizer,
         simulator,
-        2,
+        1,
         0,
         28800,
-        replications=1,
+        replications=5,
     )
 
 
@@ -221,4 +221,4 @@ def test_plot():
 
 
 if __name__ == "__main__":
-    test_multiday()
+    test_alternate_locations()
