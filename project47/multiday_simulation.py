@@ -186,8 +186,69 @@ def multiday(
         logger.debug("Calculating distance and time matrix")
 
         ## TODO: Remove packages from collection points
+        if collection_points:
+            # initialise a list of dictionaries for each collection point
+            packages_at_collection = [{} for i in range(k)]
+            for i in range(k):
+                if len(packages_at_collection[i]) != 0:
+                    # randome number of customers collecting today
+                    rd2 = rg.integers(low=0, high=len(packages_at_collection[i]), size=1)
+                    arrivals = np.random.poisson(1, size=rd2)
+                    # sort the pakacges in order of descending days in collection point
+                    packages_at_collection[i] = sorted(packages_at_collection[i].items(), key=lambda x: x[1], reverse=True)
+                    for j in range(rd2):
+                        if rg.random(low=0, high=1, size=1) > 0.8:
+                            collected_package = packages_at_collection[i].pop(packages_at_collection[i].keys()[len(packages_at_collection[i])-j])
+                        else:
+                            collected_package = packages_at_collection[i].pop(packages_at_collection[i].keys()[0])
+                        
+                        # add to delivered package?
+                    # max_value = max(packages_at_collection[i].values())
+                    # max_keys = [k for k, v in packages_at_collection[i].items() if v == max_value] # getting all keys containing the `maximum
+            # collected_packages = 
+            #     collected_packages, cost = collection_points(
+            #         unscheduled, undelivered_packages, futile_count, dm, tm, customers, rg
+            #     )
         ## TODO: Add customers to collections points, and add visited collection points to customers
+        # need a list of undelivered packages in the simulation
+        allocat_packages_to_collection = [[] for i in range(k)]
+        for i, c in enumerate(undelivered_packages):
+            # a threshold of the number of days for the package in the system
+            if undelivered_packages["days_taken"][i] > 5:
+                # get the dist from the cusomter's house to the collection points
+                source = np.arange(len(fac_lat))
+                lat_all = sol_fac_lat
+                lon_all, = sol_fac_lon
+                lat_all.insert(0,c.lat)
+                lon_all,.insert(0,c.lon)
+                dist, tm = osrm_get_dist(
+                    cd,
+                    coord_filename,
+                    lat_all,
+                    lon_all,
+                    source = ,
+                    save=False,
+                    host="0.0.0.0:5000",)
+                # choose the closest collection point
+                min_value = min(dist[0])
+                # allow the package to be assigned to the closest collection point if the dist is within the threshold
+                if min_value < dist_threshold:
+                    min_ind = lt.index(min_value)
+                    # assign the package to its closest collection point
+                    allocat_packages_to_collection[min_ind].append(c)
+        # TODO: add one day to all packages_at_collection
+        for i in range(k): 
+            for j in len(allocat_packages_to_collection[i]):
+                # if the collection point exceeds its capacity
+                if len(packages_at_collection[i]) >= cap:
+                    break
+                packages_at_collection[i].append(allocat_packages_to_collection[i][j]) # Add customers to collections points
+                # assign the appeded package with the number of days in cp of 0
         ## TODO: Remove packages sent to collection points from customers
+        ## TODO: Output Data Correction
+        # set the packages sent to collection points as delivered package
+        # change futile to False?
+
 
         # Get times and distances
         dm, tm = dist_and_time(customers)
@@ -283,4 +344,4 @@ def multiday(
 
 
 def collection_point_example(unscheduled, futile_count, dm, tm, customers, rg):
-    pass
+    
