@@ -92,7 +92,7 @@ def route_optimizer(
 def simulator(
     routes, dm, tm, delivery_time_windows, customers, rg: np.random.Generator
 ):
-    return sim(routes, calling_policy(dm, tm, delivery_time_windows, customers, rg))
+    return sim(routes, new_tw_policy(dm, tm, delivery_time_windows, customers, rg))
 
 
 def test_multiday():
@@ -223,4 +223,4 @@ def test_plot():
 
 
 if __name__ == "__main__":
-    test_plot()
+    test_multiday()

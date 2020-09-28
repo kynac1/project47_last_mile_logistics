@@ -471,7 +471,7 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
                     alternates,
                 )
                 next_distance = 0  # f(route[0], route[1], time)
-                next_time = 0  # g(route[0], route[1], time)
+                next_time = 5  # g(route[0], route[1], time)
                 futile = 0  # not customers[route[1]].visit(time + next_time)
         else:
 
@@ -480,6 +480,66 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
             while futile and wait_time < 10:
                 wait_time += 1
                 futile = not customers[route[i + 1]].visit(time + next_time + wait_time)
+
+        return next_distance, next_time, futile, route
+
+    return h
+
+
+def new_tw_policy(distance_matrix, time_matrix, time_windows, customers, rg):
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+    customers_list = customers.tolist()
+    alternates = {
+        i: [
+            customers_list.index(a)
+            for a in customers[i].alternates
+            if a != customers[i]
+        ]
+        for i in range(len(customers))
+    }
+    time_windows = time_windows
+
+    def h(route, i, time):
+        next_distance = f(route[i], route[i + 1], time)
+        next_time = g(route[i], route[i + 1], time)
+        if time + next_time < time_windows[route[i + 1]][0]:
+            next_time = time_windows[route[i + 1]][0] - time
+        if time + next_time > time_windows[route[i + 1]][1]:
+            logger.debug("Late for delivery")
+            time_windows[route[i + 1], :] = customers[route[i + 1]].call_ahead_tw(
+                time, options=[[0, 1], [time + next_time, 28800]]
+            )
+            route = rerouting_new(
+                i,
+                route,
+                distance_matrix,
+                time_matrix,
+                time_windows,
+                time,
+                alternates,
+            )
+            next_distance = 0  # f(route[0], route[1], time)
+            next_time = 5  # g(route[0], route[1], time)
+            futile = 0  # not customers[route[1]].visit(time + next_time)
+        else:
+
+            futile = not customers[route[i + 1]].visit(time + next_time)
+            if futile:
+                logger.debug("Delivery Futile")
+                time_windows[route[i + 1], :] = customers[route[i + 1]].call_ahead_tw(
+                    time + next_time, options=[[0, 1], [time + next_time, 28800]]
+                )
+                route = rerouting_new(
+                    i + 1,
+                    route,
+                    distance_matrix,
+                    time_matrix,
+                    time_windows,
+                    time,
+                    alternates,
+                )
+                next_time += 5
 
         return next_distance, next_time, futile, route
 
