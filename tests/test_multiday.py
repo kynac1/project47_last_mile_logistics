@@ -76,9 +76,10 @@ def route_optimizer(
         r.add_option(alternates, 50000)
 
     r.search_parameters.first_solution_strategy = fss
-
     r.search_parameters.local_search_metaheuristic = lsm
-    s = r.solve(tlim=tlim, log=logger.getEffectiveLevel() <= 0)
+    r.search_parameters.use_cp_sat = False
+
+    s = r.solve(tlim=tlim, log=True)
 
     unscheduled = []
     scheduled = reduce(lambda x, y: x + y, s.routes)
@@ -211,14 +212,15 @@ def test_plot():
         dist_and_time,
         route_optimizer,
         simulator,
-        10,
+        1,
         0,
         28800,
         seed=293462,
         replications=1,
         plot=True,
     )
+    plt.show()
 
 
 if __name__ == "__main__":
-    test_alternate_locations()
+    test_plot()

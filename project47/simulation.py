@@ -710,6 +710,7 @@ def rerouting_new(
     # can't escape local optima, but we should generally be close enough to optimal that it doesn't matter.
     r.search_parameters.first_solution_strategy = fss
     r.search_parameters.local_search_metaheuristic = lsm
+    r.search_parameters.use_cp_sat = True
     s = r.solve(
         tlim=tlim, log=logger.getEffectiveLevel() <= 0
     )  # This solves the problem, logging if level is debug or less

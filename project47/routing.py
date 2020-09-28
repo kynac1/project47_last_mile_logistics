@@ -297,14 +297,15 @@ class RoutingSolution:
     def plot(self, weight_matrix=None, positions=None):
         G = nx.DiGraph()
 
-        for route in self.routes:
+        vehicle_assignment = []
+        for n, route in enumerate(self.routes):
             for i in range(len(route) - 1):
                 G.add_edge(route[i], route[i + 1])
 
         if positions:
             pos = {i: positions[i] for i in range(len(positions))}
         else:
-            pos = nx.spring_layout()
+            pos = nx.spring_layout(G)
 
         nx.draw(G, pos, with_labels=True)
 
