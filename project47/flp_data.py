@@ -3,7 +3,8 @@ import numpy as np
 from project47.routing import *
 from project47.customer import Customer
 from project47.data import *
-from project47.multiday_simulation import *
+from project47.flp_func import *
+# from project47.multiday_simulation import *
 from numpy.random import Generator, PCG64
 import os
 import matplotlib.pyplot as plt
@@ -12,38 +13,39 @@ from sklearn import metrics
 from sklearn.metrics import pairwise_distances_argmin_min
 import osmnx as ox
 import networkx as nx
+
 # import plotly.graph_objects as go
 import math
 
 
-def centroid(n, lat, lon):
-    # coord = [
-    #         ", ".join(str(x) for x in y)
-    #         for y in map(list, [lat, lon].values)
-    #     ]
+# def centroid(n, lat, lon):
+#     # coord = [
+#     #         ", ".join(str(x) for x in y)
+#     #         for y in map(list, [lat, lon].values)
+#     #     ]
 
-    coord = np.array(list(zip(lat, lon))).reshape(len(lat), 2)
-    print(coord)
-    # KMeans algorithm 
-    kmeans_model = KMeans(n_clusters=n).fit(coord)
+#     coord = np.array(list(zip(lat, lon))).reshape(len(lat), 2)
+#     print(coord)
+#     # KMeans algorithm 
+#     kmeans_model = KMeans(n_clusters=n).fit(coord)
 
-    centers = np.array(kmeans_model.cluster_centers_)
-    closest, _ = pairwise_distances_argmin_min(kmeans_model.cluster_centers_, coord)
-    # get the coordinate that is the cloest to its respective centriod
-    closest_coord = coord[closest]
-    plt.plot()
-    plt.title('k means centroids')
+#     centers = np.array(kmeans_model.cluster_centers_)
+#     closest, _ = pairwise_distances_argmin_min(kmeans_model.cluster_centers_, coord)
+#     # get the coordinate that is the cloest to its respective centriod
+#     closest_coord = coord[closest]
+#     plt.plot()
+#     plt.title('k means centroids')
 
-    plt.scatter(coord[:,0],coord[:,1], s = 3, c= kmeans_model.labels_, cmap='rainbow')
-    plt.scatter(centers[:,0], centers[:,1], marker="x", color='black')
-    plt.scatter(closest_coord[:,0], closest_coord[:,1], s = 3, color='black')
+#     plt.scatter(coord[:,0],coord[:,1], s = 3, c= kmeans_model.labels_, cmap='rainbow')
+#     plt.scatter(centers[:,0], centers[:,1], marker="x", color='black')
+#     plt.scatter(closest_coord[:,0], closest_coord[:,1], s = 3, color='black')
 
-    plt.show()
+#     plt.show()
 
-    lat, lon = closest_coord.transpose()
-    return list(lat), list(lon)
+#     lat, lon = closest_coord.transpose()
+#     return list(lat), list(lon)
 
-def centroid_loc_sample(n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr, save):
+def centroid_loc_sample(rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr, save):
     """
     rg: np.random.Generator
     CHC_df_grouped: CHC data frame - output of 'read_data' function
@@ -150,8 +152,6 @@ def get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict):
         longitude.append(CHC_row["gd2000_xcoord"].values[0])
     return latitude, longitude
 
-# number of collection points
-k = 2
 
 # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
 cd = (os.path.dirname(os.path.abspath(__file__)).strip("project47") + "data")  # direct to data folder
@@ -175,25 +175,37 @@ sample_df, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict = read_data(
     lon_max=172.7816000,
 )
 
-# # weighting factor for each centroid according to its occurrence frequency
-# weight = list(sample_sub_dict.values())
-# # print(weight)
-# # print(weight.index(max(weight)))
-# # print(weight[18])
-# # print(weight[11])
-# # print(weight[19])
-# sum_w = sum(weight)
-# weight = [w/sum_w for w in weight]
-# # flipped_weight = [sum_w-w for w in weight]
-# # sum_fw = sum(flipped_weight)
-# # flipped_weight= [w/sum_fw for w in flipped_weight]
-# # # print(flipped_weight)
-# # # print(sum(flipped_weight))
-# # weight = flipped_weight
-
 demand = list(sample_sub_dict.values())
 
-lat, lon, weight = centroid_loc_sample(k, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr = False, save=False)
+# get the centroid coord for each suburb from TOLL sample data
+lat, lon, weight = centroid_loc_sample(rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr = False, save=False)
+# combine collection and customer locations
+lat_all = fac_lat + lat
+lon_all = fac_lon + lon
+# get the total number of potential collections points 
+source = np.arange(len(fac_lat))
+# contruct the distance matrix from collection point to centroid of each suburb
+dist, tm = osrm_get_dist(
+    cd,
+    coord_filename,
+    lat_all,
+    lon_all,
+    source,
+    save=False,
+    host="0.0.0.0:5000",)
+
+# number of collection points
+k = 2
+CUSTOMERS = np.arange(len(lat))
+FACILITY = np.arange(len(fac_lat))
+
+cap = math.ceil(sample_df.shape[0]/k)
+Fac_cap = np.ones(len(fac_lat))* cap
+
+sol_fac_coord, coord, fac_coord = find_opt_collection(k,CUSTOMERS, FACILITY, dist, weight, demand, Fac_cap)
+
+coord = list(map(list, zip(lat, lon)))
+fac_coord = list(map(list, zip(fac_lat, fac_lon)))
 
 #  lat = CHC_df["gd2000_ycoord"].array
 # lon = CHC_df["gd2000_xcoord"].array
@@ -222,22 +234,4 @@ lat, lon, weight = centroid_loc_sample(k, rg, cd, sample_df, sample_sub_dict, CH
 
 # lat, lon = get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict)
 
-lat_all = fac_lat + lat
-lon_all = fac_lon + lon
 
-source = np.arange(len(fac_lat))
-# source = np.arange(3)
-dist, tm = osrm_get_dist(
-    cd,
-    coord_filename,
-    lat_all,
-    lon_all,
-    source,
-    save=False,
-    host="0.0.0.0:5000",)
-
-
-CUSTOMERS = np.arange(len(lat))
-FACILITY = np.arange(len(fac_lat))
-
-Fac_cap = np.ones(len(fac_lat))* math.ceil(sample_df.shape[0]/k)
