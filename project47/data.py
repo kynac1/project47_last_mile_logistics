@@ -335,7 +335,7 @@ def main():
     # latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
     # latitude, longitude = '', ''
 
-    coord_filename = os.path.join(cd, "random_subset.csv")
+    coord_filename=os.path.join(cd,"random_subset.csv")
     # get_coordinates(API_key, cd, address_filename, coord_filename)
     # coord_filename = None
     # dm, tm = get_dist(API_key, cd, coord_filename, latitude, longitude, save=False)

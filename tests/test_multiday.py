@@ -113,6 +113,8 @@ def test_multiday():
         28800,
         seed=123456789,
         replications=2,
+        plot=False,
+        collection_points=True,
     )
 
     assert len(data) == 20
@@ -221,4 +223,5 @@ def test_plot():
 
 
 if __name__ == "__main__":
-    test_alternate_locations()
+    test_multiday()
+    # test_alternate_locations()

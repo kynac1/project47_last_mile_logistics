@@ -6,7 +6,9 @@ def test_get_sample_performance():
     cd = os.path.dirname(os.path.abspath(__file__)).strip("tests") + "data"
     sample_data_csv = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
     CHC_data_csv = os.path.join(cd, "christchurch_street.csv")
-    sample_df, CHC_df, _, CHC_sub, CHC_sub_dict = read_data(sample_data_csv, CHC_data_csv)
+    sample_df, CHC_df, _, CHC_sub, CHC_sub_dict = read_data(
+        sample_data_csv, CHC_data_csv
+    )
 
     lats = []
     lons = []
@@ -26,8 +28,7 @@ def test_get_sample_performance():
 
 
 def test_osrm():
-    """ This will only work with the osrm server running, and with the Christchurch map
-    """
+    """This will only work with the osrm server running, and with the Christchurch map"""
 
     latitude, longitude = [-43.2, -43.3], [172.5, 172.6]
     res = osrm_get_dist("", "", latitude, longitude, host="0.0.0.0:5000", save=False)

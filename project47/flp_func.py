@@ -3,7 +3,8 @@ import numpy as np
 from project47.routing import *
 from project47.customer import Customer
 from project47.data import get_sample, read_data
-from project47.multiday_simulation import *
+
+# from project47.multiday_simulation import *
 # from project47.flp_data import *
 # from project47.flp_data import *
 from numpy.random import Generator, PCG64
@@ -15,6 +16,7 @@ import matplotlib.pylab as pylab
 import string
 import matplotlib.cm as cm
 import pandas as pd
+
 # CUSTOMERS = [1,2,3,4,5]
 # FACILITY = ['f1','f2','f3']
 # Fac_cost = {'f1': 5,
@@ -31,21 +33,23 @@ import pandas as pd
 
 # k = 10
 
-def find_opt_collection(k,CUSTOMERS, FACILITY, dist, weight, demand, Fac_cap):
+
+def find_opt_collection(
+    k, CUSTOMERS, FACILITY, fac_lat, fac_lon, dist, weight, demand, Fac_cap
+):
     # set problem
     prob = LpProblem("FacilityLocation", LpMinimize)
 
     # desicion variables
     # if facility j serves customer i
-    serv_vars = LpVariable.dicts("x",
-                                    [(i, j) for i in CUSTOMERS
-                                            for j in FACILITY],
-                                    0)
+    serv_vars = LpVariable.dicts("x", [(i, j) for i in CUSTOMERS for j in FACILITY], 0)
     # if facility j is used
     use_vars = LpVariable.dicts("y", FACILITY, cat=LpBinary)
 
     # objective function
-    prob += lpSum(dist[j][i] * serv_vars[i, j]* weight[i] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
+    prob += lpSum(
+        dist[j][i] * serv_vars[i, j] * weight[i] for j in FACILITY for i in CUSTOMERS
+    )  # + lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
     # prob += lpSum(dist[j][i] * serv_vars[i, j] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
 
     # constraints
@@ -57,9 +61,8 @@ def find_opt_collection(k,CUSTOMERS, FACILITY, dist, weight, demand, Fac_cap):
     for j in FACILITY:
         prob += lpSum(serv_vars[(i, j)] for i in CUSTOMERS) <= Fac_cap[j] * use_vars[j]
 
-    # number of collection points
+        # number of collection points
         prob += lpSum(use_vars[j] for j in FACILITY) == k
-
 
     # upper bound for x, tight formulation
     for i in CUSTOMERS:
@@ -72,7 +75,7 @@ def find_opt_collection(k,CUSTOMERS, FACILITY, dist, weight, demand, Fac_cap):
 
     sol_fac_lat = []
     sol_fac_lon = []
-    TOL = .00001
+    TOL = 0.00001
 
     for j in FACILITY:
         if use_vars[j].varValue > TOL:
@@ -81,7 +84,7 @@ def find_opt_collection(k,CUSTOMERS, FACILITY, dist, weight, demand, Fac_cap):
             print("Establish facility at site ", j)
 
     for v in prob.variables():
-        print(v.name, ' = ', v.varValue)
+        print(v.name, " = ", v.varValue)
 
     print("The cost of travel = ", value(prob.objective))
 
@@ -91,9 +94,9 @@ def find_opt_collection(k,CUSTOMERS, FACILITY, dist, weight, demand, Fac_cap):
     # m.drawmapboundary(fill_color='white') # fill to edge
     # m.scatter(lat1, lon1 ,s=5,c='r',marker="o",cmap=cm.jet,alpha=1.0)
 
-    sol_fac_coord = list(map(list, zip( sol_fac_lat, sol_fac_lon)))
+    # sol_fac_coord = list(map(list, zip(sol_fac_lat, sol_fac_lon)))
 
-    return sol_fac_coord
+    return sol_fac_lat, sol_fac_lon
     # fig, axs = plt.subplots()
     # plt.scatter(lon,lat, s = 5, c=weight)
     # plt.gray()
