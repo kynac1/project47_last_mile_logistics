@@ -76,9 +76,10 @@ def route_optimizer(
         r.add_option(alternates, 50000)
 
     r.search_parameters.first_solution_strategy = fss
-
     r.search_parameters.local_search_metaheuristic = lsm
-    s = r.solve(tlim=tlim, log=logger.getEffectiveLevel() <= 0)
+    r.search_parameters.use_cp_sat = False
+
+    s = r.solve(tlim=tlim, log=True)
 
     unscheduled = []
     scheduled = reduce(lambda x, y: x + y, s.routes)
@@ -91,7 +92,7 @@ def route_optimizer(
 def simulator(
     routes, dm, tm, delivery_time_windows, customers, rg: np.random.Generator
 ):
-    return sim(routes, calling_policy(dm, tm, delivery_time_windows, customers, rg))
+    return sim(routes, new_tw_policy(dm, tm, delivery_time_windows, customers, rg))
 
 
 def test_multiday():
@@ -213,13 +214,14 @@ def test_plot():
         dist_and_time,
         route_optimizer,
         simulator,
-        10,
+        1,
         0,
         28800,
         seed=293462,
         replications=1,
         plot=True,
     )
+    plt.show()
 
 
 if __name__ == "__main__":

@@ -35,18 +35,36 @@ class Customer:
                     added = True
 
     def visit(self, time):
-        """ Called to determine whether a customer successfully recieves a package.
+        """Called to determine whether a customer successfully recieves a package.
 
         Returns True on a successful delivery
         """
         indp = int(time) // self.presence_interval
         return bool(self.presence[indp]) and self.rg.random() < self.responsiveness
 
-    def get_time_window(self, options=[]):
-        pass
+    def get_time_window(self, options=[[0, 1]]):
+        best = 1
+        best_value = 0
+        for i, option in enumerate(options):
+            value = sum(
+                self.presence[
+                    int(option[0] // self.presence_interval) : int(
+                        option[1] // self.presence_interval
+                    )
+                ]
+            )
+            if value > best_value:
+                best = i
+        return options[best]
 
     def call_ahead(self, arrival_time):
         if self.rg.random() < self.call_responsiveness:
             return self.visit(arrival_time)
         else:
             return False
+
+    def call_ahead_tw(self, arrival_time, options=[]):
+        if self.rg.random() < self.call_responsiveness:
+            return self.get_time_window(options)
+        else:
+            return [0, 1]  # Minimum width time window. [0,0] may break ortools.
