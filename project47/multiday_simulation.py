@@ -202,8 +202,9 @@ def multiday(
         if collection_points:
             for i in range(k):
                 if (
+                    len(packages_at_collection[i]) != 0
+                ):  # there's packages in the collection point
                     # randome number of customers collecting today
-                    rd2 = rg.integers(low=0, high=len(packages_at_collection[i]), size=1)
                     rd2 = rg.integers(
                         low=0, high=len(packages_at_collection[i]), size=1
                     )
