@@ -6,7 +6,7 @@ from project47.data import *
 from project47.routing import *
 from project47.multiday_simulation import *
 from functools import reduce
-from multiprocessing import Process
+from multiprocessing import Process, Pool
 
 import logging
 import multiprocessing_logging
@@ -161,7 +161,7 @@ def multiaddress(
     fname = f"experiments/multiaddress_results/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}.json"
     with open(
         fname,
-        "w",
+        "x",
     ) as outfile:
         json.dump(data, outfile, separators=(",", ":"))
 
@@ -173,55 +173,10 @@ def multiaddress(
 
 
 if __name__ == "__main__":
-    # multiaddress(50, 3, 1, 1, wait_policy)
-    p1 = Process(name="1", target=multiaddress, args=(50, 3, 1, 1, wait_policy))
-    p2 = Process(name="2", target=multiaddress, args=(50, 5, 1, 1, wait_policy))
-    p3 = Process(name="3", target=multiaddress, args=(50, 3, 2, 1, wait_policy))
-    p4 = Process(name="4", target=multiaddress, args=(50, 5, 2, 1, wait_policy))
-    p1.start()
-    p2.start()
-    p3.start()
-    p4.start()
-    p1.join()
-    p2.join()
-    p3.join()
-    p4.join()
 
-    p1 = Process(name="1", target=multiaddress, args=(50, 3, 4, 1, wait_policy))
-    p2 = Process(name="2", target=multiaddress, args=(50, 5, 4, 1, wait_policy))
-    p3 = Process(name="3", target=multiaddress, args=(50, 3, 8, 1, wait_policy))
-    p4 = Process(name="4", target=multiaddress, args=(50, 5, 8, 1, wait_policy))
-    p1.start()
-    p2.start()
-    p3.start()
-    p4.start()
-    p1.join()
-    p2.join()
-    p3.join()
-    p4.join()
-
-    p1 = Process(name="1", target=multiaddress, args=(50, 7, 1, 1, wait_policy))
-    p2 = Process(name="2", target=multiaddress, args=(50, 9, 1, 1, wait_policy))
-    p3 = Process(name="3", target=multiaddress, args=(50, 7, 2, 1, wait_policy))
-    p4 = Process(name="4", target=multiaddress, args=(50, 9, 2, 1, wait_policy))
-    p1.start()
-    p2.start()
-    p3.start()
-    p4.start()
-    p1.join()
-    p2.join()
-    p3.join()
-    p4.join()
-
-    p1 = Process(name="1", target=multiaddress, args=(50, 7, 4, 1, wait_policy))
-    p2 = Process(name="2", target=multiaddress, args=(50, 9, 4, 1, wait_policy))
-    p3 = Process(name="3", target=multiaddress, args=(50, 7, 8, 1, wait_policy))
-    p4 = Process(name="4", target=multiaddress, args=(50, 9, 8, 1, wait_policy))
-    p1.start()
-    p2.start()
-    p3.start()
-    p4.start()
-    p1.join()
-    p2.join()
-    p3.join()
-    p4.join()
+    arg_list = []
+    for vehs in [3, 5, 7, 9]:
+        for tws in [1, 2, 4, 8]:
+            arg_list.append((50, vehs, tws, 2, wait_policy))
+    with Pool(2) as p:
+        p.starmap(arg_list)
