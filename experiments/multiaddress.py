@@ -15,7 +15,7 @@ multiprocessing_logging.install_mp_handler()
 
 
 logging.basicConfig(
-    filename="experiments/multiaddress_results/log.txt",
+    filename="experiments/multiaddress_results/log_remote.txt",
     filemode="w",
     level="DEBUG",
     format="%(processName)s %(levelname)s %(name)s %(message)s",
@@ -179,4 +179,4 @@ if __name__ == "__main__":
         for tws in [1, 2, 4, 8]:
             arg_list.append((50, vehs, tws, 2, wait_policy))
     with Pool(2) as p:
-        p.starmap(arg_list)
+        p.starmap(multiaddress, arg_list)
