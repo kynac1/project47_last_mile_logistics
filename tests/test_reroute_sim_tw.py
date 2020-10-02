@@ -1,7 +1,8 @@
 import numpy as np
 from project47.routing import *
 from project47.simulation import *
-from tests.test_customer_tw import *
+
+# from .test_customer_tw import *
 from project47.customer import Customer
 from functools import reduce
 from numpy.random import Generator, PCG64
@@ -81,7 +82,7 @@ def test_reroute_sim_tw():
 def update_function10(distance_matrix, time_matrix, time_windows, customers):
     """
     This time window policy makes the decision after arriving at the next place.
-    The deliver man checks the time once arrived. 
+    The deliver man checks the time once arrived.
     If the current time falls out of the time windows, then he will skip and go to the next place.
     """
     f = default_distance_function(distance_matrix)
@@ -104,7 +105,7 @@ def update_function10(distance_matrix, time_matrix, time_windows, customers):
 def update_function20(distance_matrix, time_matrix, time_windows, customers):
     """
     This time window policy makes the decision after arriving at the next place.
-    The deliver man checks the time once arrived. 
+    The deliver man checks the time once arrived.
     If the current time falls out of the time windows, then he will skip and go to the next place.
     """
     f = default_distance_function(distance_matrix)
@@ -150,7 +151,7 @@ def update_function20(distance_matrix, time_matrix, time_windows, customers):
 def update_function30(distance_matrix, time_matrix, time_windows, customers):
     """
     This time window policy makes the decision after arriving at the next place.
-    The deliver man checks the time once arrived. 
+    The deliver man checks the time once arrived.
     If the current time falls out of the time windows, then he will skip and go to the next place.
     """
     f = default_distance_function(distance_matrix)
@@ -268,4 +269,3 @@ def test_rerouting_tw3():
 if __name__ == "__main__":
     test_reroute_sim_tw()
     test_rerouting_tw3()
-

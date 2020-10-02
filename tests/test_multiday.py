@@ -109,7 +109,7 @@ def test_multiday():
         dist_and_time,
         route_optimizer,
         simulator,
-        10,
+        1,
         0,
         28800,
         seed=123456789,
@@ -118,7 +118,7 @@ def test_multiday():
         collection_points=True,
     )
 
-    assert len(data) == 20
+    assert len(data) == 2
 
 
 def test_reproducible():

@@ -40,10 +40,12 @@ class Customer:
         Returns True on a successful delivery
         """
         indp = int(time) // self.presence_interval
+        if indp >= len(self.presence):
+            return False
         return bool(self.presence[indp]) and self.rg.random() < self.responsiveness
 
     def get_time_window(self, options=[[0, 1]]):
-        best = 1
+        best = 0
         best_value = 0
         for i, option in enumerate(options):
             value = sum(
@@ -68,3 +70,15 @@ class Customer:
             return self.get_time_window(options)
         else:
             return [0, 1]  # Minimum width time window. [0,0] may break ortools.
+
+
+def markov_presence(n, prob, rg: np.random.Generator):
+    presence = np.zeros(n, dtype=bool)
+    presence[0] = rg.random() < 0.5  # Start in state with 50% chance
+    for i in range(n - 1):
+        if rg.random() < prob:
+            presence[i + 1] = not presence[i]
+        else:
+            presence[i + 1] = presence[i]
+
+    return presence

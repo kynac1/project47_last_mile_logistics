@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances_argmin_min
-import osmnx as ox
+
+# import osmnx as ox
 import networkx as nx
 
 # import plotly.graph_objects as go

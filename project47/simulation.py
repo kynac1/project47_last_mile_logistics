@@ -316,6 +316,52 @@ def base_policy(
     return h
 
 
+def wait_policy(
+    distance_matrix,
+    time_matrix,
+    time_windows,
+    customers,
+    rg=np.random.Generator(np.random.PCG64(123)),
+):
+    """Does the most basic behaviour possible
+
+    Travels to each location without rechecking anything, and no special behaviour for futile deliveries.
+
+    Parameters
+    ----------
+    distance_matrix : np.array
+        nxn matrix of distances
+    time_matrix : np.array
+        nxn matrix of times
+    time_windows : np.array
+        nx2 matrix of time windows. First column is time window starts, second is ends.
+    customers : list
+        List of customer objects, with a visit method
+    rg : np.RandomGenerator
+        Controls the stream of random numbers
+
+    Returns
+    -------
+    function
+        This is a closure, so it returns an update function that can be used in the `sim` function
+    """
+
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+
+    def h(route, i, time):
+        next_distance = f(route[i], route[i + 1], time)
+        next_time = g(route[i], route[i + 1], time)
+        if time + next_time < time_windows[route[i + 1]][0]:
+            next_time = time_windows[route[i + 1]][0] - time
+        futile = not customers[route[i + 1]].visit(
+            time + next_time
+        )  # check if the next delivery is going to be futile
+        return next_distance, next_time, futile, route
+
+    return h
+
+
 def estimate_ahead_policy(
     distance_matrix,
     time_matrix,

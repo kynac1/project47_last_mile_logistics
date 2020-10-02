@@ -1,6 +1,7 @@
 from project47.routing import *
 from project47.customer import Customer
 from project47.data import get_sample, read_data
+
 # from project47.multiday_simulation import *
 # from project47.flp_data import *
 # from project47.flp_func import *
@@ -10,10 +11,12 @@ import webbrowser
 import matplotlib.pyplot as plt
 import folium
 import pandas as pd
-import osmnx as ox
+
+# import osmnx as ox
 import networkx as nx
 import numpy as np
 from IPython.display import HTML, display
+
 # fig, axs = plt.subplots()
 # # plt.scatter(lon,lat, s = 5, c=weight)
 # plt.gray()
@@ -30,11 +33,11 @@ from IPython.display import HTML, display
 # streets.head()
 
 # style = {‘color’: ‘#F7DC6F’, ‘weight’:’1'}
-cd = (
-        os.path.dirname(os.path.abspath(__file__)).strip("project47") 
-    )  # direct to data folder
+cd = os.path.dirname(os.path.abspath(__file__)).strip(
+    "project47"
+)  # direct to data folder
 
-m = folium.Map(location = [-40.9006, 174.8860], zoom_start=15)
+m = folium.Map(location=[-40.9006, 174.8860], zoom_start=15)
 
 m.render()
 display(m)
@@ -42,5 +45,5 @@ display(m)
 
 m = folium.Map()
 m.save("nz_map.html")
-webbrowser.open('file://' + cd+'/nz_map')
-k=0
+webbrowser.open("file://" + cd + "/nz_map")
+k = 0
