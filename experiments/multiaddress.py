@@ -15,7 +15,7 @@ multiprocessing_logging.install_mp_handler()
 
 
 logging.basicConfig(
-    filename="experiments/multiaddress_results/log_remote.txt",
+    filename="experiments/multiaddress_results2/log.txt",
     filemode="w",
     level="DEBUG",
     format="%(processName)s %(levelname)s %(name)s %(message)s",
@@ -66,8 +66,8 @@ def multiaddress(
             Customer(
                 lat[i],
                 lon[i],
-                0.5,
-                0.5,
+                0.9,
+                0.9,
                 rg=rg,
                 presence_interval=28800 // 16,
                 presence=markov_presence(16, 0.2, rg),
@@ -152,13 +152,13 @@ def multiaddress(
         dist_and_time,
         route_optimizer,
         simulator,
-        60,
+        5,
         day_start,
         day_end,
         plot=False,
         seed=2123897,
     )
-    fname = f"experiments/multiaddress_results/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}.json"
+    fname = f"experiments/multiaddress_results2/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}.json"
     with open(
         fname,
         "x",
@@ -177,6 +177,6 @@ if __name__ == "__main__":
     arg_list = []
     for vehs in [3, 5, 7, 9]:
         for tws in [1, 2, 4, 8]:
-            arg_list.append((50, vehs, tws, 2, wait_policy))
-    with Pool(2) as p:
+            arg_list.append((50, vehs, tws, 1, calling_policy))
+    with Pool(4) as p:
         p.starmap(multiaddress, arg_list)

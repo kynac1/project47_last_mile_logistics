@@ -3,6 +3,7 @@ import numpy as np
 from copy import copy
 import json
 import os
+import gc
 
 import logging
 from typing import List
@@ -396,6 +397,7 @@ def estimate_ahead_policy(
 
     f = default_distance_function(distance_matrix)
     g = default_time_function(time_matrix)
+    customers_list = customers.tolist()
     alternates = {
         i: [
             customers_list.index(a)
@@ -829,8 +831,12 @@ def rerouting_new(
         res = [
             places_to_visit[i] for i in s.routes[0]
         ]  # I think this does the same as previously? Not too sure. Makes sense though
+    obj = r.objective
+    del r
+    del s
+    gc.collect()
     if return_obj:
-        return r.objective
+        return obj
     else:
         return res
 
