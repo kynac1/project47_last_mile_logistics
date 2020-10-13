@@ -88,6 +88,7 @@ def collect_data(
 
 
 def multiday(
+    k,
     depots,
     sample_generator,
     dist_and_time,
@@ -169,7 +170,7 @@ def multiday(
 
     if collection_points:
         # choose the number of collection points
-        k = 2  # shall we include k as an input of multiday
+        # k = 2  # shall we include k as an input of multiday
         sol_fac_lat, sol_fac_lon, coord, fac_coord, cap = opt_collection_coord(
             k, depots, sample_generator, dist_and_time, seed=None
         )
@@ -238,9 +239,7 @@ def multiday(
                             #     )
                             # ]
                             collected_package = packages_at_collection[i].pop(
-                                list(packages_at_collection[i])[
-                                    len(packages_at_collection[i]) - j
-                                ]
+                                list(packages_at_collection[i])[1]
                             )
                         else:
                             # 80% of the time the package with longest days is removed
