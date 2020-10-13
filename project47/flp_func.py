@@ -83,8 +83,8 @@ def find_opt_collection(
             sol_fac_lon.append(fac_lon[j])
             print("Establish facility at site ", j)
 
-    for v in prob.variables():
-        print(v.name, " = ", v.varValue)
+    # for v in prob.variables():
+    # print(v.name, " = ", v.varValue)
 
     print("The cost of travel = ", value(prob.objective))
 
