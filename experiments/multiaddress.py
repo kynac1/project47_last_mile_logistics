@@ -1,4 +1,5 @@
 import os
+from re import L
 from project47.customer import markov_presence
 import numpy as np
 from project47.simulation import *
@@ -15,8 +16,6 @@ multiprocessing_logging.install_mp_handler()
 
 
 logging.basicConfig(
-    filename="experiments/multiaddress_results2/log.txt",
-    filemode="w",
     level="DEBUG",
     format="%(processName)s %(levelname)s %(name)s %(message)s",
 )
@@ -152,18 +151,25 @@ def multiaddress(
         dist_and_time,
         route_optimizer,
         simulator,
-        5,
+        20,
         day_start,
         day_end,
         plot=False,
         seed=2123897,
     )
     fname = f"experiments/multiaddress_results2/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}.json"
-    with open(
-        fname,
-        "x",
-    ) as outfile:
-        json.dump(data, outfile, separators=(",", ":"))
+    try:
+        with open(
+            fname,
+            "x",
+        ) as outfile:
+            json.dump(data, outfile, separators=(",", ":"))
+    except:
+        with open(
+            fname + ".dup",
+            "w",
+        ) as outfile:
+            json.dump(data, outfile, separators=(",", ":"))
 
     logger.debug("Finished Simulation")
     logger.debug("Output = %s" % (fname))
@@ -175,8 +181,15 @@ def multiaddress(
 if __name__ == "__main__":
 
     arg_list = []
-    for vehs in [3, 5, 7, 9]:
+    """for vehs in [3, 5, 7, 9]:
         for tws in [1, 2, 4, 8]:
             arg_list.append((50, vehs, tws, 1, calling_policy))
-    with Pool(4) as p:
+    with Pool(1) as p:
         p.starmap(multiaddress, arg_list)
+    """
+    for vehs in [9]:
+        for tws in [8]:
+            arg_list.append((50, vehs, tws, 1, calling_policy))
+
+    for args in arg_list:
+        multiaddress(*args)

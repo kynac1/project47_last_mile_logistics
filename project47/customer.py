@@ -74,7 +74,7 @@ class Customer:
 
 def markov_presence(n, prob, rg: np.random.Generator):
     presence = np.zeros(n, dtype=bool)
-    presence[0] = rg.random() < 0.5  # Start in state with 50% chance
+    presence[0] = True  # Start in state with 50% chance
     for i in range(n - 1):
         if rg.random() < prob:
             presence[i + 1] = not presence[i]
