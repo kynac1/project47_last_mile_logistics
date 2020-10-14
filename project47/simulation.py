@@ -494,7 +494,7 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
             next_time = time_windows[route[i + 1]][0] - time
         if (time + next_time > time_windows[route[i + 1]][1]) or not customers[
             route[i + 1]
-        ].call_ahead(next_time):
+        ].call_ahead(time + next_time):
             # go straight to depot if the next place is depot after skipping
             if False:  # route[i + 2] == 0:
                 next_distance = f(route[i], route[i + 2], time)
@@ -524,10 +524,6 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
         else:
 
             futile = not customers[route[i + 1]].visit(time + next_time)
-            wait_time = 0
-            while futile and wait_time < 10:
-                wait_time += 1
-                futile = not customers[route[i + 1]].visit(time + next_time + wait_time)
 
         return next_distance, next_time, futile, route
 
