@@ -166,8 +166,8 @@ def get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict):
 def opt_collection_coord(k, cap, depots, sample_generator, dist_and_time, seed=None):
 
     # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
-    cd = (
-        os.path.dirname(os.path.abspath(__file__)) + "\\..\\data"
+    cd = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "data"
     )  # direct to data folder
     # direct to collection coordinates file
     coord_filename = os.path.join(cd, "fac_coord.csv")

@@ -33,7 +33,9 @@ from IPython.display import HTML, display
 # streets.head()
 
 # style = {‘color’: ‘#F7DC6F’, ‘weight’:’1'}
-cd = os.path.dirname(os.path.abspath(__file__)) + "\\..\\"  # direct to data folder
+cd = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), ".."
+)  # direct to data folder
 
 m = folium.Map(location=[-40.9006, 174.8860], zoom_start=15)
 

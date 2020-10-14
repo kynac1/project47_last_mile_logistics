@@ -3,7 +3,8 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-#import geopandas as gpd
+
+# import geopandas as gpd
 from shapely.geometry import Polygon, Point
 import pandas as pd
 import googlemaps
@@ -90,7 +91,9 @@ def read_data(
     return sample_clean, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict
 
 
-def get_sample(n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, save):
+def get_sample(
+    n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, save
+):
     """
     n: sample size
     rg: np.random.Generator
@@ -122,13 +125,13 @@ def get_sample(n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_di
         # # if the suburb does not exsit in CHC data, get a new sample point that exists
         # while len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub]) == 0:
         # while row["Receiver Suburb"] not in CHC_sub:
-        #     x += 1 
-            # # get a new random row
-            # rd1 = rg.integers(low=0, high=len(sample_df) - 1, size=1)
-            # row = sample_df.iloc[rd1]
-            # row = sample_df.sample(n=1)
-            # sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"].values[0]).rstrip()
-            # row["Receiver Suburb"] = sub
+        #     x += 1
+        # # get a new random row
+        # rd1 = rg.integers(low=0, high=len(sample_df) - 1, size=1)
+        # row = sample_df.iloc[rd1]
+        # row = sample_df.sample(n=1)
+        # sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"].values[0]).rstrip()
+        # row["Receiver Suburb"] = sub
         # print(x)
         # get a random number with the size of the suburb
         rd2 = rg.integers(low=0, high=CHC_sub_dict[sub] - 1, size=1)
@@ -317,17 +320,26 @@ def osrm_get_dist(
 
 def main():
     # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
-    cd = (
-        os.path.dirname(os.path.abspath(__file__)) + "\\..\\data"
+    cd = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "data"
     )  # direct to data folder
     sample_data_csv = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
     CHC_data_csv = os.path.join(cd, "christchurch_street.csv")
-    sample_df, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict = read_data(sample_data_csv, CHC_data_csv)
+    sample_df, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict = read_data(
+        sample_data_csv, CHC_data_csv
+    )
     seed = 123456789
     rg = Generator(PCG64(seed))
 
     latitude, longitude = get_sample(
-        100, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, save=False
+        100,
+        rg,
+        cd,
+        sample_df,
+        sample_sub_dict,
+        CHC_df_grouped,
+        CHC_sub_dict,
+        save=False,
     )
     # get_sample(n, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save)
     # get a random sample of locations in Christchurch
@@ -335,7 +347,7 @@ def main():
     # latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
     # latitude, longitude = '', ''
 
-    coord_filename=os.path.join(cd,"random_subset.csv")
+    coord_filename = os.path.join(cd, "random_subset.csv")
     # get_coordinates(API_key, cd, address_filename, coord_filename)
     # coord_filename = None
     # dm, tm = get_dist(API_key, cd, coord_filename, latitude, longitude, save=False)

@@ -55,8 +55,8 @@ def collect_data(
         "number_of_vehicles": int(
             len(solution.routes)
         ),  # is it number of used vehicles or just a total number? ## Either way, I think we don't actually need this; we can get it from other info
-        "distances": [int(sum(veh_dists)) for veh_dists in distances],
-        "times": [int(sum(veh_times)) for veh_times in times],
+        "distances": [int(veh_dists[-1]) for veh_dists in distances],
+        "times": [int(veh_times[-1]) for veh_times in times],
         "deliveries_attempted": [
             int(len(route) - 2) for route in solution.routes
         ],  # {[1,3,6,0,0]}, # successful deliveries or total deliveries? ## Attempted, so total. -2 for depo at start and end.
@@ -206,6 +206,7 @@ def multiday(
 
         logger.debug("Calculating distance and time matrix")
 
+        cp_customers = []
         ## TODO: Remove packages from collection points
         if collection_points:
             for i in range(k):
@@ -297,9 +298,8 @@ def multiday(
             for i, c in enumerate(futile_count):
                 # a threshold of day count of the package in the system
                 if c >= futile_count_threshold and i >= n_depots:
-                    cd = (
-                        os.path.dirname(os.path.abspath(__file__))
-                        + "\\..\\data"
+                    cd = os.path.join(
+                        os.path.dirname(os.path.abspath(__file__)), "..", "data"
                     )
                     # get the dist from the cusomter's house to the collection points
                     lat_all = sol_fac_lat[:]

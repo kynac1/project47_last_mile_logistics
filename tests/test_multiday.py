@@ -65,7 +65,7 @@ def route_optimizer(
     alternate_locations,
     fss=routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC,
     lsm=routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH,
-    tlim=10,
+    tlim=1,
 ):
     locs = dm.shape[0]
     r = ORToolsRouting(locs, 5)
@@ -92,7 +92,7 @@ def route_optimizer(
 def simulator(
     routes, dm, tm, delivery_time_windows, customers, rg: np.random.Generator
 ):
-    return sim(routes, new_tw_policy(dm, tm, delivery_time_windows, customers, rg))
+    return sim(routes, wait_policy(dm, tm, delivery_time_windows, customers, rg))
 
 
 def test_multiday():
