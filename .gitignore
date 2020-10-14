@@ -1,1 +1,7 @@
-¡®env' 
+.pytest_cache
+.vscode
+.venv
+__pycache__
+prof
+cov.xml
+.coverage
