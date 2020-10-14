@@ -26,7 +26,6 @@ def collect_data(
     delivered: np.array,
     arrival_days: list,
     time_windows: dict,
-    collection_point_packages: list,
 ):
     data = {}
     """
@@ -84,7 +83,6 @@ def collect_data(
                 if i != 0 and i not in delivered
             ],  # [[3,7],[2,7],[5,9],[1,3],[4,5]]
         },
-        "collection_point_packages": collection_point_packages,
     }
 
     return data
@@ -104,9 +102,6 @@ def multiday(
     plot=False,
     collection_points=None,
     k=0,
-    dist_threshold=20000,
-    futile_count_threshold=1,
-    cap=20,
 ):
     """Multiday Sim
 
@@ -177,10 +172,12 @@ def multiday(
             for i in range(len(depots[0]))
         ]
     )
-    packages_at_collection = []
-    if collection_points:  # choose the number of collection points
-        sol_fac_lat, sol_fac_lon, coord, fac_coord = opt_collection_coord(
-            k, cap, depots, sample_generator, dist_and_time, seed=None
+
+    if collection_points:
+        # choose the number of collection points
+        # k = 2  # shall we include k as an input of multiday
+        sol_fac_lat, sol_fac_lon, coord, fac_coord, cap = opt_collection_coord(
+            k, depots, sample_generator, dist_and_time, seed=None
         )
 
         # initialise a list of dictionaries for each collection point
@@ -209,12 +206,6 @@ def multiday(
         ## TODO: Remove packages from collection points
         if collection_points:
             for i in range(k):
-                logger.debug(
-                    "Number of packages in collection %i, day %i: %i",
-                    i,
-                    day,
-                    len(packages_at_collection[i]),
-                )
                 if (
                     len(packages_at_collection[i]) != 0
                 ):  # there's packages in the collection point
@@ -296,7 +287,7 @@ def multiday(
             undelivered = np.ones(len(futile_count), dtype=bool)
             for i, c in enumerate(futile_count):
                 # a threshold of day count of the package in the system
-                if c >= futile_count_threshold and i >= n_depots:
+                if c >= 1 and i >= n_depots:
                     cd = (
                         os.path.dirname(os.path.abspath(__file__)).strip("project47")
                         + "data"
@@ -318,7 +309,7 @@ def multiday(
                     )
                     # choose the closest collection point
                     min_value = min(dist[0])
-                    # dist_threshold = 20000  # 20km
+                    dist_threshold = 20000  # 20km
                     # allow the package to be assigned to the closest collection point if the dist is within the threshold
                     if min_value < dist_threshold:
                         min_ind = dist[0].index(min_value)
@@ -365,6 +356,18 @@ def multiday(
                 arrival_days = np.append(
                     arrival_days, [day for _ in range(len(cp_customers))]
                 )
+
+        # #
+        # undelivered = np.ones(len(customers), dtype=bool)
+        # for alternates in alternate_locations:  # Remove all alternate locations as well
+        #     for package in delivered_collection_point:
+        #         if package in alternates:
+        #             undelivered[alternates] = False
+        # undelivered[[i for i in range(n_depots)]] = True
+        # delivery_time_windows = delivery_time_windows[undelivered]
+        # arrival_days = arrival_days[undelivered]
+        # futile_count = futile_count[undelivered]
+        # customers = customers[undelivered]
 
         # Get times and distances
         dm, tm = dist_and_time(customers)
@@ -437,7 +440,6 @@ def multiday(
                     delivered,
                     arrival_days,
                     delivery_time_windows,
-                    [len(l) for l in packages_at_collection],
                 )
             )
 
