@@ -42,4 +42,4 @@ docker run -t -i -p 5000:5000 -v "${PWD}:/data" osrm/osrm-backend osrm-routed --
 
 Again, in the folder with the map data and the correct filename.orsm.
 
-By default, this will host the server on `0.0.0.0:5000`.
+By default, this will host the server on `localhost:5000`.

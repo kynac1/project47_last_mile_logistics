@@ -167,7 +167,7 @@ def opt_collection_coord(k, depots, sample_generator, dist_and_time, seed=None):
 
     # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
     cd = (
-        os.path.dirname(os.path.abspath(__file__)).strip("project47") + "data"
+        os.path.dirname(os.path.abspath(__file__)) + "\\..\\data"
     )  # direct to data folder
     # direct to collection coordinates file
     coord_filename = os.path.join(cd, "fac_coord.csv")
@@ -217,7 +217,7 @@ def opt_collection_coord(k, depots, sample_generator, dist_and_time, seed=None):
         lon_all,
         source,
         save=False,
-        host="0.0.0.0:5000",
+        host="localhost:5000",
     )
 
     # number of collection points

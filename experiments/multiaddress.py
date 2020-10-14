@@ -101,7 +101,7 @@ def multiaddress(
             "",
             [customer.lat for customer in customers],
             [customer.lon for customer in customers],
-            host="0.0.0.0:5000",
+            host="localhost:5000",
             save=False,
         )
 
@@ -131,7 +131,7 @@ def multiaddress(
 
         r.search_parameters.local_search_metaheuristic = lsm
         # r.search_parameters.use_cp_sat = True
-        s = r.solve(tlim=tlim, log=True)
+        s = r.solve(tlim=tlim, log=False)
 
         unscheduled = []
         scheduled = reduce(lambda x, y: x + y, s.routes)
@@ -178,18 +178,23 @@ def multiaddress(
     logger.debug("")
 
 
+import psutil
+
 if __name__ == "__main__":
 
     arg_list = []
-    """for vehs in [3, 5, 7, 9]:
+    for vehs in [3, 5, 7, 9]:
         for tws in [1, 2, 4, 8]:
-            arg_list.append((50, vehs, tws, 1, calling_policy))
-    with Pool(1) as p:
-        p.starmap(multiaddress, arg_list)
+            arg_list.append((50, vehs, tws, 2, calling_policy))
+    n = 4
+    for i in range(0, len(arg_list), n):
+        with Pool(n) as p:
+            p.starmap(multiaddress, arg_list[i : i + n])
     """
     for vehs in [9]:
         for tws in [8]:
-            arg_list.append((50, vehs, tws, 1, calling_policy))
+            arg_list.append((50, vehs, tws, 2, calling_policy))
 
     for args in arg_list:
         multiaddress(*args)
+    """
