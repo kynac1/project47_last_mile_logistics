@@ -178,14 +178,15 @@ def multiaddress(
     logger.debug("")
 
 
-import psutil
-
 if __name__ == "__main__":
 
     arg_list = []
-    for vehs in [3, 5, 7, 9]:
-        for tws in [1, 2, 4, 8]:
-            arg_list.append((50, vehs, tws, 2, calling_policy))
+    for policy in [wait_policy, estimate_ahead_policy, calling_policy]:
+        for vehs in [3, 9]:
+            for tws in [1, 8]:
+                for locations in [1, 2]:
+                    arg_list.append((50, vehs, tws, locations, policy))
+
     n = 4
     for i in range(0, len(arg_list), n):
         with Pool(n) as p:
