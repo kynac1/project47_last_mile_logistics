@@ -200,8 +200,8 @@ if __name__ == "__main__":
     vehs = 5
     tws = 4  # 2
 
-    for k in [3, 5]:
-        for dist_threshold in [5000, 10000, 20000]:
+    for k in [3]:  # 5
+        for dist_threshold in [10000, 20000]:  # 5000
             for futile_count_threshold in [1, 2, 4]:
                 for cap in [20, 30, 40, 50]:
 
