@@ -163,7 +163,7 @@ def get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict):
     return latitude, longitude
 
 
-def opt_collection_coord(k, depots, sample_generator, dist_and_time, seed=None):
+def opt_collection_coord(k, cap, depots, sample_generator, dist_and_time, seed=None):
 
     # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
     cd = (
@@ -225,7 +225,7 @@ def opt_collection_coord(k, depots, sample_generator, dist_and_time, seed=None):
     CUSTOMERS = np.arange(len(lat))
     FACILITY = np.arange(len(fac_lat))
 
-    cap = math.ceil(sample_df.shape[0] / k)
+    # cap = math.ceil(sample_df.shape[0] / k)
     Fac_cap = np.ones(len(fac_lat)) * cap
 
     sol_fac_lat, sol_fac_lon = find_opt_collection(
@@ -234,7 +234,7 @@ def opt_collection_coord(k, depots, sample_generator, dist_and_time, seed=None):
 
     coord = list(map(list, zip(lat, lon)))
     fac_coord = list(map(list, zip(fac_lat, fac_lon)))
-    return sol_fac_lat, sol_fac_lon, coord, fac_coord, cap
+    return sol_fac_lat, sol_fac_lon, coord, fac_coord
 
     #  lat = CHC_df["gd2000_ycoord"].array
     # lon = CHC_df["gd2000_xcoord"].array

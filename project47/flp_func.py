@@ -57,12 +57,12 @@ def find_opt_collection(
     for i in CUSTOMERS:
         prob += lpSum(serv_vars[(i, j)] for j in FACILITY) >= demand[i]
 
-    # capacity constraint
-    for j in FACILITY:
-        prob += lpSum(serv_vars[(i, j)] for i in CUSTOMERS) <= Fac_cap[j] * use_vars[j]
+    # # capacity constraint
+    # for j in FACILITY:
+    #     prob += lpSum(serv_vars[(i, j)] for i in CUSTOMERS) <= Fac_cap[j] * use_vars[j]
 
-        # number of collection points
-        prob += lpSum(use_vars[j] for j in FACILITY) == k
+    # number of collection points
+    prob += lpSum(use_vars[j] for j in FACILITY) == k
 
     # upper bound for x, tight formulation
     for i in CUSTOMERS:
