@@ -10,9 +10,9 @@ from multiprocessing import Process, Pool
 
 import logging
 
-# import multiprocessing_logging
+import multiprocessing_logging
 
-# multiprocessing_logging.install_mp_handler()
+multiprocessing_logging.install_mp_handler()
 
 
 logging.basicConfig(
@@ -68,7 +68,8 @@ def multicollection(
 
     def sample_generator(rg: np.random.Generator):
         lat, lon = get_sample(
-            arrival_rate * num_addresses,  # rg.poisson(arrival_rate) * num_addresses,
+            # rg.poisson(arrival_rate) * num_addresses,
+            arrival_rate * num_addresses,
             rg,
             cd,
             sample_df,
@@ -139,7 +140,8 @@ def multicollection(
         dim, ind = r.add_dimension(dm, 0, 1000000, True, "distance")
         r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
         dim.SetGlobalSpanCostCoefficient(100)
-        dim, ind = r.add_time_windows(tm, time_windows, day_end, day_end, False, "time")
+        dim, ind = r.add_time_windows(
+            tm, time_windows, day_end, day_end, False, "time")
         for alternates in alternate_locations:
             r.add_option(alternates, 5000000)
 
@@ -214,13 +216,12 @@ if __name__ == "__main__":
     #                         cap,
     #                     )
     #                 )
-
+    vehs = 5
+    tws = 4
     for k in [2, 5]:
         for dist_threshold in [10000, 50000]:
             for futile_count_threshold in [1, 5]:
                 for cap in [10, 50]:
-                    vehs = 5
-                    tws = 4  # 2
                     arg_list.append(
                         (
                             50,
@@ -235,7 +236,27 @@ if __name__ == "__main__":
                         )
                     )
 
+    # for k in [2, 3]:
+    #     for dist_threshold in [10000]:
+    #         for futile_count_threshold in [1]:
+    #             for cap in [10]:
+    #                 vehs = 5
+    #                 tws = 4  # 2
+    #                 arg_list.append(
+    #                     (
+    #                         50,
+    #                         vehs,
+    #                         tws,
+    #                         1,
+    #                         wait_policy,
+    #                         k,
+    #                         dist_threshold,
+    #                         futile_count_threshold,
+    #                         cap,
+    #                     )
+    #                 )
+
     for args in arg_list:
         multicollection(*args)
-    with Pool(2) as p:
+    with Pool(5) as p:
         p.starmap(multicollection, arg_list)
