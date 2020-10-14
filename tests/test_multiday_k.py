@@ -97,7 +97,7 @@ def simulator(
     return sim(routes, new_tw_policy(dm, tm, delivery_time_windows, customers, rg))
 
 
-def test_multiday():
+def test_multiday_k():
     """This is the main example of all the functionality.
 
     The idea is that when we create a new experiment to run, we'd copy the structure of this function and replace
@@ -109,7 +109,6 @@ def test_multiday():
     for k in range(2, 10):
 
         data = multiday(
-            k,
             np.array([[-43.5111688], [172.7319266]]),
             sample_generator,
             dist_and_time,
@@ -122,6 +121,7 @@ def test_multiday():
             replications=2,
             plot=False,
             collection_points=True,
+            k=k,
         )
         meta_info[k] = data
     end_time = time.time()
@@ -131,6 +131,42 @@ def test_multiday():
     meta_info_json = json.dumps(meta_info)
     print(meta_info)
     print(runtime)
+
+
+def test_multiday1():
+    """This is the main example of all the functionality.
+
+    The idea is that when we create a new experiment to run, we'd copy the structure of this function and replace
+    parts so that it implements the new policies
+    """
+    begin_time = time.time()
+    sample_generator = test_sample_generator()
+    # meta_info = {}
+
+    data = multiday(
+        np.array([[-43.5111688], [172.7319266]]),
+        sample_generator,
+        dist_and_time,
+        route_optimizer,
+        simulator,
+        10,
+        0,
+        28800,
+        seed=123456789,
+        replications=2,
+        plot=False,
+        collection_points=True,
+        k=2,
+    )
+    # meta_info[k] = data
+
+    # end_time = time.time()
+    # runtime = (end_time - begin_time) / 60
+    # with open("meta_info.json", "w") as fp:
+    #     json.dump(meta_info, fp)
+    # meta_info_json = json.dumps(meta_info)
+    # print(meta_info)
+    # print(runtime)
 
     # assert len(data) == 20
 
@@ -239,5 +275,5 @@ def test_multiday():
 
 
 if __name__ == "__main__":
-    test_multiday()
+    test_multiday1()
     # test_alternate_locations()

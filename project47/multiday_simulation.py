@@ -7,6 +7,7 @@ from numpy.random import Generator, PCG64
 import os
 import matplotlib.pyplot as plt
 from itertools import islice
+from scipy.stats import geom
 
 # from celluloid import Camera
 
@@ -88,7 +89,6 @@ def collect_data(
 
 
 def multiday(
-    k,
     depots,
     sample_generator,
     dist_and_time,
@@ -101,6 +101,7 @@ def multiday(
     replications=1,
     plot=False,
     collection_points=None,
+    k=0,
 ):
     """Multiday Sim
 
@@ -144,6 +145,10 @@ def multiday(
     longitudes_per_day = []
     time_windows_per_day = []
     customers_per_day = []
+    allocat_packages_to_collection = [[] for i in range(k)]  # preset package allocation
+    customer_to_cp = [
+        [] for i in range(k)
+    ]  # initialise the customer list for each collection point
 
     logger.debug("Generating incoming packages")
 
@@ -177,7 +182,6 @@ def multiday(
 
         # initialise a list of dictionaries for each collection point
         packages_at_collection = [{} for i in range(k)]
-
     for day in range(n_days):
         logger.debug("Start day %i" % day)
 
@@ -205,61 +209,81 @@ def multiday(
                 if (
                     len(packages_at_collection[i]) != 0
                 ):  # there's packages in the collection point
-                    # randome number of customers collecting today
-                    rd2 = rg.integers(
-                        low=0, high=len(packages_at_collection[i]), size=1
-                    )
-                    arrivals = np.random.poisson(1, size=rd2)
-                    # sort the pakacges in order of descending days in collection point
-                    packages_at_collection[i] = {
-                        k: v
-                        for k, v in sorted(
-                            packages_at_collection[i].items(),
-                            key=lambda item: item[1],
-                            reverse=True,
-                        )
-                    }
-                    # packages_at_collection[i] = sorted(
-                    #     packages_at_collection[i].items(),
-                    #     key=lambda x: x[1],
-                    #     reverse=True,
-                    # )
-                    # remove the package from the collection point
-                    print(list(packages_at_collection[i])[0])
-                    for j in range(rd2[0]):
-                        # 20% of the time the package with j to last longest days is removed
-                        if rg.random() > 0.8:  # low=0, high=1, size=1
-                            # del packages_at_collection[i][
-                            #     next(
-                            #         islice(
-                            #             packages_at_collection[i],
-                            #             len(packages_at_collection[i]) - j,
-                            #             None,
-                            #         )
-                            #     )
-                            # ]
-                            collected_package = packages_at_collection[i].pop(
-                                list(packages_at_collection[i])[1]
-                            )
+                    p = 0.6  # success probability
+                    # np.random.geometric(p=0.35, size=10000)
+                    # np.random.geometric(p=0.6, size=len(packages_at_collection[i]))
+                    collected_package = []
+                    for c in packages_at_collection[i]:
+                        v = packages_at_collection[i][c]
+                        cdf = geom.cdf(v, p)  # cumulative geometric distribution
+                        # if the probablity is greater than the random number, the package is picked up
+                        if cdf >= rg.random():
+                            collected_package.append(c)
                         else:
-                            # 80% of the time the package with longest days is removed
-                            # del packages_at_collection[i][
-                            #     next(
-                            #         islice(
-                            #             packages_at_collection[i],
-                            #             0,
-                            #             None,
-                            #         )
-                            #     )
-                            # ]
-                            collected_package = packages_at_collection[i].pop(
-                                list(packages_at_collection[i])[0]
-                            )
+                            # add a day to the number of days at collection point
+                            packages_at_collection[i][c] += 1
+                    for collected in collected_package:
+                        packages_at_collection[i].pop(collected)
+
+                # rg.random()
+
+                # # randome number of customers collecting today
+                # rd2 = rg.integers(
+                #     low=0, high=len(packages_at_collection[i]), size=1
+                # )
+                # arrivals = np.random.poisson(1, size=rd2)
+                # # sort the pakacges in order of descending days in collection point
+                # packages_at_collection[i] = {
+                #     k: v
+                #     for k, v in sorted(
+                #         packages_at_collection[i].items(),
+                #         key=lambda item: item[1],
+                #         reverse=True,
+                #     )
+                # }
+                # # packages_at_collection[i] = sorted(
+                # #     packages_at_collection[i].items(),
+                # #     key=lambda x: x[1],
+                # #     reverse=True,
+                # # )
+                # # remove the package from the collection point
+                # print(list(packages_at_collection[i])[0])
+                # for j in range(rd2[0]):
+                #     # 20% of the time the package with j to last longest days is removed
+                #     if rg.random() > 0.8:  # low=0, high=1, size=1
+                #         # del packages_at_collection[i][
+                #         #     next(
+                #         #         islice(
+                #         #             packages_at_collection[i],
+                #         #             len(packages_at_collection[i]) - j,
+                #         #             None,
+                #         #         )
+                #         #     )
+                #         # ]
+                #         collected_package = packages_at_collection[i].pop(
+                #             list(packages_at_collection[i])[1]
+                #         )
+                #     else:
+                #         # 80% of the time the package with longest days is removed
+                #         # del packages_at_collection[i][
+                #         #     next(
+                #         #         islice(
+                #         #             packages_at_collection[i],
+                #         #             0,
+                #         #             None,
+                #         #         )
+                #         #     )
+                #         # ]
+                #         collected_package = packages_at_collection[i].pop(
+                #             list(packages_at_collection[i])[0]
+                #         )
 
             ## TODO: Add customers to collections points, and add visited collection points to customers
             # need a list of undelivered packages in the simulation
-            allocat_packages_to_collection = [[] for i in range(k)]
-            package_sent2collection_ind = []
+            # tw_to_cp = [[] for i in range(k)]
+            # ad_to_cp = [[] for i in range(k)]
+            # fc_to_cp = [[] for i in range(k)]
+
             undelivered = np.ones(len(futile_count), dtype=bool)
             for i, c in enumerate(futile_count):
                 # a threshold of day count of the package in the system
@@ -295,18 +319,17 @@ def multiday(
                             allocat_packages_to_collection[min_ind].append(
                                 i
                             )  # i is the index but not the unique index for the customer?
-                            undelivered[i] = False
-                            # package_sent2collection_ind.append(i)
-                            # add a dict pair
-                            packages_at_collection[min_ind][customers[i]] = 0
-            # remove all the packages sent to the collection point from the customers
-            # customers = np.delete(customers, package_sent2collection_ind)
-            # delivery_time_windows = np.delete(
-            #     delivery_time_windows, package_sent2collection_ind
-            # )
-            # arrival_days = np.delete(arrival_days, package_sent2collection_ind)
-            # futile_count = np.delete(futile_count, package_sent2collection_ind)
-            # undelivered[[i for i in range(n_depots)]] = True
+                            undelivered[
+                                i
+                            ] = False  # customer to be removed from the delivery list
+                            # record the customer list for each collection point
+                            customer_to_cp[min_ind].append(customers[i])
+                            # tw_to_cp[min_ind].append(delivery_time_windows[i])
+                            # ad_to_cp[min_ind].append(arrival_days[i])
+                            # fc_to_cp[min_ind].append(futile_count[i])
+
+                            # packages_at_collection[min_ind][customers[i]] = 0
+            # TODO: Remove packages sent to collection points from customers
             delivery_time_windows = delivery_time_windows[undelivered]
             arrival_days = arrival_days[undelivered]
             futile_count = futile_count[undelivered]
@@ -317,7 +340,7 @@ def multiday(
                 [
                     Customer(sol_fac_lat[cp], sol_fac_lon[cp], 1, 1, rg=rg)
                     for cp in range(k)
-                    if len(allocat_packages_to_collection[cp]) != 0
+                    if len(customer_to_cp[cp]) != 0
                 ]
             )
             if len(cp_customers) > 0:
@@ -334,20 +357,7 @@ def multiday(
                     arrival_days, [day for _ in range(len(cp_customers))]
                 )
 
-            # #     # TODO: check if
-            # for i in range(k):
-            #     for j in len(allocat_packages_to_collection[i]):
-            #         # if the collection point exceeds its capacity
-            #         if len(packages_at_collection[i]) >= cap:
-            #             break
-            #         packages_at_collection[i].append(
-            #             customers[allocat_packages_to_collection[i][j]]
-            #         )  # Add customers to collections points
-            #         delivered_collection_point.append(
-            #             allocat_packages_to_collection[i][j]
-            #         )
-        #             # assign the appeded package with the number of days in cp of 0
-        # ## TODO: Remove packages sent to collection points from customers
+        # #
         # undelivered = np.ones(len(customers), dtype=bool)
         # for alternates in alternate_locations:  # Remove all alternate locations as well
         #     for package in delivered_collection_point:
@@ -358,9 +368,6 @@ def multiday(
         # arrival_days = arrival_days[undelivered]
         # futile_count = futile_count[undelivered]
         # customers = customers[undelivered]
-        # ## TODO: Output Data Correction
-        # # set the packages sent to collection points as delivered package
-        # # change futile to False?
 
         # Get times and distances
         dm, tm = dist_and_time(customers)
@@ -409,7 +416,7 @@ def multiday(
 
         futile_count[[i for i in range(len(customers)) if i not in unscheduled]] += 1
 
-        logger.debug(routes)
+        # logger.debug(routes)
         logger.debug("Unscheduled: %s" % unscheduled)
 
         logger.debug("Start simulations")
@@ -443,10 +450,45 @@ def multiday(
                 if package in alternates:
                     undelivered[alternates] = False
         undelivered[[i for i in range(n_depots)]] = True
+
+        # # get the undelivered list for collection point
+        # cp_undelivered = undelivered[-len(cp_customers) :]
+        # count_cp_undelivered = 0
+
+        # check if collection point is visited
+        for i in range(len(cp_customers)):
+            if not undelivered[-i - 1]:  # collection point visited
+                for cust in customer_to_cp[
+                    -i - 1
+                ]:  # add package into the collection point
+                    packages_at_collection[-i - 1][cust] = 0
+                # allocat_packages_to_collection[min_ind] = []
+                customer_to_cp[
+                    -i - 1
+                ] = []  # reset the customer list for the visited collection point
+            else:
+                # count_cp_undelivered += 1
+                undelivered[
+                    -i - 1
+                ] = False  # remove collection point in the customer list
+                # Generate data
+                # new_time_windows, new_arrival_days, new_futile_count, new_customers = (
+                #     tw_to_cp[-i - 1],
+                #     ad_to_cp[-i - 1],
+                #     fc_to_cp[-i - 1],
+                #     customer_to_cp[-i - 1],
+                # )
+
         delivery_time_windows = delivery_time_windows[undelivered]
         arrival_days = arrival_days[undelivered]
         futile_count = futile_count[undelivered]
         customers = customers[undelivered]
+        # if count_cp_undelivered:
+        #     # stick the undelivered collection pacakges on
+        #     delivery_time_windows = np.vstack((delivery_time_windows, new_time_windows))
+        #     arrival_days = np.append(arrival_days, new_arrival_days)
+        #     futile_count = np.append(futile_count, new_futile_count)
+        #     customers = np.append(customers, new_customers)
 
         logger.debug(
             "Number of remaining Packages: %i" % (len(customers) - 1)
