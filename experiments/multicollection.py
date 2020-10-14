@@ -180,7 +180,7 @@ def multicollection(
         futile_count_threshold=futile_count_threshold,
         cap=cap,
     )
-    fname = f"experiments/multicollection_results0/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
+    fname = f"experiments/multicollection_results1/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
     with open(
         fname,
         "x",
@@ -197,31 +197,14 @@ def multicollection(
 if __name__ == "__main__":
 
     arg_list = []
-    # for k in [3, 5]:
-    #     for futile_count_threshold in [0, 1, 2, 4]:
-    #         for dist_threshold in [10000, 30000]:
-    #             for cap in [20, 30, 40, 50]:
-    #                 vehs = 5
-    #                 tws = 4  # 2
-    #                 arg_list.append(
-    #                     (
-    #                         50,
-    #                         vehs,
-    #                         tws,
-    #                         1,
-    #                         wait_policy,
-    #                         k,
-    #                         dist_threshold,
-    #                         futile_count_threshold,
-    #                         cap,
-    #                     )
-    #                 )
     vehs = 5
-    tws = 4
-    for k in [2, 5]:
-        for dist_threshold in [10000, 50000]:
-            for futile_count_threshold in [1, 5]:
-                for cap in [10, 50]:
+    tws = 4  # 2
+
+    for k in [3, 5]:
+        for dist_threshold in [5000, 10000, 20000]:
+            for futile_count_threshold in [1, 2, 4]:
+                for cap in [20, 30, 40, 50]:
+
                     arg_list.append(
                         (
                             50,
@@ -235,6 +218,24 @@ if __name__ == "__main__":
                             cap,
                         )
                     )
+
+    # for k in [2, 5]:
+    #     for dist_threshold in [10000, 50000]:
+    #         for futile_count_threshold in [1, 5]:
+    #             for cap in [10, 50]:
+    #                 arg_list.append(
+    #                     (
+    #                         50,
+    #                         vehs,
+    #                         tws,
+    #                         1,
+    #                         wait_policy,
+    #                         k,
+    #                         dist_threshold,
+    #                         futile_count_threshold,
+    #                         cap,
+    #                     )
+    #                 )
 
     # for k in [2, 3]:
     #     for dist_threshold in [10000]:
