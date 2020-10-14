@@ -5,14 +5,13 @@ description = ""
 authors = ["Michael Sundvick <kynac1@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.7"
 ortools = "^7.5"
 matplotlib = "^3.2"
 pandas = "^1.0"
 numpy = "^1.18"
 networkx = "^2.4"
 requests = "^2.23"
-geopandas = "0.8"
 shapely = "^1.7.1"
 googlemaps = "^2.5"
 geopy = "^1.22"
@@ -31,5 +30,5 @@ pylint = "^2.6.0"
 black = {version = "^20.8b1", allow-prereleases = true}
 
 [build-system]
-requires = ["poetry-core>=1.0.0a5"]
+requires = ["poetry-core>=1.0.0a5", "setuptools"]
 build-backend = "poetry.core.masonry.api"

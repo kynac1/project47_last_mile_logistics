@@ -289,8 +289,8 @@ def multiday(
                 # a threshold of day count of the package in the system
                 if c >= 1 and i >= n_depots:
                     cd = (
-                        os.path.dirname(os.path.abspath(__file__)).strip("project47")
-                        + "data"
+                        os.path.dirname(os.path.abspath(__file__))
+                        + "\\..\\data"
                     )
                     # get the dist from the cusomter's house to the collection points
                     lat_all = sol_fac_lat[:]
@@ -305,7 +305,7 @@ def multiday(
                         lon_all,
                         source=[0],
                         save=False,
-                        host="0.0.0.0:5000",
+                        host="localhost:5000",
                     )
                     # choose the closest collection point
                     min_value = min(dist[0])

@@ -99,7 +99,7 @@ def multicollection(
             "",
             [customer.lat for customer in customers],
             [customer.lon for customer in customers],
-            host="0.0.0.0:5000",
+            host="localhost:5000",
             save=False,
         )
 
