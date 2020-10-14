@@ -51,7 +51,7 @@ def dist_and_time(customers):
         "",
         [customer.lat for customer in customers],
         [customer.lon for customer in customers],
-        host="0.0.0.0:5000",
+        host="localhost:5000",
         save=False,
     )
 
@@ -67,7 +67,7 @@ def route_optimizer(
     alternate_locations,
     fss=routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC,
     lsm=routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH,
-    tlim=10,
+    tlim=1,
 ):
     locs = dm.shape[0]
     r = ORToolsRouting(locs, 5)
@@ -94,7 +94,7 @@ def route_optimizer(
 def simulator(
     routes, dm, tm, delivery_time_windows, customers, rg: np.random.Generator
 ):
-    return sim(routes, new_tw_policy(dm, tm, delivery_time_windows, customers, rg))
+    return sim(routes, wait_policy(dm, tm, delivery_time_windows, customers, rg))
 
 
 def test_multiday_k():
@@ -153,11 +153,12 @@ def test_multiday1():
         0,
         28800,
         seed=123456789,
-        replications=2,
+        replications=1,
         plot=False,
         collection_points=True,
         k=2,
     )
+    print()
     # meta_info[k] = data
 
     # end_time = time.time()

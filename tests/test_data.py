@@ -31,7 +31,7 @@ def test_osrm():
     """This will only work with the osrm server running, and with the Christchurch map"""
 
     latitude, longitude = [-43.2, -43.3], [172.5, 172.6]
-    res = osrm_get_dist("", "", latitude, longitude, host="0.0.0.0:5000", save=False)
+    res = osrm_get_dist("", "", latitude, longitude, host="localhost:5000", save=False)
     assert np.allclose(np.array(res[0]), np.array([[0, 6014], [6014, 0]]))
     assert np.allclose(np.array(res[1]), np.array([[0, 292], [290, 0]]))
 
@@ -42,7 +42,7 @@ def test_osrm():
     # We set the second location (at position 1, zero based index) as the source
     # So we only
     res = osrm_get_dist(
-        "", "", latitude, longitude, source=[1], host="0.0.0.0:5000", save=False
+        "", "", latitude, longitude, source=[1], host="localhost:5000", save=False
     )
     assert len(res[0]) == 1
     assert len(res[1]) == 1
@@ -51,4 +51,4 @@ def test_osrm():
 
 
 if __name__ == "__main__":
-    test_osrm()
+    test_get_sample_performance()

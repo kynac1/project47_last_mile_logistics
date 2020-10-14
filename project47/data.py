@@ -3,7 +3,7 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-import geopandas as gpd
+#import geopandas as gpd
 from shapely.geometry import Polygon, Point
 import pandas as pd
 import googlemaps
@@ -318,7 +318,7 @@ def osrm_get_dist(
 def main():
     # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
     cd = (
-        os.path.dirname(os.path.abspath(__file__)).strip("project47") + "data"
+        os.path.dirname(os.path.abspath(__file__)) + "\\..\\data"
     )  # direct to data folder
     sample_data_csv = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
     CHC_data_csv = os.path.join(cd, "christchurch_street.csv")
@@ -340,11 +340,11 @@ def main():
     # coord_filename = None
     # dm, tm = get_dist(API_key, cd, coord_filename, latitude, longitude, save=False)
     dm, tm = osrm_get_dist(
-        cd, coord_filename, latitude, longitude, host="0.0.0.0:5000", save=True
+        cd, coord_filename, latitude, longitude, host="localhost:5000", save=True
     )
-    # print(osrm_get_dist(cd, coord_filename, host='0.0.0.0:5000', save=True))
-    print(dm)
-    print(tm)
+    # print(osrm_get_dist(cd, coord_filename, host='localhost:5000', save=True))
+    # print(dm)
+    # print(tm)
 
 
 if __name__ == "__main__":

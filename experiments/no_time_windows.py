@@ -65,7 +65,7 @@ def no_time_windows_comparison(arrival_rate, num_vehicles, num_time_windows):
             "",
             [customer.lat for customer in customers],
             [customer.lon for customer in customers],
-            host="0.0.0.0:5000",
+            host="localhost:5000",
             save=False,
         )
 
