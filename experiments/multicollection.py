@@ -223,7 +223,6 @@ if __name__ == "__main__":
     # )
 
     param = ['k', 'dist_threshold', 'futile_count_threshold', 'cap']
-    param = ['k']
 
     param_dict = {'k': [0, 1, 2, 3, 4, 5],  # k
                   # dist_threshold
