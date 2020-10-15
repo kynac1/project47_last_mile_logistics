@@ -184,7 +184,7 @@ def multiday(
     )
     packages_at_collection = []
     collection_point_removed_packages = []
-    if collection_points:  # choose the number of collection points
+    if collection_points and k != 0:  # choose the number of collection points
         sol_fac_lat, sol_fac_lon, coord, fac_coord = opt_collection_coord(
             k, cap, depots, sample_generator, dist_and_time, seed=None
         )
@@ -218,7 +218,7 @@ def multiday(
         cp_customers = []
         collection_dist = 0
         # TODO: Remove packages from collection points
-        if collection_points:
+        if collection_points and k != 0:
             for i in range(k):
                 logger.debug(
                     "Number of packages in collection %i, day %i: %i",
