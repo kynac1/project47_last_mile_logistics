@@ -157,7 +157,7 @@ def multiaddress(
         plot=False,
         seed=2123897
     )
-    fname = f"multiaddress_vehicles/poisson_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_collection.json"
+    fname = f"multiaddress_time_windows/poisson_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_collection.json"
     try:
         with open(
             fname,
@@ -182,8 +182,8 @@ if __name__ == "__main__":
 
     arg_list = []
     for policy in [wait_policy]:
-        for vehs in [3,5,7,9]:
-            for tws in [1]:
+        for vehs in [3]:
+            for tws in [1,2,4,8,16]:
                 for locations in [1,2]:
                     arg_list.append((50, vehs, tws, locations, policy))
 
