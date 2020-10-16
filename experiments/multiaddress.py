@@ -52,7 +52,7 @@ def multiaddress(
 
     def sample_generator(rg: np.random.Generator):
         lat, lon = get_sample(
-            arrival_rate * num_addresses,  # rg.poisson(arrival_rate) * num_addresses,
+            rg.poisson(arrival_rate) * num_addresses,
             rg,
             cd,
             sample_df,
@@ -156,8 +156,11 @@ def multiaddress(
         day_end,
         plot=False,
         seed=2123897,
+        collection_points=True,
+        futile_count_threshold=2,
+        k=1,
     )
-    fname = f"experiments/multiaddress_results2/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}.json"
+    fname = f"experiments/multiaddress_results2/poisson_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_collection.json"
     try:
         with open(
             fname,
@@ -184,7 +187,7 @@ if __name__ == "__main__":
     for policy in [wait_policy, estimate_ahead_policy, calling_policy]:
         for vehs in [3, 9]:
             for tws in [1, 8]:
-                for locations in [1, 2]:
+                for locations in [1]:
                     arg_list.append((50, vehs, tws, locations, policy))
 
     n = 4
