@@ -188,7 +188,7 @@ if __name__ == "__main__":
                 for tws in [1, 8]:
                     arg_list.append((50, vehs, tws, locations, policy))
 
-    n = 4
+    n = 2
     for i in range(0, len(arg_list), n):
         with Pool(n) as p:
             p.starmap(multiaddress, arg_list[i : i + n])
