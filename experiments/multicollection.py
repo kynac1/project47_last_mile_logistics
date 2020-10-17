@@ -180,7 +180,7 @@ def multicollection(
         futile_count_threshold=futile_count_threshold,
         cap=cap,
     )
-    fname = f"experiments/multicollection_results_futile_count_threshold/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
+    fname = f"experiments/multicollection_results_k/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
     with open(
         fname,
         "x",
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     futile_count_threshold = 2
     cap = 30
 
-    for futile_count_threshold in [3, 4]:
+    for k in [0, 1]:
         arg_list.append(
             (
                 50,
