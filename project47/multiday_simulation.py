@@ -154,8 +154,7 @@ def multiday(
     longitudes_per_day = []
     time_windows_per_day = []
     customers_per_day = []
-    allocat_packages_to_collection = [[]
-                                      for i in range(k)]  # preset package allocation
+    allocat_packages_to_collection = [[] for i in range(k)]  # preset package allocation
     customer_to_cp = [
         [] for i in range(k)
     ]  # initialise the customer list for each collection point
@@ -191,20 +190,18 @@ def multiday(
 
         # initialise a list of dictionaries for each collection point
         packages_at_collection = [{} for i in range(k)]
-        collection_point_removed_packages = [0 for i in range(k)]
+        # collection_point_removed_packages = [0 for i in range(k)]
     for day in range(n_days):
         logger.debug("Start day %i" % day)
-
+        collection_point_removed_packages = [0 for i in range(k)]
         # Generate data
         new_time_windows, new_customers = (
             time_windows_per_day[day],
             customers_per_day[day],
         )
 
-        delivery_time_windows = np.vstack(
-            (delivery_time_windows, new_time_windows))
-        arrival_days = np.append(
-            arrival_days, [day for _ in range(len(new_customers))])
+        delivery_time_windows = np.vstack((delivery_time_windows, new_time_windows))
+        arrival_days = np.append(arrival_days, [day for _ in range(len(new_customers))])
         futile_count = np.append(futile_count, np.zeros(len(new_customers)))
         customers = np.append(customers, new_customers)
 
@@ -311,8 +308,7 @@ def multiday(
                 # a threshold of day count of the package in the system
                 if c >= futile_count_threshold and i >= n_depots:
                     cd = os.path.join(
-                        os.path.dirname(os.path.abspath(
-                            __file__)), "..", "data"
+                        os.path.dirname(os.path.abspath(__file__)), "..", "data"
                     )
                     # get the dist from the cusomter's house to the collection points
                     lat_all = sol_fac_lat[:]
@@ -375,8 +371,7 @@ def multiday(
                     (delivery_time_windows, cp_time_windows)
                 )
                 customers = np.append(customers, cp_customers)
-                futile_count = np.append(
-                    futile_count, np.zeros(len(cp_customers)))
+                futile_count = np.append(futile_count, np.zeros(len(cp_customers)))
                 arrival_days = np.append(
                     arrival_days, [day for _ in range(len(cp_customers))]
                 )
@@ -384,8 +379,7 @@ def multiday(
         # Get times and distances
         dm, tm = dist_and_time(customers)
         if dm is None:
-            logger.critical(
-                "Distance computation failed. Stopping simulation.")
+            logger.critical("Distance computation failed. Stopping simulation.")
             # We've exceeded the map bounds. Stop here for now, but we should really handle this more gracefully.
             break
         dm = np.array(dm)
@@ -421,15 +415,13 @@ def multiday(
         if plot:
             plt.clf()
             routes.plot(
-                positions=[(customer.lon, customer.lat)
-                           for customer in customers],
+                positions=[(customer.lon, customer.lat) for customer in customers],
                 weight_matrix=dm,
             )
             plt.show(block=False)
             plt.pause(0.001)
 
-        futile_count[[i for i in range(
-            len(customers)) if i not in unscheduled]] += 1
+        futile_count[[i for i in range(len(customers)) if i not in unscheduled]] += 1
 
         # logger.debug(routes)
         logger.debug("Unscheduled: %s" % unscheduled)
