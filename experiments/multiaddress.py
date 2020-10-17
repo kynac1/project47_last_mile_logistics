@@ -151,16 +151,14 @@ def multiaddress(
         dist_and_time,
         route_optimizer,
         simulator,
-        20,
+        40,
         day_start,
         day_end,
         plot=False,
         seed=2123897,
-        collection_points=True,
-        futile_count_threshold=2,
-        k=1,
+        tlim=60 * 60,
     )
-    fname = f"experiments/multiaddress_results2/poisson_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_collection.json"
+    fname = f"experiments/multiaddress_results3/poisson_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_days=40.json"
     try:
         with open(
             fname,
@@ -185,12 +183,12 @@ if __name__ == "__main__":
 
     arg_list = []
     for policy in [wait_policy, estimate_ahead_policy, calling_policy]:
-        for vehs in [3, 9]:
-            for tws in [1, 8]:
-                for locations in [1]:
+        for locations in [1, 2]:
+            for vehs in [3, 9]:
+                for tws in [1, 8]:
                     arg_list.append((50, vehs, tws, locations, policy))
 
-    n = 4
+    n = 2
     for i in range(0, len(arg_list), n):
         with Pool(n) as p:
             p.starmap(multiaddress, arg_list[i : i + n])
