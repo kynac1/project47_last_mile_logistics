@@ -197,108 +197,128 @@ if __name__ == "__main__":
 
     arg_list = []
     vehs = 5
-    tws = 4  # 2
+    tws = 4
+    k = 3
+    dist_threshold = 10000
+    futile_count_threshold = 2
+    cap = 30
 
-    param = ["k"]  # , 'dist_threshold', 'futile_count_threshold', 'cap']
+    for k in [0, 1]:
+        arg_list.append(
+            (
+                50,
+                vehs,
+                tws,
+                1,
+                wait_policy,
+                k,
+                dist_threshold,
+                futile_count_threshold,
+                cap,
+            )
+        )
 
-    param_dict = {
-        "k": [0],  # k
-        # dist_threshold
-        "dist_threshold": [5000, 10000, 15000, 20000],
-        # futile_count_threshold
-        "futile_count_threshold": [0, 1, 2, 3, 4],
-        "cap": [10, 20, 30, 40, 50],  # cap
-    }
+    # param = ['k', 'dist_threshold', 'futile_count_threshold', 'cap']
 
-    for i in param:
-        # Base Case for collection point
-        k = 3
-        dist_threshold = 10000
-        futile_count_threshold = 2
-        cap = 30
-        if i == "k":
-            for k in param_dict[i]:
-                arg_list.append(
-                    (
-                        50,
-                        vehs,
-                        tws,
-                        1,
-                        wait_policy,
-                        k,
-                        dist_threshold,
-                        futile_count_threshold,
-                        cap,
-                    )
-                )
-        elif i == "dist_threshold":
-            for dist_threshold in param_dict[i]:
-                arg_list.append(
-                    (
-                        50,
-                        vehs,
-                        tws,
-                        1,
-                        wait_policy,
-                        k,
-                        dist_threshold,
-                        futile_count_threshold,
-                        cap,
-                        i,
-                    )
-                )
-        elif i == "futile_count_threshold":
-            for futile_count_threshold in param_dict[i]:
-                arg_list.append(
-                    (
-                        50,
-                        vehs,
-                        tws,
-                        1,
-                        wait_policy,
-                        k,
-                        dist_threshold,
-                        futile_count_threshold,
-                        cap,
-                        i,
-                    )
-                )
-        else:
-            for cap in param_dict[i]:
-                arg_list.append(
-                    (
-                        50,
-                        vehs,
-                        tws,
-                        1,
-                        wait_policy,
-                        k,
-                        dist_threshold,
-                        futile_count_threshold,
-                        cap,
-                        i,
-                    )
-                )
-    """
-    for k in [2, 5]:  # 5
-        for dist_threshold in [5000, 20000]:  # 5000
-            for futile_count_threshold in [1, 3]:
-                for cap in [10, 50]:
+    # param_dict = {'k': [0, 1, 2, 3, 4, 5],  # k
+    #               # dist_threshold
+    #               'dist_threshold': [5000, 10000, 15000, 20000],
+    #               # futile_count_threshold
+    #               'futile_count_threshold': [0, 1, 2, 3, 4],
+    #               'cap': [10, 20, 30, 40, 50]  # cap
+    #               }
 
-                    arg_list.append(
-                        (
-                            50,
-                            vehs,
-                            tws,
-                            1,
-                            wait_policy,
-                            k,
-                            dist_threshold,
-                            futile_count_threshold,
-                            cap,
-                        )
-                    )
-    """
+    # for i in param:
+    #     # Base Case for collection point
+    #     k = 3
+    #     dist_threshold = 10000
+    #     futile_count_threshold = 2
+    #     cap = 30
+
+    #     if i == 'k':
+    #         for k in param_dict[i]:
+    #             arg_list.append(
+    #                 (
+    #                     50,
+    #                     vehs,
+    #                     tws,
+    #                     1,
+    #                     wait_policy,
+    #                     k,
+    #                     dist_threshold,
+    #                     futile_count_threshold,
+    #                     cap,
+    #                     i,
+    #                 )
+    #             )
+    #     elif i == 'dist_threshold':
+    #         for dist_threshold in param_dict[i]:
+    #             arg_list.append(
+    #                 (
+    #                     50,
+    #                     vehs,
+    #                     tws,
+    #                     1,
+    #                     wait_policy,
+    #                     k,
+    #                     dist_threshold,
+    #                     futile_count_threshold,
+    #                     cap,
+    #                     i,
+    #                 )
+    #             )
+    #     elif i == 'futile_count_threshold':
+    #         for futile_count_threshold in param_dict[i]:
+    #             arg_list.append(
+    #                 (
+    #                     50,
+    #                     vehs,
+    #                     tws,
+    #                     1,
+    #                     wait_policy,
+    #                     k,
+    #                     dist_threshold,
+    #                     futile_count_threshold,
+    #                     cap,
+    #                     i,
+    #                 )
+    #             )
+    #     else:
+    #         for cap in param_dict[i]:
+    #             arg_list.append(
+    #                 (
+    #                     50,
+    #                     vehs,
+    #                     tws,
+    #                     1,
+    #                     wait_policy,
+    #                     k,
+    #                     dist_threshold,
+    #                     futile_count_threshold,
+    #                     cap,
+    #                     i,
+    #                 )
+    #             )
+
+    # for k in [2, 5]:  # 5
+    #     for dist_threshold in [5000, 20000]:  # 5000
+    #         for futile_count_threshold in [1, 3]:
+    #             for cap in [10, 50]:
+
+    #                 arg_list.append(
+    #                     (
+    #                         50,
+    #                         vehs,
+    #                         tws,
+    #                         1,
+    #                         wait_policy,
+    #                         k,
+    #                         dist_threshold,
+    #                         futile_count_threshold,
+    #                         cap,
+    #                     )
+    #                 )
+
     # for k in [2, 5]:
     #     for dist_threshold in [10000, 50000]:
     #         for futile_count_threshold in [1, 5]:

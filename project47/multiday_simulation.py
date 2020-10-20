@@ -184,7 +184,7 @@ def multiday(
         ]
     )
     packages_at_collection = []
-    collection_point_removed_packages = []
+    collection_point_removed_packages = 0
     if collection_points and k != 0:  # choose the number of collection points
         sol_fac_lat, sol_fac_lon, coord, fac_coord = opt_collection_coord(
             k, cap, depots, sample_generator, dist_and_time, seed=None
@@ -192,10 +192,10 @@ def multiday(
 
         # initialise a list of dictionaries for each collection point
         packages_at_collection = [{} for i in range(k)]
-        collection_point_removed_packages = [0 for i in range(k)]
+        # collection_point_removed_packages = [0 for i in range(k)]
     for day in range(n_days):
         logger.debug("Start day %i" % day)
-
+        collection_point_removed_packages = [0 for i in range(k)]
         # Generate data
         new_time_windows, new_customers = (
             time_windows_per_day[day],
@@ -214,7 +214,7 @@ def multiday(
 
         logger.debug("Calculating distance and time matrix")
 
-        cp_customers = []
+        cp_customers = np.array([])
         collection_dist = 0
         # TODO: Remove packages from collection points
         if collection_points and k != 0:
@@ -246,65 +246,8 @@ def multiday(
                     for collected in collected_package:
                         packages_at_collection[i].pop(collected)
 
-                # rg.random()
-
-                # # randome number of customers collecting today
-                # rd2 = rg.integers(
-                #     low=0, high=len(packages_at_collection[i]), size=1
-                # )
-                # arrivals = np.random.poisson(1, size=rd2)
-                # # sort the pakacges in order of descending days in collection point
-                # packages_at_collection[i] = {
-                #     k: v
-                #     for k, v in sorted(
-                #         packages_at_collection[i].items(),
-                #         key=lambda item: item[1],
-                #         reverse=True,
-                #     )
-                # }
-                # # packages_at_collection[i] = sorted(
-                # #     packages_at_collection[i].items(),
-                # #     key=lambda x: x[1],
-                # #     reverse=True,
-                # # )
-                # # remove the package from the collection point
-                # print(list(packages_at_collection[i])[0])
-                # for j in range(rd2[0]):
-                #     # 20% of the time the package with j to last longest days is removed
-                #     if rg.random() > 0.8:  # low=0, high=1, size=1
-                #         # del packages_at_collection[i][
-                #         #     next(
-                #         #         islice(
-                #         #             packages_at_collection[i],
-                #         #             len(packages_at_collection[i]) - j,
-                #         #             None,
-                #         #         )
-                #         #     )
-                #         # ]
-                #         collected_package = packages_at_collection[i].pop(
-                #             list(packages_at_collection[i])[1]
-                #         )
-                #     else:
-                #         # 80% of the time the package with longest days is removed
-                #         # del packages_at_collection[i][
-                #         #     next(
-                #         #         islice(
-                #         #             packages_at_collection[i],
-                #         #             0,
-                #         #             None,
-                #         #         )
-                #         #     )
-                #         # ]
-                #         collected_package = packages_at_collection[i].pop(
-                #             list(packages_at_collection[i])[0]
-                #         )
-
             # TODO: Add customers to collections points, and add visited collection points to customers
-            # need a list of undelivered packages in the simulation
-            # tw_to_cp = [[] for i in range(k)]
-            # ad_to_cp = [[] for i in range(k)]
-            # fc_to_cp = [[] for i in range(k)]
-
+            #  a list of undelivered packages in the simulation
             undelivered = np.ones(len(futile_count), dtype=bool)
             for i, c in enumerate(futile_count):
                 # a threshold of day count of the package in the system
@@ -317,6 +260,8 @@ def multiday(
                     lon_all = sol_fac_lon[:]
                     lat_all.insert(0, customers[i].lat)
                     lon_all.insert(0, customers[i].lon)
+                    if len(lat_all) > 4:
+                        print("error")
                     coord_filename = None
                     dist, tm = osrm_get_dist(
                         cd,
@@ -356,14 +301,21 @@ def multiday(
             futile_count = futile_count[undelivered]
             customers = customers[undelivered]
 
+            cp_customers = np.array([])
             # add collection point as a customer if there is package allocated to it
-            cp_customers = np.array(
-                [
-                    Customer(sol_fac_lat[cp], sol_fac_lon[cp], 1, 1, rg=rg)
-                    for cp in range(k)
-                    if len(customer_to_cp[cp]) != 0
-                ]
-            )
+            for cp in range(k):
+                if len(customer_to_cp[cp]) != 0:
+                    cp_customers = np.append(cp_customers, Customer(
+                        sol_fac_lat[cp], sol_fac_lon[cp], 1, 1, rg=rg))
+            # customers = np.append(customers, new_customers)
+
+            # cp_customers = np.array(
+            #     [
+            #         Customer(sol_fac_lat[cp], sol_fac_lon[cp], 1, 1, rg=rg)
+            #         for cp in range(k)
+            #         if len(customer_to_cp[cp]) != 0
+            #     ]
+            # )
             if len(cp_customers) > 0:
                 cp_time_windows = np.array(
                     [[day_start, day_end] for i in range(len(cp_customers))]
