@@ -47,13 +47,12 @@ def test_a():
     ]
     lsm_list = [
         routing_enums_pb2.LocalSearchMetaheuristic.AUTOMATIC,
-    ]
-    """ routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH,
+        routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH,
         routing_enums_pb2.LocalSearchMetaheuristic.SIMULATED_ANNEALING,
         routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT,
         routing_enums_pb2.LocalSearchMetaheuristic.TABU_SEARCH,
-    ]"""
-    return fss_list, lsm_list, [1, 10, 20]
+    ]
+    return fss_list, lsm_list, [20]
 
 
 def test_b():
@@ -86,8 +85,10 @@ def test_c():
     return fss_list, lsm_list, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
+import sys
+
 if __name__ == "__main__":
-    fss_list, lsm_list, tlims = test_b()
+    fss_list, lsm_list, tlims = test_a()
     rg = np.random.Generator(np.random.PCG64(123456789))
     problems = [generate_problem(100, rg) for _ in range(5)]
     fss_indexer = {
@@ -100,6 +101,9 @@ if __name__ == "__main__":
         for lsm in lsm_list:
             for tlim in tlims:
                 for i, problem in enumerate(problems):
+                    print("FSS: ", fss_indexer[fss], file=sys.stderr)
+                    print("LSM: ", lsm_indexer[lsm], file=sys.stderr)
+                    sys.stderr.flush()
                     try:
                         res = [
                             *benchmark_strategy(
@@ -117,8 +121,8 @@ if __name__ == "__main__":
                         logger.error(e)
                         res = [np.inf, 0, fss_indexer[fss], lsm_indexer[lsm], tlim, i]
                     with open(
-                        f"ortools_benchmarks/rerouting_results/rerouting3.txt", "a"
+                        f"ortools_benchmarks/rerouting_results/rerouting4.txt", "a"
                     ) as f:
                         f.write(str(res).strip("[]"))
                         f.write("\n")
-                    print(res)
+                    print(res, file=sys.stderr)
