@@ -1,0 +1,7 @@
+"0",""
+"0","summ_days <- data1 %>% "
+"0","  drop_na() %>% "
+"0","  summarize(mean_collection_package_days = mean(number_of_collection_packages), mean_delivered_package_days = mean(delivered_package_days_taken), mean_undelivered_package_days = mean(undelivered_package_days_taken)) %>% #mean_number_of_packages = mean(number_of_packages), "
+"0","  gather(key = ""variable"", value = ""value"", -num_of_collection_points) "
+"2","Error in is_character(x) : object 'num_of_collection_points' not found
+"

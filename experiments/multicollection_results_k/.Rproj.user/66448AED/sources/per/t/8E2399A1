@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1603196630313.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "489225719",
+    "id" : "8E2399A1",
+    "lastKnownWriteTime" : 1603186841,
+    "last_content_update" : 1603186841,
+    "path" : "~/Desktop/project47_last_mile_logistics/experiments/multicollection_results_cap/analysis_cap1.Rmd",
+    "project_path" : null,
+    "properties" : {
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

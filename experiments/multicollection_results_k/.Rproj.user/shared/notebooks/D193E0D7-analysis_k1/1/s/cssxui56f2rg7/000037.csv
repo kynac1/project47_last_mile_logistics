@@ -1,0 +1,3 @@
+"0","data1 %>% "
+"0","  filter(num_of_collection_points<2)%>%"
+"0","  ggplot() + geom_line(aes(x=day, y=number_of_packages, group = num_of_collection_points, color = as.factor(num_of_collection_points))) + ggtitle(""Daily Number of Packges - With & Without Collection Points"") +labs(y= ""Number of Packages"", x = ""Day n"", color = ""is Collection Point"") + scale_color_manual(labels = c(""Without Collection Point"", ""With One Collection Point""), values = c(""#F8766D"", ""#00BFC4""))"

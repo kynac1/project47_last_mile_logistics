@@ -1,0 +1,4 @@
+"0","Days = seq(0, 10)"
+"0","collect <- function(x){ 1-exp(-x)}"
+"0","Probability = collect(Days)"
+"0","plot(x =Days, y = Probability, frame.plot=FALSE,main = ""Probability of a package being picked up on day n, given it hasn't been picked up by day n-1"" , cex.main = 0.9)"

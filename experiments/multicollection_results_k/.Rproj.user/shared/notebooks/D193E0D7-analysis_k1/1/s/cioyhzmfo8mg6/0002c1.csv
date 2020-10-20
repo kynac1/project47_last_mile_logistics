@@ -1,0 +1,1 @@
+"0","with(summ, plot(num_of_collection_points,  total_collection_dist_customer/1000,  , ylim = c(000,4000), type=""b"", pch=15, col=""green"", axes=F, xlab=NA, ylab=NA, cex=1.2))"

@@ -1,0 +1,2 @@
+"0","data1 %>% "
+"0","  ggplot() + geom_line(aes(x=day, y=number_of_collection_packages, group =num_of_collection_points, color = num_of_collection_points)) + ggtitle(""collection_package_days over time"")"

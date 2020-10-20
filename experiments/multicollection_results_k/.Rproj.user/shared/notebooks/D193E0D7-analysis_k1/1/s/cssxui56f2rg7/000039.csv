@@ -1,0 +1,3 @@
+"0","data1 %>%"
+"0","  filter(num_of_collection_points<2)%>%"
+"0","  ggplot() + geom_line(aes(x=day, y=travel_dist_per_customer, group =num_of_collection_points, color = num_of_collection_points)) + ggtitle(""number_of_delivered_packages over time"")"

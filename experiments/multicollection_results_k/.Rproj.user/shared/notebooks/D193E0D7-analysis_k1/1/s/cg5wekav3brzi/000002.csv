@@ -1,0 +1,5 @@
+"0","data1 %>% "
+"0","  summarize(mean = mean(number_of_packages)) %>% "
+"0","  ggplot(aes(x=num_of_collection_points, y = mean)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle(""number_of_packages vs. num_of_collection_points"")"
+"2","Error in FUN(X[[i]], ...) : object 'num_of_collection_points' not found
+"
