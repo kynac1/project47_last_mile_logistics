@@ -133,15 +133,14 @@ def multicollection(
         alternate_locations,
         fss=routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC,
         lsm=routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH,
-        tlim=30,
+        tlim=1,
     ):
         locs = dm.shape[0]
         r = ORToolsRouting(locs, num_vehicles)
         dim, ind = r.add_dimension(dm, 0, 1000000, True, "distance")
         r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
         dim.SetGlobalSpanCostCoefficient(100)
-        dim, ind = r.add_time_windows(
-            tm, time_windows, day_end, day_end, False, "time")
+        dim, ind = r.add_time_windows(tm, time_windows, day_end, day_end, False, "time")
         for alternates in alternate_locations:
             r.add_option(alternates, 5000000)
 
@@ -183,7 +182,7 @@ def multicollection(
     fname = f"experiments/multicollection_results_k/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
     with open(
         fname,
-        "x",
+        "w",
     ) as outfile:
         json.dump(data, outfile, separators=(",", ":"))
 
@@ -360,5 +359,5 @@ if __name__ == "__main__":
 
     for args in arg_list:
         multicollection(*args)
-    with Pool(5) as p:
+    with Pool(4) as p:
         p.starmap(multicollection, arg_list)

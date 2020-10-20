@@ -31,7 +31,7 @@ def dist_and_time(customers):
 def simulator(
     routes, dm, tm, delivery_time_windows, customers, rg: np.random.Generator
 ):
-    return sim(routes, calling_policy(dm, tm, delivery_time_windows, customers, rg))
+    return sim(routes, wait_policy(dm, tm, delivery_time_windows, customers, rg))
 
 
 def route_optimizer(
@@ -58,7 +58,7 @@ def route_optimizer(
     r.search_parameters.first_solution_strategy = fss
 
     r.search_parameters.local_search_metaheuristic = lsm
-    s = r.solve(tlim=tlim, log=False)
+    s = r.solve(tlim=tlim, log=True)
 
     fss_indexer = {
         v: k for k, v in routing_enums_pb2.FirstSolutionStrategy.__dict__.items()
@@ -92,7 +92,7 @@ def benchmarker(fss, lsm, tlim):
         dist_and_time,
         lambda *args: route_optimizer(*args, fss=fss, lsm=lsm, tlim=tlim),
         simulator,
-        3,
+        1,
         0,
         28800,
         seed=123456789,
@@ -135,6 +135,8 @@ def test_sample_generator():
     return sample_generator
 
 
+import sys
+
 if __name__ == "__main__":
     # routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC,
     fss_list = [
@@ -172,9 +174,10 @@ if __name__ == "__main__":
 
     for fss in fss_list:
         for lsm in lsm_list:
-            print("FSS: ", fss_indexer[fss])
-            print("LSM: ", lsm_indexer[lsm])
-            for tlim in range(1, 2):
+            print("FSS: ", fss_indexer[fss], file=sys.stderr)
+            print("LSM: ", lsm_indexer[lsm], file=sys.stderr)
+            sys.stderr.flush()
+            for tlim in [30]:
                 try:
                     benchmarker(
                         fss,
@@ -184,5 +187,5 @@ if __name__ == "__main__":
                 except:
                     print("FAILED")
 
-                with open("current_results3.json", "w") as f:
+                with open("ortools_benchmarks/current_results4.json", "w") as f:
                     json.dump(data, f)
