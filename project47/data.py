@@ -318,10 +318,13 @@ def osrm_get_dist(
 def main():
     # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
     cd = (
-        os.path.dirname(os.path.abspath(__file__)) + "\\..\\data"
+        os.path.dirname(os.path.abspath(__file__)).strip("project47") + "data"
     )  # direct to data folder
     sample_data_csv = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
     CHC_data_csv = os.path.join(cd, "christchurch_street.csv")
+    CHC_data_csv = "/Users/karen.w/Desktop/project47_last_mile_logistics/data/christchurch_street.csv"
+    sample_data_csv = "/Users/karen.w/Desktop/project47_last_mile_logistics/data/Toll_CHC_November_Sample_Data.csv"
+
     sample_df, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict = read_data(sample_data_csv, CHC_data_csv)
     seed = 123456789
     rg = Generator(PCG64(seed))

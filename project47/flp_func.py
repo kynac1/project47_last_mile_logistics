@@ -35,7 +35,7 @@ import pandas as pd
 
 
 def find_opt_collection(
-    k, CUSTOMERS, FACILITY, fac_lat, fac_lon, dist, weight, demand, Fac_cap
+    k, CUSTOMERS, FACILITY, lat, lon, fac_lat, fac_lon, dist, weight, demand, Fac_cap
 ):
     # set problem
     prob = LpProblem("FacilityLocation", LpMinimize)
@@ -75,6 +75,8 @@ def find_opt_collection(
 
     sol_fac_lat = []
     sol_fac_lon = []
+    assigned_lat = []
+    assigned_lon = []
     TOL = 0.00001
 
     for j in FACILITY:
@@ -82,6 +84,18 @@ def find_opt_collection(
             sol_fac_lat.append(fac_lat[j])
             sol_fac_lon.append(fac_lon[j])
             print("Establish facility at site ", j)
+            l_lat = []
+            l_lon = []
+            for i in CUSTOMERS:
+                if serv_vars[(i,j)].varValue > TOL:
+                    l_lat.append(lat[i])
+                    l_lon.append(lon[i])
+            assigned_lat.append(l_lat)
+            assigned_lon.append(l_lon)
+
+    for i in CUSTOMERS:
+        for j in FACILITY:
+            print(serv_vars[(i,j)].varValue)
 
     # for v in prob.variables():
     # print(v.name, " = ", v.varValue)
@@ -96,4 +110,4 @@ def find_opt_collection(
 
     # sol_fac_coord = list(map(list, zip(sol_fac_lat, sol_fac_lon)))
 
-    return sol_fac_lat, sol_fac_lon
+    return sol_fac_lat, sol_fac_lon, assigned_lat, assigned_lon

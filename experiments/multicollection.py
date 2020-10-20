@@ -195,6 +195,8 @@ def multicollection(
 if __name__ == "__main__":
 
     arg_list = []
+
+    k = 2,
     # for k in [3, 5]:
     #     for futile_count_threshold in [0, 1, 2, 4]:
     #         for dist_threshold in [10000, 30000]:

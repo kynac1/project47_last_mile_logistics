@@ -163,11 +163,10 @@ def get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict):
     return latitude, longitude
 
 # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
-cd = (
-    os.path.dirname(os.path.abspath(__file__)) + "\\..\\data"
-)  # direct to data folder
-# direct to collection coordinates file
+cd = "/Users/karen.w/Desktop/project47_last_mile_logistics/data"
+# "/Users/karen.w/Desktop/project47_last_mile_logistics/datacoord_filename= "/Users/karen.w/Desktop/project47_last_mile_logistics/data/fac_coord.csv" # direct to data folder
 coord_filename = os.path.join(cd, "fac_coord.csv")
+# direct to collection coordinates file
 # get lat and lon for collection points
 df = pd.read_csv(coord_filename, keep_default_na=False)
 fac_lat = df["latitude"].tolist()
@@ -218,43 +217,27 @@ dist, tm = osrm_get_dist(
 )
 
 # number of collection points
-# k = 2
+k = 2
 CUSTOMERS = np.arange(len(lat))
 FACILITY = np.arange(len(fac_lat))
-
+cap = 30
 # cap = math.ceil(sample_df.shape[0] / k)
 Fac_cap = np.ones(len(fac_lat)) * cap
 
-sol_fac_lat, sol_fac_lon = find_opt_collection(
-    k, CUSTOMERS, FACILITY, fac_lat, fac_lon, dist, weight, demand, Fac_cap
+sol_fac_lat, sol_fac_lon, assigned_lat, assigned_lon = find_opt_collection(
+    k, CUSTOMERS, FACILITY, lat, lon, fac_lat, fac_lon, dist, weight, demand, Fac_cap
 )
 
 coord = list(map(list, zip(lat, lon)))
 fac_coord = list(map(list, zip(fac_lat, fac_lon)))
-    
-    #  lat = CHC_df["gd2000_ycoord"].array
-    # lon = CHC_df["gd2000_xcoord"].array
+# print('sol_fac_lat', sol_fac_lat)
+# print('sol_fac_lon', sol_fac_lon)
 
-    # latitude, longitude = get_sample(
-    #     5*k, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, save=False
-    # )
+# print('assigned_lat', assigned_lat)
+# print('assigned_lon', assigned_lon)
 
-    ############################## PLOT ###################################
-    # G = nx.DiGraph()
-    # positions = False
-    # pos = {}
-    # if positions:
-    #             pos = {i: positions[i] for i in range(len(positions))}
-    # # else:
-    # #     pos = nx.spring_layout()
+# print('lat', lat)
+# print('lon', lon)
 
-    # nx.draw(G, pos, with_labels=True)
-    # ox.plot_graph(G)
-    # # Downloading the map as a graph object
-    # G = ox.graph_from_bbox(north, south, east, west, network_type = 'drive')
-    # # Plotting the map graph
-    # ox.plot_graph(G)
-
-    # lat, lon = centroid(k, latitude, longitude)
-
-    # lat, lon = get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict)
+# print('fac_lat', fac_lat)
+# print('fac_lon', fac_lon)
