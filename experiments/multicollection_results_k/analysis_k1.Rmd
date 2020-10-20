@@ -61,9 +61,9 @@ data1$is_collection <- TRUE
 data1$is_collection[data1$num_of_collection_points == 0] <- FALSE
 data1$is_collection <- as.factor(data1$is_collection)
 # data1$number_of_collection_packages <- unlist(data$collection_point_removed_packages %>% map(~sum(.x)))
-# data1 <- data1 %>%
-#   group_by(num_of_collection_points) %>% 
-#   mutate(packages = lead(number_of_packages) - number_of_undelivered_packages) # compute packages
+data1 <- data1 %>%
+  group_by(num_of_collection_points) %>%
+  mutate(arrival_packages = lead(number_of_packages) - number_of_undelivered_packages) # compute packages
 ```
 
 ```{r}
@@ -81,17 +81,31 @@ data1$is_collection <- as.factor(data1$is_collection)
 summ <- data1 %>%
   filter(num_of_collection_points!=0) %>%
   group_by(num_of_collection_points) %>%
-  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer)) 
+  summarize(avg.number_of_packages = mean(number_of_packages), 
+            avg.travel_dist_per_customer = mean(travel_dist_per_customer), 
+            total_collection_dist_customer = sum(collection_dist) ) 
 summ
 par(mar = c(5,5,2,5))
-with(summ, plot(num_of_collection_points, avg.number_of_packages, type="b", ylim = c(0,200), xlab= "Number of Collection Points",
-             ylab= "avg. Number of Packages", main="Effect of Number of Collection Points"))
-# axis(side = 2, col="blue", col.axis="blue")
-# mtext(side = 2, line = 3, col="blue", "avg. Number of Packages")
+with(summ, plot(num_of_collection_points, avg.number_of_packages, type="b", ylim = c(0,200), xlab= "Number of Collection Points", ylab= "avg. Number of Packages", main="Effect of Number of Collection Points"))
+abline(h=summ$avg.number_of_packages[3], col="black", lty=2, lwd=1)
+
 par(new = T)
 with(summ, plot(num_of_collection_points, avg.travel_dist_per_customer, ylim = c(0,4000), type="b", pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
 axis(side = 4, col="red3", col.axis="red3")
 mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)')
+abline(h=summ$ avg.travel_dist_per_customer[3], col="red3", lty=2, lwd=1)
+
+par(new = T)
+with(summ, plot(num_of_collection_points,  total_collection_dist_customer/1000,  , ylim = c(000,4000), type="b", pch=15, col="green", axes=F, xlab=NA, ylab=NA, cex=1.2))
+axis(side = 4, col="green", col.axis="green")
+mtext(side = 4, line = 3, col="green3", 'Total Travelling Distance by Customer (km)')
+abline(h=summ$  total_collection_dist_driver[3], col="green", lty=2, lwd=1)
+# 
+
+# par(new = T)
+# with(data1, plot(num_of_collection_points, arrival_packages,  type="b", pch=15, col="green", axes=F, xlab=NA, ylab=NA, cex=1.2))
+# axis(side = 4, col="red3", col.axis="red3")
+# mtext(side = 4, line = 3, col="red3", 'Total Travelling Distance per Customer (m)')
 
 # twoord.plot(lx = summ$num_of_collection_points, ly = summ$ave.number_of_packages, rx = summ$num_of_collection_points, ry = summ$customer_distance,lylim=range(summ$ave.number_of_packages)+c(-20,10),  lylab="number_of_packages",rylab="customer_distance", xaxt = 'n', yaxt = 'n', xlab="Number of Collection Points")
 # # twoord.stackplot(lx = summ$num_of_collection_points, ldata = summ$ave.number_of_packages, rx = summ$num_of_collection_points, rdata = summ$customer_distance,ltype=c("l","p"), rtype=c("l","p","o"), lylab="number_of_packages",rylab="customer_distance", xaxt = 'n', yaxt = 'n', xlab="Number of Collection Points", lcol=c("red"))
@@ -102,7 +116,7 @@ mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)
 ```{r}
 data1 %>% 
   filter(num_of_collection_points<2)%>%
-  ggplot() + geom_line(aes(x=day, y=number_of_packages, group = num_of_collection_points, color = as.factor(num_of_collection_points))) + ggtitle("Daily Number of Packges - With & Without Collection Points")
+  ggplot() + geom_line(aes(x=day, y=number_of_packages, group = num_of_collection_points, color = as.factor(num_of_collection_points))) + ggtitle("Daily Number of Packges - With & Without Collection Points") +labs(y= "Number of Packages", x = "Day n", color = "Number of Collection Points") + scale_color_manual(labels = c("0 - Without Collection Point", "1 - With One Collection Point"), values = c("#F8766D", "#00BFC4"))
 data1 %>%
   filter(num_of_collection_points<2)%>%
   ggplot() + geom_line(aes(x=day, y=travel_dist_per_customer, group =num_of_collection_points, color = num_of_collection_points)) + ggtitle("number_of_delivered_packages over time")

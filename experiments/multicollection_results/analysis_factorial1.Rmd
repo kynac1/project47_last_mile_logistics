@@ -166,10 +166,10 @@ data %>%
 # mtext(side = 2, line = 3, 'futile_count_threshold')+ 
 ```
 ```{r}
-Days = seq(0, 10, by=0.1)
+Days = seq(0, 10)
 collect <- function(x){ 1-exp(-x)}
-Probability = collect(number_of_days)
-plot(x =Days, y = Probability, type = "l", frame.plot=FALSE,main = "Probability of Collection over Days" )
+Probability = collect(Days)
+plot(x =Days, y = Probability, frame.plot=FALSE,main = "Probability of a package being picked up on day n, given it hasn't been picked up by day n-1" , cex.main = 0.9)
 # frame.plot=FALSE,
 ```
 ```{r}
