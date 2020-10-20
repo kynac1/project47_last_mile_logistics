@@ -162,80 +162,76 @@ def get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict):
         longitude.append(CHC_row["gd2000_xcoord"].values[0])
     return latitude, longitude
 
+# API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
+cd = (
+    os.path.dirname(os.path.abspath(__file__)) + "\\..\\data"
+)  # direct to data folder
+# direct to collection coordinates file
+coord_filename = os.path.join(cd, "fac_coord.csv")
+# get lat and lon for collection points
+df = pd.read_csv(coord_filename, keep_default_na=False)
+fac_lat = df["latitude"].tolist()
+fac_lon = df["longitude"].tolist()
 
-def opt_collection_coord(k, cap, depots, sample_generator, dist_and_time, seed=None):
+# can prolly be commented out and use the read in files from multiday?
+seed = 123456789
+rg = Generator(PCG64(seed))
+sample_data = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
+CHC_data = os.path.join(cd, "christchurch_street.csv")
+sample_df, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict = read_data(
+    sample_data,
+    CHC_data,
+    lat_min=-43.6147000,
+    lat_max=-43.4375000,
+    lon_min=172.4768000,
+    lon_max=172.7816000,
+)
 
-    # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
-    cd = (
-        os.path.dirname(os.path.abspath(__file__)) + "\\..\\data"
-    )  # direct to data folder
-    # direct to collection coordinates file
-    coord_filename = os.path.join(cd, "fac_coord.csv")
-    # get lat and lon for collection points
-    df = pd.read_csv(coord_filename, keep_default_na=False)
-    fac_lat = df["latitude"].tolist()
-    fac_lon = df["longitude"].tolist()
+# demand of package storage for each suburb
+demand = list(sample_sub_dict.values())
 
-    # can prolly be commented out and use the read in files from multiday?
-    seed = 123456789
-    rg = Generator(PCG64(seed))
-    sample_data = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
-    CHC_data = os.path.join(cd, "christchurch_street.csv")
-    sample_df, sample_sub_dict, CHC_df, CHC_df_grouped, CHC_sub_dict = read_data(
-        sample_data,
-        CHC_data,
-        lat_min=-43.6147000,
-        lat_max=-43.4375000,
-        lon_min=172.4768000,
-        lon_max=172.7816000,
-    )
+# get the centroid coord for each suburb from TOLL sample data
+lat, lon, weight = centroid_loc_sample(
+    rg,
+    cd,
+    sample_df,
+    sample_sub_dict,
+    CHC_df_grouped,
+    CHC_sub_dict,
+    gp_addr=False,
+    save=False,
+)
+# combine collection and customer locations
+lat_all = fac_lat + lat
+lon_all = fac_lon + lon
+# get the total number of potential collections points
+source = np.arange(len(fac_lat))
+# contruct the distance matrix from collection point to centroid of each suburb
+dist, tm = osrm_get_dist(
+    cd,
+    coord_filename,
+    lat_all,
+    lon_all,
+    source,
+    save=False,
+    host="localhost:5000",
+)
 
-    # demand of package storage for each suburb
-    demand = list(sample_sub_dict.values())
+# number of collection points
+# k = 2
+CUSTOMERS = np.arange(len(lat))
+FACILITY = np.arange(len(fac_lat))
 
-    # get the centroid coord for each suburb from TOLL sample data
-    lat, lon, weight = centroid_loc_sample(
-        rg,
-        cd,
-        sample_df,
-        sample_sub_dict,
-        CHC_df_grouped,
-        CHC_sub_dict,
-        gp_addr=False,
-        save=False,
-    )
-    # combine collection and customer locations
-    lat_all = fac_lat + lat
-    lon_all = fac_lon + lon
-    # get the total number of potential collections points
-    source = np.arange(len(fac_lat))
-    # contruct the distance matrix from collection point to centroid of each suburb
-    dist, tm = osrm_get_dist(
-        cd,
-        coord_filename,
-        lat_all,
-        lon_all,
-        source,
-        save=False,
-        host="localhost:5000",
-    )
+# cap = math.ceil(sample_df.shape[0] / k)
+Fac_cap = np.ones(len(fac_lat)) * cap
 
-    # number of collection points
-    # k = 2
-    CUSTOMERS = np.arange(len(lat))
-    FACILITY = np.arange(len(fac_lat))
+sol_fac_lat, sol_fac_lon = find_opt_collection(
+    k, CUSTOMERS, FACILITY, fac_lat, fac_lon, dist, weight, demand, Fac_cap
+)
 
-    # cap = math.ceil(sample_df.shape[0] / k)
-    Fac_cap = np.ones(len(fac_lat)) * cap
-
-    sol_fac_lat, sol_fac_lon = find_opt_collection(
-        k, CUSTOMERS, FACILITY, fac_lat, fac_lon, dist, weight, demand, Fac_cap
-    )
-
-    coord = list(map(list, zip(lat, lon)))
-    fac_coord = list(map(list, zip(fac_lat, fac_lon)))
-    return sol_fac_lat, sol_fac_lon, coord, fac_coord
-
+coord = list(map(list, zip(lat, lon)))
+fac_coord = list(map(list, zip(fac_lat, fac_lon)))
+    
     #  lat = CHC_df["gd2000_ycoord"].array
     # lon = CHC_df["gd2000_xcoord"].array
 
