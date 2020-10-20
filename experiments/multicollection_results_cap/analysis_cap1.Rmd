@@ -1,0 +1,221 @@
+---
+title: "analysis_cap"
+author: "Karen Wang"
+date: "16/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(purrr)
+library(tidyverse)
+library(jsonlite)
+library("ggplot2")
+library("reshape2")
+library(ggpubr)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+# load all json files into a dataframe
+path <- getwd()#"./your_path"
+files <- dir(path, pattern = "*.json")
+# convert all json files into a dataframe
+data <- files %>%
+       map_df(~fromJSON(file.path(path, .), flatten = TRUE))
+# add column - collection collection_capacity 
+data$collection_capacity= c(rep(10,60),rep(20,60), rep(30,60), rep(40,60), rep(50,60))
+```
+```{r}
+# build stats data
+data1 <- data %>%
+  select(day, collection_capacity, number_of_packages, number_of_vehicles, collection_dist)
+
+# compute daily distance and time
+data1$distance <- unlist(data$distances %>% map(~sum(.x)))
+data1$time <- unlist(data$times %>% map(~sum(.x)))
+# days
+data1$delivered_package_days_taken <- unlist(data$delivered_packages.days_taken %>% map(~sum(.x)))
+data1$undelivered_package_days_taken <- unlist(data$undelivered_packages.days_taken %>% map(~sum(.x)))
+# packages
+data1$number_of_collection_packages <- unlist(data$collection_point_packages %>% map(~sum(.x))) 
+data1$number_of_undelivered_packages <- unlist(data$undelivered_packages.days_taken %>% map(~length(.x))) # calculate the number of 
+data1$number_of_delivered_packages <- unlist(data$delivered_packages.days_taken %>% map(~length(.x))) # calculate the number of delivered packages every day
+data1$travel_dist_per_customer <- data$collection_dist/data1$number_of_collection_packages
+data1$travel_dist_per_customer[!is.finite(data1$travel_dist_per_customer)]<-0
+
+# data1$number_of_collection_packages <- unlist(data$collection_point_removed_packages %>% map(~sum(.x)))
+# data1 <- data1 %>%
+#   group_by(collection_capacity) %>% 
+#   mutate(packages = lead(number_of_packages) - number_of_undelivered_packages) # compute packages
+```
+```{r}
+summ <- data1 %>%
+  group_by(collection_capacity) %>%
+  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer)) 
+summ
+par(mar = c(5,5,2,5))
+with(summ, plot(collection_capacity, avg.number_of_packages, type="b", ylim = c(0,200),  xlab= "Collection Capacity",
+             ylab= "avg. Number of Packages", main="Effect of Collection Capacity"))
+# axis(side = 2, col="blue", col.axis="blue")
+# mtext(side = 2, line = 3, col="blue", "avg. Number of Packages")
+par(new = T)
+with(summ, plot(collection_capacity, avg.travel_dist_per_customer,  type="b", ylim = c(0,4000), pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
+axis(side = 4, col="red3", col.axis="red3")
+mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)')
+
+```
+## Packages
+```{r}
+# number of packages vs days by different collection capacity
+number_of_packages_vs_days <- data1 %>% 
+  #filter(day > 20) %>%
+  ggplot(aes(x=day, y=number_of_packages, color = collection_capacity)) + 
+  geom_point(shape=16, alpha = 0.8, color = 'black') +
+  geom_smooth(method=lm, size = 0.5, se = F ) + labs(title = "Number of Packages v.s. Days by Collection Capacity")
+# Split in vertical direction
+number_of_packages_vs_days + facet_grid( . ~ collection_capacity) 
+
+```
+
+
+
+```{r}
+# different measures of packages number vs capacity
+summ_packages <- data1 %>%
+  group_by(collection_capacity) %>%
+  summarise(avg.num_packages = mean(number_of_packages), 
+            avg.num_delivered_packages = mean(number_of_delivered_packages), 
+            avg.num_undelivered_packages= mean(number_of_undelivered_packages))
+summ_packages1 <- summ_packages %>% 
+  gather(key = "variable", value = "value", -collection_capacity)
+
+```
+```{r}
+# combined boxplot
+p1<-summ_packages %>% 
+  ggplot(aes(x=as.numeric(collection_capacity), y=avg.num_packages)) + geom_line(linetype='dotted') + geom_point()
+p3<-summ_packages %>% 
+  ggplot(aes(x=as.numeric(collection_capacity), y=avg.num_delivered_packages)) + geom_line(linetype='dotted') + geom_point()
+p4<-summ_packages %>% 
+  ggplot(aes(x=as.numeric(collection_capacity), y=avg.num_undelivered_packages)) + geom_line(linetype='dotted') + geom_point()
+figure <- ggarrange(p1, p3, p4,
+                    labs(title = "Packges v.s. capcity"),
+                    # labels = c("delivered_package_days", "undelivered_package_days", "collection_package_days"),
+                    ncol = 2, nrow = 2)
+figure
+```
+
+```{r}
+summ_packages1 %>% ggplot(aes(x = collection_capacity, y = value, group = variable)) + geom_line(aes(color = variable), linetype='dotted') + geom_point(aes(color = variable)) #+ scale_color_manual(values = c("darkred", "steelblue")) 
+```
+
+## Package Number
+```{r}
+data1 %>% 
+  ggplot(aes(x=collection_capacity, y=number_of_packages, color = collection_capacity)) + geom_boxplot() + ggtitle("Number of Packages vs Collection Capcity")
+```
+```{r}
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=number_of_packages, group =collection_capacity, color = collection_capacity)) + ggtitle("number_of_packages over time")
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=number_of_delivered_packages, group =collection_capacity, color = collection_capacity)) + ggtitle("number_of_delivered_packages over time")
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=number_of_undelivered_packages, group =collection_capacity, color = collection_capacity)) + ggtitle("number_of_undelivered_packages over time")
+
+# combined boxplot
+p1<-data1 %>% 
+  ggplot(aes(x=collection_capacity, y=number_of_packages, color = collection_capacity)) + geom_boxplot() + ggtitle("number_of_packages vs collection capcity")
+p3<-data1 %>% 
+  ggplot(aes(x=collection_capacity, y=number_of_delivered_packages, color = collection_capacity)) + geom_boxplot() + ggtitle("number_of_delivered_packages vs collection collection_capacity")
+p4<-data1 %>% 
+  ggplot(aes(x=collection_capacity, y=number_of_undelivered_packages, color = collection_capacity)) + geom_boxplot() + ggtitle("number_of_undelivered_packages vs collection collection_capacity")
+figure <- ggarrange(p1, p3, p4,
+                    #labels = c("delivered_package_days", "undelivered_package_days", "collection_package_days"),
+                    ncol = 2, nrow = 2)
+figure
+```
+## Days
+```{r}
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=delivered_package_days_taken, group =collection_capacity, color = collection_capacity)) + ggtitle("delivered_package_days over time")
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=undelivered_package_days_taken, group =collection_capacity, color = collection_capacity)) + ggtitle("delivered_package_days over time")
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=number_of_collection_packages, group =collection_capacity, color = collection_capacity)) + ggtitle("collection_package_days over time")
+```
+```{r}
+# combined boxplot
+p1<-data1 %>% 
+  ggplot(aes(x=collection_capacity, y=delivered_package_days_taken, group =collection_capacity, color = collection_capacity)) + geom_boxplot() + ggtitle("delivered_package_days vs collection collection_capacity")
+p2<-data1 %>% 
+  ggplot(aes(x=collection_capacity, y=undelivered_package_days_taken, group =collection_capacity, color = collection_capacity)) + geom_boxplot() + ggtitle("undelivered_package_days vs collection collection_capacity")
+p3<-data1 %>% 
+  ggplot(aes(x=collection_capacity, y=number_of_collection_packages, group =collection_capacity, color = collection_capacity)) + geom_boxplot() + ggtitle("collection_package_days vs collection collection_capacity")
+figure <- ggarrange(p1, p2, p3,
+                    #labels = c("delivered_package_days", "undelivered_package_days", "collection_package_days"),
+                    ncol = 1, nrow = 3)
+figure
+
+summ_days <- data1 %>% 
+  drop_na() %>% 
+  summarize(mean_collection_package_days = mean(number_of_collection_packages), mean_delivered_package_days = mean(delivered_package_days_taken), mean_undelivered_package_days = mean(undelivered_package_days_taken)) %>% #mean_number_of_packages = mean(number_of_packages), 
+  gather(key = "variable", value = "value", -collection_capacity) 
+
+summ_days %>% ggplot(aes(x = collection_capacity, y = value, group = variable)) + geom_line(aes(color = variable), linetype='dotted') + geom_point(aes(color = variable)) #+ scale_color_manual(values = c("darkred", "steelblue")) 
+
+# summ_packages %>% ggplot(aes(x = collection_capacity, y = value, col = variable)) + geom_boxplot()
+# summ_packages <- melt(summ, id="collection_capacity") %>% # convert to long format
+#   ggplot(aes(x=collection_capacity, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
+
+```
+
+## distance
+```{r}
+# data1 %>% 
+#   summarize(driver_distance = sum(distance), customer_distance = sum(collection_dist)) %>% 
+#   ggplot(aes(x=collection_capacity)) + geom_line(aes(y = driver_distance), color = "darkred") + geom_line(aes(y = customer_distance), color="steelblue", linetype="twodash")
+#   # geom_line(aes(group=1),linetype='dotted') + ggtitle("driver_distance vs. collection_capacity")
+# combined boxplot
+p1<-data1 %>% 
+  ggplot(aes(x=collection_capacity, y=distance, group =collection_capacity)) + geom_boxplot()#+ stat_summary(fun.y=mean, geom="point", shape=23, size=4) #+ ggtitle("driver_distance vs collection collection_capacity")
+p2<-data1 %>% 
+  ggplot(aes(x=collection_capacity, y=collection_dist, group =collection_capacity)) + geom_boxplot() #+ ggtitle("customer_distance vs collection collection_capacity")
+figure <- ggarrange(p1, p2,
+                    # font("x.text", size = 5),
+                    labels = c("driver_distance", "customer_distance"),
+                    ncol = 2, nrow = 1)
+figure
+
+summ_distance <- data1 %>% 
+  summarize(driver_distance = sum(distance), customer_distance = sum(collection_dist)) %>%
+  gather(key = "variable", value = "value", -collection_capacity)
+summ_distance %>% ggplot(aes(x = collection_capacity, y = value, group = variable)) + geom_line(aes(color = variable, linetype = variable)) + geom_point(aes(color = variable)) + scale_color_manual(values = c("darkred", "steelblue")) + ggtitle("distance vs. collection_capacity")
+
+# distance <- melt(summ, id="collection_capacity")  # convert to long format
+# ggplot(data=distance, aes(x=collection_capacity, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
+```
+
+```{r}
+data1 %>% 
+  summarize(mean = mean(number_of_packages)) %>% 
+  ggplot(aes(x=collection_capacity, y = mean)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle("number_of_packages vs. collection_capacity")
+
+data1 %>% 
+  summarize(sum = sum(distance)) %>% 
+  ggplot(aes(x=collection_capacity, y = sum)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle("driver_distance vs. collection_capacity")
+
+data1 %>% 
+  summarize(sum = sum(collection_dist)) %>% 
+  ggplot(aes(x=collection_capacity, y = sum)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle("customer_distance vs. collection_capacity")
+
+  #group_by(collection_capacity) %>% 
+  #ggplot(aes(x=day, y=number_of_packages, color = collection_capacity)) + geom_line(aes(group=1)) # + geom_bar(stat="identity") + ggtitle("tip_amount vs. hour")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

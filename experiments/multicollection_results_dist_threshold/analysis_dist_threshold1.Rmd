@@ -1,0 +1,226 @@
+---
+title: "analysis_cap"
+author: "Karen Wang"
+date: "16/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(purrr)
+library(tidyverse)
+library(jsonlite)
+library("ggplot2")
+library("reshape2")
+library(ggpubr)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+# load all json files into a dataframe
+path <- getwd()#"./your_path"
+files <- dir(path, pattern = "*.json")
+files
+# convert all json files into a dataframe
+data <- files %>%
+       map_df(~fromJSON(file.path(path, .), flatten = TRUE))
+# add column - collection dist_threshold 
+data$dist_threshold= c(rep(10000,60),rep(15000,60), rep(20000,60), rep(5000,60))
+
+# data$dist_threshold <- factor(data$dist_threshold, levels = c('5km', '10km', '15km', '20km'))
+```
+```{r}
+# build stats data
+data1 <- data %>%
+  select(day, dist_threshold, number_of_packages, number_of_vehicles, collection_dist)
+
+# compute daily distance and time
+data1$distance <- unlist(data$distances %>% map(~sum(.x)))
+data1$time <- unlist(data$times %>% map(~sum(.x)))
+# days
+data1$delivered_package_days_taken <- unlist(data$delivered_packages.days_taken %>% map(~sum(.x)))
+data1$undelivered_package_days_taken <- unlist(data$undelivered_packages.days_taken %>% map(~sum(.x)))
+# packages
+data1$number_of_collection_packages <- unlist(data$collection_point_packages %>% map(~sum(.x))) 
+data1$number_of_undelivered_packages <- unlist(data$undelivered_packages.days_taken %>% map(~length(.x))) # calculate the number of 
+data1$number_of_delivered_packages <- unlist(data$delivered_packages.days_taken %>% map(~length(.x))) # calculate the number of delivered packages every day
+data1$travel_dist_per_customer <- data$collection_dist/data1$number_of_collection_packages
+data1$travel_dist_per_customer[!is.finite(data1$travel_dist_per_customer)]<-0
+
+# data1$number_of_collection_packages <- unlist(data$collection_point_removed_packages %>% map(~sum(.x)))
+# data1 <- data1 %>%
+#   group_by(dist_threshold) %>% 
+#   mutate(packages = lead(number_of_packages) - number_of_undelivered_packages) # compute packages
+```
+```{r}
+summ <- data1 %>%
+  group_by(dist_threshold) %>%
+  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer)) 
+summ
+par(mar = c(5,5,2,5))
+with(summ, plot(dist_threshold, avg.number_of_packages, type="b",  ylim = c(0,200), xlab= "Distance Threshold (m)",
+             ylab= "avg. Number of Packages", main="Effect of Distance Threshold"))
+# axis(side = 2, col="blue", col.axis="blue")
+# mtext(side = 2, line = 3, col="blue", "avg. Number of Packages")
+par(new = T)
+with(summ, plot(dist_threshold, avg.travel_dist_per_customer,  type="b", ylim = c(0,4000), pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
+axis(side = 4, col="red3", col.axis="red3")
+mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)')
+```
+
+```{r}
+# different measures of packages number vs capacity
+summ_distances <- data1 %>%
+  group_by(dist_threshold) %>%
+  summarize(driver_distance = sum(distance), 
+            customer_distance = sum(collection_dist)) %>%
+  gather(key = "variable", value = "distance", -dist_threshold)
+```
+```{r}
+summ_distances %>% ggplot(aes(x = dist_threshold, y = distance, group = variable)) + geom_line(aes(color = variable)) + geom_point(aes(color = variable)) #+ scale_color_manual(values = c("darkred", "steelblue")) + ggtitle("distance vs. dist_threshold")
+```
+
+## Package Number
+```{r}
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=number_of_packages, group =dist_threshold, color = dist_threshold)) + ggtitle("Number of Packages over Time")
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=number_of_delivered_packages, group =dist_threshold, color = dist_threshold)) + ggtitle("number_of_delivered_packages over time")
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=number_of_undelivered_packages, group =dist_threshold, color = dist_threshold)) + ggtitle("number_of_undelivered_packages over time")
+
+data1 %>% 
+  ggplot(aes(x=dist_threshold, y=number_of_packages, color = dist_threshold)) + geom_boxplot() + ggtitle("Number of Packages vs Distance Threshold")
+
+# # combined boxplot
+# p1<-data1 %>% 
+#   ggplot(aes(x=dist_threshold, y=number_of_packages, color = dist_threshold)) + geom_boxplot() + ggtitle("number_of_packages vs collection capcity")
+# p3<-data1 %>% 
+#   ggplot(aes(x=dist_threshold, y=number_of_delivered_packages, color = dist_threshold)) + geom_boxplot() + ggtitle("number_of_delivered_packages vs collection dist_threshold")
+# p4<-data1 %>% 
+#   ggplot(aes(x=dist_threshold, y=number_of_undelivered_packages, color = dist_threshold)) + geom_boxplot() + ggtitle("number_of_undelivered_packages vs collection dist_threshold")
+# figure <- ggarrange(p1, p3, p4,
+#                     #labels = c("delivered_package_days", "undelivered_package_days", "collection_package_days"),
+#                     ncol = 2, nrow = 2)
+# figure
+```
+## distance
+```{r}
+# data1 %>% 
+#   summarize(driver_distance = sum(distance), customer_distance = sum(collection_dist)) %>% 
+#   ggplot(aes(x=dist_threshold)) + geom_line(aes(y = driver_distance), color = "darkred") + geom_line(aes(y = customer_distance), color="steelblue", linetype="twodash")
+#   # geom_line(aes(group=1),linetype='dotted') + ggtitle("driver_distance vs. dist_threshold")
+# combined boxplot
+p1<-data1 %>% 
+  ggplot(aes(x=dist_threshold, y=distance, group =dist_threshold, color = dist_threshold)) + geom_boxplot()#+ stat_summary(fun.y=mean, geom="point", shape=23, size=4) #+ ggtitle("driver_distance vs collection dist_threshold")
+p2<-data1 %>% 
+  ggplot(aes(x=dist_threshold, y=collection_dist, group =dist_threshold, color = dist_threshold)) + geom_boxplot() #+ ggtitle("customer_distance vs collection dist_threshold")
+figure <- ggarrange(p1, p2,
+                    # font("x.text", size = 5),
+                    labels = c("driver_distance", "customer_distance"),
+                    ncol = 2, nrow = 1)
+figure
+
+# distance <- melt(summ, id="dist_threshold")  # convert to long format
+# ggplot(data=distance, aes(x=dist_threshold, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
+```
+
+## Packages
+```{r}
+# number of packages vs days by different collection capacity
+number_of_packages_vs_days <- data1 %>% 
+  #filter(day > 20) %>%
+  ggplot(aes(x=day, y=number_of_packages, color = dist_threshold)) + 
+  geom_point(shape=16, alpha = 0.8, color = 'black') +
+  geom_smooth(method=lm, size = 0.5, se = F ) + labs(title = "Number of Packages v.s. Days by Collection Capacity")
+# Split in vertical direction
+number_of_packages_vs_days + facet_grid( . ~ dist_threshold) 
+
+```
+
+
+
+```{r}
+# different measures of packages number vs capacity
+summ_packages <- data1 %>%
+  group_by(dist_threshold) %>%
+  summarise(avg.num_packages = mean(number_of_packages), 
+            avg.num_delivered_packages = mean(number_of_delivered_packages), 
+            avg.num_undelivered_packages= mean(number_of_undelivered_packages))
+summ_packages1 <- summ_packages %>% 
+  gather(key = "variable", value = "value", -dist_threshold)
+
+```
+
+## Days
+```{r}
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=delivered_package_days_taken, group =dist_threshold, color = dist_threshold)) + ggtitle("delivered_package_days over time")
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=undelivered_package_days_taken, group =dist_threshold, color = dist_threshold)) + ggtitle("delivered_package_days over time")
+data1 %>% 
+  ggplot() + geom_line(aes(x=day, y=number_of_collection_packages, group =dist_threshold, color = dist_threshold)) + ggtitle("collection_package_days over time")
+```
+```{r}
+# combined boxplot
+p1<-data1 %>% 
+  ggplot(aes(x=dist_threshold, y=delivered_package_days_taken, group =dist_threshold, color = dist_threshold)) + geom_boxplot() + ggtitle("delivered_package_days vs collection dist_threshold")
+p2<-data1 %>% 
+  ggplot(aes(x=dist_threshold, y=undelivered_package_days_taken, group =dist_threshold, color = dist_threshold)) + geom_boxplot() + ggtitle("undelivered_package_days vs collection dist_threshold")
+p3<-data1 %>% 
+  ggplot(aes(x=dist_threshold, y=number_of_collection_packages, group =dist_threshold, color = dist_threshold)) + geom_boxplot() + ggtitle("collection_package_days vs collection dist_threshold")
+figure <- ggarrange(p1, p2, p3,
+                    #labels = c("delivered_package_days", "undelivered_package_days", "collection_package_days"),
+                    ncol = 1, nrow = 3)
+figure
+
+summ_days <- data1 %>% 
+  drop_na() %>% 
+  summarize(mean_collection_package_days = mean(number_of_collection_packages), mean_delivered_package_days = mean(delivered_package_days_taken), mean_undelivered_package_days = mean(undelivered_package_days_taken)) %>% #mean_number_of_packages = mean(number_of_packages), 
+  gather(key = "variable", value = "value", -dist_threshold) 
+
+summ_days %>% ggplot(aes(x = dist_threshold, y = value, group = variable)) + geom_line(aes(color = variable), linetype='dotted') + geom_point(aes(color = variable)) #+ scale_color_manual(values = c("darkred", "steelblue")) 
+
+# summ_packages %>% ggplot(aes(x = dist_threshold, y = value, col = variable)) + geom_boxplot()
+# summ_packages <- melt(summ, id="dist_threshold") %>% # convert to long format
+#   ggplot(aes(x=dist_threshold, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
+
+```
+
+```{r}
+# combined boxplot
+p1<-summ_packages %>% 
+  ggplot(aes(x=dist_threshold, y=avg.num_packages)) + geom_line(linetype='dotted') + geom_point()
+p3<-summ_packages %>% 
+  ggplot(aes(x=dist_threshold, y=avg.num_delivered_packages)) + geom_line(linetype='dotted') + geom_point()
+p4<-summ_packages %>% 
+  ggplot(aes(x=dist_threshold, y=avg.num_undelivered_packages)) + geom_line(linetype='dotted') + geom_point()
+figure <- ggarrange(p1, p3, p4,
+                    labs(title = "Packges v.s. capcity"),
+                    # labels = c("delivered_package_days", "undelivered_package_days", "collection_package_days"),
+                    ncol = 2, nrow = 2)
+figure
+```
+```{r}
+data1 %>% 
+  summarize(mean = mean(number_of_packages)) %>% 
+  ggplot(aes(x=dist_threshold, y = mean)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle("number_of_packages vs. dist_threshold")
+
+data1 %>% 
+  summarize(sum = sum(distance)) %>% 
+  ggplot(aes(x=dist_threshold, y = sum)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle("driver_distance vs. dist_threshold")
+
+data1 %>% 
+  summarize(sum = sum(collection_dist)) %>% 
+  ggplot(aes(x=dist_threshold, y = sum)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle("customer_distance vs. dist_threshold")
+
+  #group_by(dist_threshold) %>% 
+  #ggplot(aes(x=day, y=number_of_packages, color = dist_threshold)) + geom_line(aes(group=1)) # + geom_bar(stat="identity") + ggtitle("tip_amount vs. hour")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
