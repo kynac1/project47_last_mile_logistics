@@ -86,20 +86,21 @@ summ <- data1 %>%
             total_collection_dist_customer = sum(collection_dist) ) 
 summ
 par(mar = c(5,5,2,5))
-with(summ, plot(num_of_collection_points, avg.number_of_packages, type="b", ylim = c(0,200), xlab= "Number of Collection Points", ylab= "avg. Number of Packages", main="Effect of Number of Collection Points"))
+with(summ, plot(num_of_collection_points, avg.number_of_packages, type="b", ylim = c(0,200), xlab= "Number of Collection Points", ylab= "Average Number of Packages", main="Effect of Number of Collection Points"))
 abline(h=summ$avg.number_of_packages[3], col="black", lty=2, lwd=1)
 
-par(new = T)
-with(summ, plot(num_of_collection_points, avg.travel_dist_per_customer, ylim = c(0,4000), type="b", pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
-axis(side = 4, col="red3", col.axis="red3")
-mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)')
-abline(h=summ$ avg.travel_dist_per_customer[3], col="red3", lty=2, lwd=1)
+# par(new = T)
+# with(summ, plot(num_of_collection_points, total_collection_dist_customer/1000, ylim = c(0,4000), type="b", pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
+# axis(side = 4, col="red3", col.axis="red3")
+# mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)')
+# abline(h=summ$ avg.travel_dist_per_customer[3], col="red3", lty=2, lwd=1)
 
 par(new = T)
-with(summ, plot(num_of_collection_points,  total_collection_dist_customer/1000,  , ylim = c(000,4000), type="b", pch=15, col="green", axes=F, xlab=NA, ylab=NA, cex=1.2))
-axis(side = 4, col="green", col.axis="green")
-mtext(side = 4, line = 3, col="green3", 'Total Travelling Distance by Customer (km)')
-abline(h=summ$  total_collection_dist_driver[3], col="green", lty=2, lwd=1)
+with(summ, plot(num_of_collection_points,  total_collection_dist_customer/1000,  , ylim = c(000,4000), type="b", pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
+axis(side = 4, col="red3", col.axis="red3")
+mtext(side = 4, line = 3, col="red3", 'Total Travelling Distance by Customer (km)')
+abline(h=summ$total_collection_dist_customer[3]/1000, col="red3", lty=2, lwd=1)
+# abline(h=summ$  total_collection_dist_driver[3], col="red3", lty=2, lwd=1)
 # 
 
 # par(new = T)

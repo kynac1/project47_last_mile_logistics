@@ -49,25 +49,33 @@ data1$number_of_delivered_packages <- unlist(data$delivered_packages.days_taken 
 data1$travel_dist_per_customer <- data$collection_dist/data1$number_of_collection_packages
 data1$travel_dist_per_customer[!is.finite(data1$travel_dist_per_customer)]<-0
 
-# data1$number_of_collection_packages <- unlist(data$collection_point_removed_packages %>% map(~sum(.x)))
-# data1 <- data1 %>%
-#   group_by(collection_capacity) %>% 
-#   mutate(packages = lead(number_of_packages) - number_of_undelivered_packages) # compute packages
+data1$number_of_collection_packages <- unlist(data$collection_point_removed_packages %>% map(~sum(.x)))
+data1 <- data1 %>%
+  group_by(collection_capacity) %>%
+  mutate(packages = lead(number_of_packages) - number_of_undelivered_packages) # compute packages
 ```
 ```{r}
 summ <- data1 %>%
   group_by(collection_capacity) %>%
-  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer)) 
+  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer),  total_collection_dist_customer = sum(collection_dist)) 
+
 summ
 par(mar = c(5,5,2,5))
 with(summ, plot(collection_capacity, avg.number_of_packages, type="b", ylim = c(0,200),  xlab= "Collection Capacity",
-             ylab= "avg. Number of Packages", main="Effect of Collection Capacity"))
+             ylab= "Average Number of Packages", main="Effect of Collection Capacity"))
+abline(h=summ$avg.number_of_packages[3], col="black", lty=2, lwd=1)
 # axis(side = 2, col="blue", col.axis="blue")
 # mtext(side = 2, line = 3, col="blue", "avg. Number of Packages")
+# par(new = T)
+# with(summ, plot(collection_capacity, avg.travel_dist_per_customer,  type="b", ylim = c(0,4000), pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
+# axis(side = 4, col="red3", col.axis="red3")
+# mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)')
+
 par(new = T)
-with(summ, plot(collection_capacity, avg.travel_dist_per_customer,  type="b", ylim = c(0,4000), pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
+with(summ, plot(collection_capacity,  total_collection_dist_customer/1000,  , ylim = c(000,4000), type="b", pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
 axis(side = 4, col="red3", col.axis="red3")
-mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)')
+mtext(side = 4, line = 3, col="red3", 'Total Travelling Distance by Customer (km)')
+abline(h=summ$total_collection_dist_customer[3]/1000, col="red3", lty=2, lwd=1)
 
 ```
 ## Packages
