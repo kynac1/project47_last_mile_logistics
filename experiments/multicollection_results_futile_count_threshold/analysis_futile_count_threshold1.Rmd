@@ -60,17 +60,21 @@ data1$travel_dist_per_customer[!is.finite(data1$travel_dist_per_customer)]<-0
 ```{r}
 summ <- data1 %>%
   group_by(futile_count_threshold) %>%
-  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer)) 
+  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer), total_collection_dist_customer = sum(collection_dist)) 
 summ
 par(mar = c(5,5,2,5))
 with(summ, plot(futile_count_threshold, avg.number_of_packages, type="b",  ylim = c(0,200), xlab= "Futile Count Threshold",
-             ylab= "avg. Number of Packages", main="Effect of Futile Count Threshold"))
+             ylab= "Average Number of Packages", main="Effect of Futile Count Threshold"))
+abline(h=summ$avg.number_of_packages[3], col="black", lty=2, lwd=1)
 # axis(side = 2, col="blue", col.axis="blue")
 # mtext(side = 2, line = 3, col="blue", "avg. Number of Packages")
+
+
 par(new = T)
-with(summ, plot(futile_count_threshold, avg.travel_dist_per_customer,  type="b", ylim = c(0,4000), pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
+with(summ, plot(futile_count_threshold,  total_collection_dist_customer/1000,  , ylim = c(000,max(total_collection_dist_customer/1000)), type="b", pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
 axis(side = 4, col="red3", col.axis="red3")
-mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)')
+mtext(side = 4, line = 3, col="red3", 'Total Travelling Distance by Customer (km)')
+abline(h=summ$total_collection_dist_customer[3]/1000, col="red3", lty=2, lwd=1)
 ```
 ```{r}
 # different measures of packages number vs capacity
