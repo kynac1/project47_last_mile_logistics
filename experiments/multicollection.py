@@ -180,7 +180,7 @@ def multicollection(
         futile_count_threshold=futile_count_threshold,
         cap=cap,
     )
-    fname = f"experiments/multicollection_results_k/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
+    fname = f"experiments/multicollection_results_all/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
     with open(
         fname,
         "x",
@@ -199,25 +199,45 @@ if __name__ == "__main__":
     arg_list = []
     vehs = 5
     tws = 4
-    k = 3
-    dist_threshold = 10000
-    futile_count_threshold = 2
+    # k = 2
+    dist_threshold = 5000
+    # futile_count_threshold = 2
     cap = 30
+    for k in [1, 3, 5, 7]:
+        for futile_count_threshold in [1, 3, 5]:
+            for dist_threshold in [5000, 7500, 10000, 12500]:
+                for cap in [10, 30]:
+                    arg_list.append(
+                        (
+                            50,
+                            vehs,
+                            tws,
+                            1,
+                            wait_policy,
+                            k,
+                            dist_threshold,
+                            futile_count_threshold,
+                            cap,
+                        )
+                    )
 
-    for k in [0, 1]:
-        arg_list.append(
-            (
-                50,
-                vehs,
-                tws,
-                1,
-                wait_policy,
-                k,
-                dist_threshold,
-                futile_count_threshold,
-                cap,
-            )
-        )
+    # k = 2
+    # dist_threshold = 20000
+    # futile_count_threshold = 3
+    # cap = 10
+    # arg_list.append(
+    #     (
+    #         50,
+    #         vehs,
+    #         tws,
+    #         1,
+    #         wait_policy,
+    #         k,
+    #         dist_threshold,
+    #         futile_count_threshold,
+    #         cap,
+    #     )
+    # )
 
     # param = ['k', 'dist_threshold', 'futile_count_threshold', 'cap']
 
