@@ -114,9 +114,9 @@ def multiaddress(
         arrival_days,
         futile_count,
         alternate_locations,
-        fss=routing_enums_pb2.FirstSolutionStrategy.AUTOMATIC,
-        lsm=routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH,
-        tlim=30,
+        fss=routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC,
+        lsm=routing_enums_pb2.LocalSearchMetaheuristic.TABU_SEARCH,
+        tlim=2,
     ):
         locs = dm.shape[0]
         r = ORToolsRouting(locs, num_vehicles)
@@ -156,9 +156,9 @@ def multiaddress(
         day_end,
         plot=False,
         seed=2123897,
-        tlim=60 * 60,
+        tlim=60 * 60 * 4,
     )
-    fname = f"experiments/multiaddress_results3/poisson_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_days=40.json"
+    fname = f"experiments/multiaddress_policies/poisson_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_days=40.json"
     try:
         with open(
             fname,
@@ -184,8 +184,8 @@ if __name__ == "__main__":
     arg_list = []
     for policy in [wait_policy, estimate_ahead_policy, calling_policy]:
         for locations in [1, 2]:
-            for vehs in [3, 9]:
-                for tws in [1, 8]:
+            for vehs in [5]:
+                for tws in [4]:
                     arg_list.append((50, vehs, tws, locations, policy))
 
     n = 2
