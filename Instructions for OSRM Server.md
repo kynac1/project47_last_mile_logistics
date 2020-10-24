@@ -39,6 +39,10 @@ All the above steps only need to be done once. After that, to start the server, 
 ```
 docker run -t -i -p 5000:5000 -v "${PWD}:/data" osrm/osrm-backend osrm-routed --algorithm mld /data/filename.osrm
 ```
+for larger docker limit
+```
+docker run -t -i -p 5000:5000 -v "${PWD}:/data" osrm/osrm-backend osrm-routed --algorithm mld --max-trip-size 10000 --max-viaroute-size 10000 --max-table-size 10000 /data/map.osrm
+```
 
 Again, in the folder with the map data and the correct filename.orsm.
 

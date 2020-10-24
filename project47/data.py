@@ -79,7 +79,8 @@ def read_data(
     for sub in sample_sub:
         if sub not in CHC_sub:
             del sample_sub_dict[sub]
-    sample_clean = sample_df[sample_df["Receiver Suburb"].isin(sample_sub_dict.keys())]
+    sample_clean = sample_df[sample_df["Receiver Suburb"].isin(
+        sample_sub_dict.keys())]
 
     # ******************************** fall back if grouping does not speed up *************************
     # # extract a list of unique suburbs from CHC_df
@@ -111,7 +112,8 @@ def get_sample(
     # CHCstreet = pd.read_csv(CHC_data, keep_default_na=False)
 
     # extract random sample of suburbs from sample_df
-    rd = rg.integers(low=0, high=len(sample_df) - 1, size=n)  # a list of random numbers
+    rd = rg.integers(low=0, high=len(sample_df) - 1,
+                     size=n)  # a list of random numbers
     random_subset = sample_df.iloc[rd]  # sample(n)
 
     latitude = []
@@ -169,7 +171,8 @@ def get_coordinates(API_key, cd, address_filename, coord_filename, save=False):
     # my_dist = gmaps.distance_matrix('Delhi','Mumbai')['rows'][0]['elements'][0]
     df = pd.read_csv(address_filename, keep_default_na=False)
     df["Address"] = (
-        df["Street"] + "," + df["Suburb"] + "," + df["City"] + "," + df["Country"]
+        df["Street"] + "," + df["Suburb"] +
+        "," + df["City"] + "," + df["Country"]
     )
 
     latitude = []
@@ -216,7 +219,7 @@ def get_dist(API_key, cd, coord_filename, latitude, longitude, save=False):
         return [], []
 
     # get distance (km) and durantion (hr) matrix
-    result = lambda p1, p2: gmaps.distance_matrix(p1, p2, mode="driving")["rows"][0][
+    def result(p1, p2): return gmaps.distance_matrix(p1, p2, mode="driving")["rows"][0][
         "elements"
     ][0]
     dm = np.asarray(
@@ -234,9 +237,11 @@ def get_dist(API_key, cd, coord_filename, latitude, longitude, save=False):
 
     if save:
         df = pd.DataFrame(dm)
-        df.to_csv(os.path.join(cd, "dm.csv"), float_format="%.3f", na_rep="NAN!")
+        df.to_csv(os.path.join(cd, "dm.csv"),
+                  float_format="%.3f", na_rep="NAN!")
         df = pd.DataFrame(tm)
-        df.to_csv(os.path.join(cd, "tm.csv"), float_format="%.3f", na_rep="NAN!")
+        df.to_csv(os.path.join(cd, "tm.csv"),
+                  float_format="%.3f", na_rep="NAN!")
     return dm, tm
 
 
@@ -279,7 +284,8 @@ def osrm_get_dist(
     dest_string = dest_string.rstrip(";")
     url = "http://" + host + "/table/v1/driving/" + dest_string
     if local:
-        url += "?annotations=distance,duration"  # + destinations[0]+";" +destinations[1]+";" +destinations[2] #+ '?annotations=distance'
+        # + destinations[0]+";" +destinations[1]+";" +destinations[2] #+ '?annotations=distance'
+        url += "?annotations=distance,duration"
     if len(source) != 0:
         url += "&sources="
         for i in source[:-1]:

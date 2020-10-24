@@ -140,7 +140,8 @@ def multicollection(
         dim, ind = r.add_dimension(dm, 0, 1000000, True, "distance")
         r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
         dim.SetGlobalSpanCostCoefficient(100)
-        dim, ind = r.add_time_windows(tm, time_windows, day_end, day_end, False, "time")
+        dim, ind = r.add_time_windows(
+            tm, time_windows, day_end, day_end, False, "time")
         for alternates in alternate_locations:
             r.add_option(alternates, 5000000)
 
@@ -179,7 +180,7 @@ def multicollection(
         futile_count_threshold=futile_count_threshold,
         cap=cap,
     )
-    fname = f"experiments/multicollection_results_all/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
+    fname = f"experiments/multicollection_results_arrival_rate/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
     with open(
         fname,
         "w",
@@ -198,45 +199,42 @@ if __name__ == "__main__":
     arg_list = []
     vehs = 5
     tws = 4
-    # k = 2
-    dist_threshold = 5000
-    # futile_count_threshold = 2
+    k = 3
+    dist_threshold = 10000
+    futile_count_threshold = 2
     cap = 30
-    for k in [1, 3, 5, 7]:
-        for futile_count_threshold in [1, 3, 5]:
-            for dist_threshold in [5000, 7500, 10000, 12500]:
-                for cap in [10, 30]:
-                    arg_list.append(
-                        (
-                            50,
-                            vehs,
-                            tws,
-                            1,
-                            wait_policy,
-                            k,
-                            dist_threshold,
-                            futile_count_threshold,
-                            cap,
-                        )
-                    )
+    # for k in [5, 7]:
+    #     for futile_count_threshold in [1, 3, 5]:
+    #         for dist_threshold in [5000, 7500, 10000, 12500]:
+    #             for cap in [10, 30]:
+    #                 arg_list.append(
+    #                     (
+    #                         50,
+    #                         vehs,
+    #                         tws,
+    #                         1,
+    #                         wait_policy,
+    #                         k,
+    #                         dist_threshold,
+    #                         futile_count_threshold,
+    #                         cap,
+    #                     )
+    #                 )
 
-    # k = 2
-    # dist_threshold = 20000
-    # futile_count_threshold = 3
-    # cap = 10
-    # arg_list.append(
-    #     (
-    #         50,
-    #         vehs,
-    #         tws,
-    #         1,
-    #         wait_policy,
-    #         k,
-    #         dist_threshold,
-    #         futile_count_threshold,
-    #         cap,
-    #     )
-    # )
+    for arrival_rate in [30, 50, 70, 90, 110]:
+        arg_list.append(
+            (
+                arrival_rate,
+                vehs,
+                tws,
+                1,
+                wait_policy,
+                k,
+                dist_threshold,
+                futile_count_threshold,
+                cap,
+            )
+        )
 
     # param = ['k', 'dist_threshold', 'futile_count_threshold', 'cap']
 
