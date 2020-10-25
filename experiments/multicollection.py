@@ -180,7 +180,7 @@ def multicollection(
         futile_count_threshold=futile_count_threshold,
         cap=cap,
     )
-    fname = f"experiments/multicollection_results_arrival_rate/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
+    fname = f"experiments/multicollection_results_policy/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
     with open(
         fname,
         "w",
@@ -221,21 +221,21 @@ if __name__ == "__main__":
     #                     )
     #                 )
 
-    for arrival_rate in [30, 50, 70, 90, 110]:
-        arg_list.append(
-            (
-                arrival_rate,
-                vehs,
-                tws,
-                1,
-                wait_policy,
-                k,
-                dist_threshold,
-                futile_count_threshold,
-                cap,
+    for policy in [calling_policy, estimate_ahead_policy]:
+        for tws in [1, 2, 4, 8]:
+            arg_list.append(
+                (
+                    50,
+                    vehs,
+                    tws,
+                    1,
+                    policy,
+                    k,
+                    dist_threshold,
+                    futile_count_threshold,
+                    cap,
+                )
             )
-        )
-
     # param = ['k', 'dist_threshold', 'futile_count_threshold', 'cap']
 
     # param_dict = {'k': [0, 1, 2, 3, 4, 5],  # k
