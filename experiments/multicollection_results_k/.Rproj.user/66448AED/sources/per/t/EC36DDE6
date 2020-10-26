@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1603236182828.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3774830855",
+    "id" : "EC36DDE6",
+    "lastKnownWriteTime" : 1603236378,
+    "last_content_update" : 1603236378983,
+    "path" : "~/Desktop/project47_last_mile_logistics/experiments/multicollection_results_k/analysis_k1.Rmd",
+    "project_path" : "analysis_k1.Rmd",
+    "properties" : {
+        "cursorPosition" : "89,67",
+        "last_setup_crc32" : "7E29E86C8eb0e0f4",
+        "scrollLine" : "79"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

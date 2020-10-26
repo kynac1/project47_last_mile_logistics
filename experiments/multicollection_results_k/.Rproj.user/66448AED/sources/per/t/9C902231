@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1603236661986.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4013884448",
+    "id" : "9C902231",
+    "lastKnownWriteTime" : 1603236810,
+    "last_content_update" : 1603236810494,
+    "path" : "~/Desktop/project47_last_mile_logistics/experiments/multicollection_results_dist_threshold/analysis_dist_threshold1.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "75,79",
+        "last_setup_crc32" : "7E29E86C5b9b9c7",
+        "scrollLine" : "52"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,1 @@
+"0","with(summ, plot(dist_threshold/1000,  total_collection_dist_customer/1000,  , ylim = c(000,4000), type=""b"", pch=15, col=""red3"", axes=F, xlab=NA, ylab=NA, cex=1.2))"

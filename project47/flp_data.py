@@ -222,7 +222,7 @@ CUSTOMERS = np.arange(len(lat))
 FACILITY = np.arange(len(fac_lat))
 cap = 30
 # cap = math.ceil(sample_df.shape[0] / k)
-Fac_cap = np.ones(len(fac_lat)) * cap
+Fac_cap = np.ones(len(fac_lat)) * sum(demand)
 
 sol_fac_lat, sol_fac_lon, assigned_lat, assigned_lon = find_opt_collection(
     k, CUSTOMERS, FACILITY, lat, lon, fac_lat, fac_lon, dist, weight, demand, Fac_cap

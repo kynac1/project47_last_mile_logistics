@@ -1,0 +1,8 @@
+"0","# axis(side = 2, col=""blue"", col.axis=""blue"")"
+"0","# mtext(side = 2, line = 3, col=""blue"", ""avg. Number of Packages"")"
+"0","# par(new = T)"
+"0","# with(summ, plot(collection_capacity, avg.travel_dist_per_customer,  type=""b"", ylim = c(0,4000), pch=15, col=""red3"", axes=F, xlab=NA, ylab=NA, cex=1.2))"
+"0","# axis(side = 4, col=""red3"", col.axis=""red3"")"
+"0","# mtext(side = 4, line = 3, col=""red3"", 'avg. Travelling Distance per Customer (m)')"
+"0",""
+"0","par(new = T)"

@@ -1,0 +1,2 @@
+"0","par(mar = c(5,5,2,5))"
+"0","with(summ, plot(num_of_collection_points, avg.number_of_packages, type=""b"", ylim = c(0,200), xlab= ""Number of Collection Points"", ylab= ""Average Number of Packages"", main=""Effect of Number of Collection Points""))"

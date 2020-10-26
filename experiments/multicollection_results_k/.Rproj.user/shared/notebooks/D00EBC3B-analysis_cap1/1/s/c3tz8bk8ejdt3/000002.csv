@@ -1,0 +1,8 @@
+"0","# load all json files into a dataframe"
+"0","path <- getwd()#""./your_path"""
+"0","files <- dir(path, pattern = ""*.json"")"
+"0","# convert all json files into a dataframe"
+"0","data <- files %>%"
+"0","       map_df(~fromJSON(file.path(path, .), flatten = TRUE))"
+"0","# add column - collection collection_capacity "
+"0","data$collection_capacity= c(rep(10,60),rep(20,60), rep(30,60), rep(40,60), rep(50,60))"

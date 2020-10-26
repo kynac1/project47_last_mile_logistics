@@ -1,0 +1,4 @@
+"0","summ <- data1 %>%"
+"0","  group_by(futile_count_threshold) %>%"
+"0","  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer), total_collection_dist_customer = sum(collection_dist)) "
+"0","summ"

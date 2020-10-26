@@ -1,0 +1,8 @@
+"0",""
+"0","# par(new = T)"
+"0","# with(summ, plot(num_of_collection_points, total_collection_dist_customer/1000, ylim = c(0,4000), type=""b"", pch=15, col=""red3"", axes=F, xlab=NA, ylab=NA, cex=1.2))"
+"0","# axis(side = 4, col=""red3"", col.axis=""red3"")"
+"0","# mtext(side = 4, line = 3, col=""red3"", 'avg. Travelling Distance per Customer (m)')"
+"0","# abline(h=summ$ avg.travel_dist_per_customer[3], col=""red3"", lty=2, lwd=1)"
+"0",""
+"0","par(new = T)"

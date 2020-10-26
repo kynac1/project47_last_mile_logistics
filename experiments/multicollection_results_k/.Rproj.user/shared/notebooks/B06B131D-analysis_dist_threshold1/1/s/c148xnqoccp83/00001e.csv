@@ -1,0 +1,3 @@
+"0","par(mar = c(5,5,2,5))"
+"0","with(summ, plot(dist_threshold/1000, avg.number_of_packages, type=""b"",  ylim = c(0,200), xlab= ""Distance Threshold (km)"","
+"0","             ylab= ""Average Number of Packages"", main=""Effect of Distance Threshold""))"
