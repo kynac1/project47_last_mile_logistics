@@ -363,6 +363,30 @@ def wait_policy(
     return h
 
 
+def truewait_policy(
+    distance_matrix,
+    time_matrix,
+    time_windows,
+    customers,
+    rg=np.random.Generator(np.random.PCG64(123)),
+):
+    f = default_distance_function(distance_matrix)
+    g = default_time_function(time_matrix)
+
+    def h(route, i, time):
+        next_distance = f(route[i], route[i + 1], time)
+        next_time = g(route[i], route[i + 1], time)
+        futile = not customers[route[i + 1]].visit(time + next_time)
+        while time + next_time < time_windows[route[i + 1]][0]:
+            next_time += 5
+            futile = not customers[route[i + 1]].visit(time + next_time)
+            if not futile:
+                break
+        return next_distance, next_time, futile, route
+
+    return h
+
+
 def estimate_ahead_policy(
     distance_matrix,
     time_matrix,

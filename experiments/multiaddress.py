@@ -182,7 +182,7 @@ def multiaddress(
 if __name__ == "__main__":
 
     arg_list = []
-    for policy in [wait_policy, estimate_ahead_policy, calling_policy]:
+    for policy in [truewait_policy]:
         for locations in [1, 2]:
             for vehs in [5]:
                 for tws in [4]:
