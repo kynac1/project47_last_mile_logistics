@@ -57,7 +57,9 @@ data1 <- data1 %>%
 ```{r}
 summ <- data1 %>%
   group_by(collection_capacity) %>%
-  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer),  total_collection_dist_customer = sum(collection_dist)) 
+  summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer),  total_collection_dist_customer = sum(collection_dist),
+            # avg.package_removal_rate = mean(number_of_collection_removed_packages),
+            avg.package_at_collecton = median(number_of_collection_packages)/180) 
 
 summ
 par(mar = c(5,5,2,5))
@@ -77,6 +79,15 @@ axis(side = 4, col="red3", col.axis="red3")
 mtext(side = 4, line = 3, col="red3", 'Total Travelling Distance by Customer (km)')
 abline(h=summ$total_collection_dist_customer[3]/1000, col="red3", lty=2, lwd=1)
 
+# par(new = T)
+# with(summ, plot(collection_capacity,  avg.package_at_collecton, type="b", pch=15,  ylim = c(000, max(avg.package_at_collecton)), col="blue", axes=F, xlab=NA, ylab=NA, cex=1.2))
+
+```
+```{r}
+par(mar = c(5,5,2,5))
+with(summ, plot(collection_capacity, avg.package_at_collecton, type="b", ylim = c(0,5), col="blue", xlab= "Collection Point Capacity",
+             ylab= "Avg. Package Number per Collection Point", main="Number of Packages at each Collection Point v.s. Collection Capacity"))
+abline(h=summ$avg.package_at_collecton[3], col="blue", lty=2, lwd=1)
 ```
 ## Packages
 ```{r}
