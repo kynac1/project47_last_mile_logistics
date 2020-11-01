@@ -6,3 +6,6 @@ prof
 cov.xml
 .coverage
 .Rproj.user
+.*/
+start_osrm.sh
+settings2.json
