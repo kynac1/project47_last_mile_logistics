@@ -101,8 +101,8 @@ abline(h=summ$total_collection_dist_customer[3]/1000, col="red3", lty=2, lwd=1)
 ```
 ```{r}
 par(mar = c(5,5,2,5))
-with(summ, plot(arrival_rate, avg.package_at_collecton, type="b",  xlab= "Customer Arrival Rate", ylab= "Avg. Package Arrival Rate at Collection Point", main="Average Number of Packages at Collection Point over Different Arrival Rates"))
-abline(h=30, col="red", lty=2, lwd=1)
+with(summ, plot(arrival_rate, avg.package_at_collecton, type="b",  xlab= "Customer Arrival Rate", ylab= "Avg. Number of Packages at Collection Point", main="Average Number of Packages at Collection Point over Different Arrival Rates"), cex=1.2)
+abline(h=10, col="red", lty=2, lwd=1)
 abline(v=50, col="blue", lty=2, lwd=1)
 legend("bottomright",c("Default Collection Capacity", "Default Arrival Rate"),col=c("red","blue"), text.col=c("red","blue"), lty=c(2,2), lwd=c(1,1))
 
