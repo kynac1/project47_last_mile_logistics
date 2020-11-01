@@ -98,6 +98,30 @@ def benchmarker(fss, lsm, tlim):
         seed=123456789,
         replications=1,
     )
+    data = multiday(
+        np.array([[-43.5111688], [172.7319266]]),
+        sample_generator,
+        dist_and_time,
+        lambda *args: route_optimizer(*args, fss=fss, lsm=lsm, tlim=tlim),
+        simulator,
+        1,
+        0,
+        28800,
+        seed=532409213,
+        replications=1,
+    )
+    data = multiday(
+        np.array([[-43.5111688], [172.7319266]]),
+        sample_generator,
+        dist_and_time,
+        lambda *args: route_optimizer(*args, fss=fss, lsm=lsm, tlim=tlim),
+        simulator,
+        1,
+        0,
+        28800,
+        seed=98743457,
+        replications=1,
+    )
 
     return time() - start
 
@@ -187,5 +211,7 @@ if __name__ == "__main__":
                 except:
                     print("FAILED")
 
-                with open("ortools_benchmarks/current_results4.json", "w") as f:
-                    json.dump(data, f)
+                # with open("ortools_benchmarks/current_results4.json", "w") as f:
+                #    json.dump(data, f)
+
+# Run with python full_problem.py 2> full_problem.log to record results
