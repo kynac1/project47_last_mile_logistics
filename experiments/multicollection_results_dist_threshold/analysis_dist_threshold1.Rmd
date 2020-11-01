@@ -91,7 +91,7 @@ summ_distances %>% ggplot(aes(x = dist_threshold, y = distance, group = variable
 ## Package Number
 ```{r}
 data1 %>% 
-  ggplot() + geom_line(aes(x=day, y=number_of_packages, group =dist_threshold, color = dist_threshold)) + ggtitle("Number of Packages over Time")
+  ggplot() + geom_line(aes(x=day, y=number_of_packages, group =dist_threshold, color = as.factor(dist_threshold/1000))) + ggtitle("Number of Packages over Time") + labs(y= "Number of Packages", x = "Day n", color = "Distance Threshold (km)")
 data1 %>% 
   ggplot() + geom_line(aes(x=day, y=number_of_delivered_packages, group =dist_threshold, color = dist_threshold)) + ggtitle("number_of_delivered_packages over time")
 data1 %>% 

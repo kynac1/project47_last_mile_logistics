@@ -180,7 +180,7 @@ def multicollection(
         futile_count_threshold=futile_count_threshold,
         cap=cap,
     )
-    fname = f"experiments/multicollection_results_all/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
+    fname = f"experiments/multicollection_results_arrival_rate/constant_{arrival_rate}_{num_vehicles}_{num_time_windows}_{num_addresses}_{policy.__name__}_{k}_{dist_threshold}_{futile_count_threshold}_{cap}.json"
     with open(
         fname,
         "w",
@@ -203,39 +203,38 @@ if __name__ == "__main__":
     dist_threshold = 10000
     futile_count_threshold = 2
     cap = 30
-    for k in [5, 7]:
-        for futile_count_threshold in [1, 3, 5]:
-            for dist_threshold in [5000, 7500, 10000, 12500]:
-                for cap in [10, 30]:
-                    arg_list.append(
-                        (
-                            50,
-                            vehs,
-                            tws,
-                            1,
-                            wait_policy,
-                            k,
-                            dist_threshold,
-                            futile_count_threshold,
-                            cap,
-                        )
-                    )
+    # for k in [5, 7]:
+    #     for futile_count_threshold in [1, 3, 5]:
+    #         for dist_threshold in [5000, 7500, 10000, 12500]:
+    #             for cap in [10, 30]:
+    #                 arg_list.append(
+    #                     (
+    #                         50,
+    #                         vehs,
+    #                         tws,
+    #                         1,
+    #                         wait_policy,
+    #                         k,
+    #                         dist_threshold,
+    #                         futile_count_threshold,
+    #                         cap,
+    #                     )
+    #                 )
 
-    # for policy in [calling_policy, estimate_ahead_policy]:
-    #     for tws in [1, 2, 4, 8]:
-    #         arg_list.append(
-    #             (
-    #                 50,
-    #                 vehs,
-    #                 tws,
-    #                 1,
-    #                 policy,
-    #                 k,
-    #                 dist_threshold,
-    #                 futile_count_threshold,
-    #                 cap,
-    #             )
-    #         )
+    for arrival_rate in [230, 250, 270, 290, 310, 330, 350]:
+        arg_list.append(
+            (
+                arrival_rate,
+                vehs,
+                tws,
+                1,
+                wait_policy,
+                k,
+                dist_threshold,
+                futile_count_threshold,
+                cap,
+            )
+        )
     # param = ['k', 'dist_threshold', 'futile_count_threshold', 'cap']
 
     # param_dict = {'k': [0, 1, 2, 3, 4, 5],  # k
