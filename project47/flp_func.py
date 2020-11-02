@@ -17,26 +17,24 @@ import string
 import matplotlib.cm as cm
 import pandas as pd
 
-# CUSTOMERS = [1,2,3,4,5]
-# FACILITY = ['f1','f2','f3']
-# Fac_cost = {'f1': 5,
-#             'f2': 10,
-#             'f3': 10}
-
-# Fac_cap = {'f1': 50,
-#             'f2': 50,
-#             'f3': 50}
-
-# dist = {'f1': {1: 4, 2: 5, 3: 6, 4: 8, 5: 10},
-#         'f2': {1: 6, 2: 4, 3: 3, 4: 5, 5: 8},
-#         'f3': {1: 9, 2: 7, 3: 4, 4: 3, 5: 4}}
-
-# k = 10
-
 
 def find_opt_collection(
     k, CUSTOMERS, FACILITY, fac_lat, fac_lon, dist, weight, demand, Fac_cap
 ):
+    """
+    k: number of collection points
+    CUSTOMERS: set of customers by suburb
+    FACILITY: set of potential collection points
+    fac_lat: latitudes for the potential collection points
+    fac_lon: longitudes for the potential collection points
+    dist: distance matrix from the customer to the collection point
+    weight: the weighting of suburb
+    demand: the number of packages that suburb demands to be sent to collection points
+    Fac_cap: capacity of each collection point
+
+    This function models the collection location optimisation problem using PuLp
+    and solves the model using CBC solver.
+    """
     # set problem
     prob = LpProblem("FacilityLocation", LpMinimize)
 
@@ -49,8 +47,7 @@ def find_opt_collection(
     # objective function
     prob += lpSum(
         dist[j][i] * serv_vars[i, j] * weight[i] for j in FACILITY for i in CUSTOMERS
-    )  # + lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
-    # prob += lpSum(dist[j][i] * serv_vars[i, j] for j in FACILITY for i in CUSTOMERS) #+ lpSum(Fac_cost[j] * use_vars[j] for j in FACILITY), "min_dist"
+    )
 
     # constraints
     # each package should be delivered to a facility
@@ -88,21 +85,4 @@ def find_opt_collection(
 
     print("The cost of travel = ", value(prob.objective))
 
-    # m = Basemap(llcrnrlon=172.4768000,llcrnrlat=-43.6147000,urcrnrlon=172.7816000,urcrnrlat=-43.4375000,lat_ts=20,
-    #             resolution='h',projection='merc',lon_0=172.4768000,lat_0=-43.6147000)
-    # lat1, lon1 = m(lat, lon)
-    # m.drawmapboundary(fill_color='white') # fill to edge
-    # m.scatter(lat1, lon1 ,s=5,c='r',marker="o",cmap=cm.jet,alpha=1.0)
-
-    # sol_fac_coord = list(map(list, zip(sol_fac_lat, sol_fac_lon)))
-
     return sol_fac_lat, sol_fac_lon
-    # fig, axs = plt.subplots()
-    # plt.scatter(lon,lat, s = 5, c=weight)
-    # plt.gray()
-    # plt.scatter( fac_lon, fac_lat, s = 20, c="blue", marker="^", alpha=0.5)
-    # plt.scatter( sol_fac_lon, sol_fac_lat, s = 50 , c="red", marker="*")
-    # # plt.title('Scatter plot pythonspot.com')
-    # plt.xlabel('lon')
-    # plt.ylabel('lat')
-    # plt.show()

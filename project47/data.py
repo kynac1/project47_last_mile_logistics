@@ -79,8 +79,7 @@ def read_data(
     for sub in sample_sub:
         if sub not in CHC_sub:
             del sample_sub_dict[sub]
-    sample_clean = sample_df[sample_df["Receiver Suburb"].isin(
-        sample_sub_dict.keys())]
+    sample_clean = sample_df[sample_df["Receiver Suburb"].isin(sample_sub_dict.keys())]
 
     # ******************************** fall back if grouping does not speed up *************************
     # # extract a list of unique suburbs from CHC_df
@@ -112,8 +111,7 @@ def get_sample(
     # CHCstreet = pd.read_csv(CHC_data, keep_default_na=False)
 
     # extract random sample of suburbs from sample_df
-    rd = rg.integers(low=0, high=len(sample_df) - 1,
-                     size=n)  # a list of random numbers
+    rd = rg.integers(low=0, high=len(sample_df) - 1, size=n)  # a list of random numbers
     random_subset = sample_df.iloc[rd]  # sample(n)
 
     latitude = []
@@ -124,17 +122,6 @@ def get_sample(
     for index, row in random_subset.iterrows():
         # clean suburbs - get rid of () and things within
         sub = row["Receiver Suburb"]
-        # # if the suburb does not exsit in CHC data, get a new sample point that exists
-        # while len(CHC_df[CHC_df["suburb_locality"].str.upper() == sub]) == 0:
-        # while row["Receiver Suburb"] not in CHC_sub:
-        #     x += 1
-        # # get a new random row
-        # rd1 = rg.integers(low=0, high=len(sample_df) - 1, size=1)
-        # row = sample_df.iloc[rd1]
-        # row = sample_df.sample(n=1)
-        # sub = re.sub(r"\(.*\)", "", row["Receiver Suburb"].values[0]).rstrip()
-        # row["Receiver Suburb"] = sub
-        # print(x)
         # get a random number with the size of the suburb
         rd2 = rg.integers(low=0, high=CHC_sub_dict[sub] - 1, size=1)
         # randomly pick an address from CHC data based on the suburb
@@ -152,8 +139,6 @@ def get_sample(
         # latitude.append(CHC_row["gd2000_ycoord"].values[0])
         # longitude.append(CHC_row["gd2000_xcoord"].values[0])
         # ******************************** fall back if grouping does not speed up *************************
-
-        # coordinates.append(str(CHC_row["gd2000_ycoord"].values[0])+ ', ' + str(CHC_row["gd2000_xcoord"].values[0]))
     # save to a file if required
     if save:
         df = pd.DataFrame(random_subset)
@@ -171,23 +156,17 @@ def get_coordinates(API_key, cd, address_filename, coord_filename, save=False):
     # my_dist = gmaps.distance_matrix('Delhi','Mumbai')['rows'][0]['elements'][0]
     df = pd.read_csv(address_filename, keep_default_na=False)
     df["Address"] = (
-        df["Street"] + "," + df["Suburb"] +
-        "," + df["City"] + "," + df["Country"]
+        df["Street"] + "," + df["Suburb"] + "," + df["City"] + "," + df["Country"]
     )
 
     latitude = []
     longitude = []
-    # df['latitude'] = ""
-    # df['longitude'] = ""
+
     # get longitude and latitude using the address
     for x in range(len(df)):
         geocode_result = gmaps.geocode(df["Address"][x])
         latitude.append(geocode_result[0]["geometry"]["location"]["lat"])
         longitude.append(geocode_result[0]["geometry"]["location"]["lng"])
-        # df['latitude'][x] = geocode_result[0]['geometry']['location'] ['lat']
-        # df['longitude'][x] = geocode_result[0]['geometry']['location']['lng']
-    # combine latitude and longitude into coordinates
-    # df['coordinates'] = [', '.join(str(x) for x in y) for y in map(tuple, df[['latitude', 'longitude']].values)]
     # save to a file if required
     if save:
         df["latitude"] = latitude
@@ -195,7 +174,6 @@ def get_coordinates(API_key, cd, address_filename, coord_filename, save=False):
         # df["coordinates"] = coordinates
         df.to_csv(os.path.join(cd, coord_filename))
     return latitude, longitude
-    # return
 
 
 def get_dist(API_key, cd, coord_filename, latitude, longitude, save=False):
@@ -219,9 +197,9 @@ def get_dist(API_key, cd, coord_filename, latitude, longitude, save=False):
         return [], []
 
     # get distance (km) and durantion (hr) matrix
-    def result(p1, p2): return gmaps.distance_matrix(p1, p2, mode="driving")["rows"][0][
-        "elements"
-    ][0]
+    def result(p1, p2):
+        return gmaps.distance_matrix(p1, p2, mode="driving")["rows"][0]["elements"][0]
+
     dm = np.asarray(
         [
             [result(p1, p2)["distance"]["value"] for p2 in destinations]
@@ -237,11 +215,9 @@ def get_dist(API_key, cd, coord_filename, latitude, longitude, save=False):
 
     if save:
         df = pd.DataFrame(dm)
-        df.to_csv(os.path.join(cd, "dm.csv"),
-                  float_format="%.3f", na_rep="NAN!")
+        df.to_csv(os.path.join(cd, "dm.csv"), float_format="%.3f", na_rep="NAN!")
         df = pd.DataFrame(tm)
-        df.to_csv(os.path.join(cd, "tm.csv"),
-                  float_format="%.3f", na_rep="NAN!")
+        df.to_csv(os.path.join(cd, "tm.csv"), float_format="%.3f", na_rep="NAN!")
     return dm, tm
 
 
@@ -347,80 +323,14 @@ def main():
         CHC_sub_dict,
         save=False,
     )
-    # get_sample(n, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save)
-    # get a random sample of locations in Christchurch
-    # get_sample(10, cd, sample_data, CHC_data)
-    # latitude, longitude = get_sample(5, 0, cd, sample_data, CHC_data, save=False)
-    # latitude, longitude = '', ''
 
     coord_filename = os.path.join(cd, "random_subset.csv")
     # get_coordinates(API_key, cd, address_filename, coord_filename)
     # coord_filename = None
-    # dm, tm = get_dist(API_key, cd, coord_filename, latitude, longitude, save=False)
     dm, tm = osrm_get_dist(
         cd, coord_filename, latitude, longitude, host="localhost:5000", save=True
     )
-    # print(osrm_get_dist(cd, coord_filename, host='localhost:5000', save=True))
-    # print(dm)
-    # print(tm)
 
 
 if __name__ == "__main__":
     main()
-
-# # coordinate reference system to earth
-# crs={'init':'epsg:4326'}
-# # define the geometry
-# geometry=[Point(xy) for xy in zip(data["long"], data["lat"])]
-
-# geodata=gpd.GeoDataFrame(data,crs=crs, geometry=geometry)
-# geodata.plot()
-
-# Calculate the the length of the shortest path between 2 points on the earth.
-# It calculates geodesic distance from latitude-longitude data.
-"""
-# Importing the geodesic module from the library 
-from geopy.distance import geodesic 
-# Loading the lat-long data for Kolkata & Delhi 
-d1 = (-43.5111688,172.7319266) 
-d2 = (-43.5499101, 172.63913) 
-# Print the distance calculated in km 
-print(geodesic(d1, d2).km) 
-"""
-
-
-# # 1 - conveneint function to delay between geocoding calls
-# geocode = RateLimiter(locator.geocode, min_delay_seconds=1)
-# # 2- - create location column
-# df['location'] = df['Address'].apply(geocode)
-# # 3 - create longitude, laatitude and altitude from location column (returns tuple)
-# df['point'] = df['location'].apply(lambda loc: tuple(loc.point) if loc else None)
-# # 4 - split point column into latitude, longitude and altitude columns
-# df[['latitude', 'longitude', 'altitude']] = pd.DataFrame(df['point'].tolist(), index=df.index)
-
-
-"""
-# generate random points within a ploygon
-
-# poly = Polygon([(23.789642, 90.354714), (23.789603, 90.403000), (23.767688, 90.403597),(23.766510, 90.355448)])
-poly = Polygon([(23.789642, 90.354714), (23.789603, 90.403000), (23.767688, 90.403597),(23.766510, 90.355448)])
-
-
-def random_points_within(poly, num_points):
-    min_x, min_y, max_x, max_y = poly.bounds
-
-    points = []
-
-    while len(points) < num_points:
-        random_point = Point([random.uniform(min_x, max_x), random.uniform(min_y, max_y)])
-        if (random_point.within(poly)):
-            points.append(random_point)
-
-    return points
-
-
-points = random_points_within(poly,1000)
-
-for p in points:
-    print(p.x,",",p.y)
-"""

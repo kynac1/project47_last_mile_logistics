@@ -19,34 +19,6 @@ import networkx as nx
 import math
 
 
-# def centroid(n, lat, lon):
-#     # coord = [
-#     #         ", ".join(str(x) for x in y)
-#     #         for y in map(list, [lat, lon].values)
-#     #     ]
-
-#     coord = np.array(list(zip(lat, lon))).reshape(len(lat), 2)
-#     print(coord)
-#     # KMeans algorithm
-#     kmeans_model = KMeans(n_clusters=n).fit(coord)
-
-#     centers = np.array(kmeans_model.cluster_centers_)
-#     closest, _ = pairwise_distances_argmin_min(kmeans_model.cluster_centers_, coord)
-#     # get the coordinate that is the cloest to its respective centriod
-#     closest_coord = coord[closest]
-#     plt.plot()
-#     plt.title('k means centroids')
-
-#     plt.scatter(coord[:,0],coord[:,1], s = 3, c= kmeans_model.labels_, cmap='rainbow')
-#     plt.scatter(centers[:,0], centers[:,1], marker="x", color='black')
-#     plt.scatter(closest_coord[:,0], closest_coord[:,1], s = 3, color='black')
-
-#     plt.show()
-
-#     lat, lon = closest_coord.transpose()
-#     return list(lat), list(lon)
-
-
 def centroid_loc_sample(
     rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr, save
 ):
@@ -129,13 +101,21 @@ def centroid_loc_sample(
 
 
 def centeroidnp(latitude, longitude):
+    """
+    This function is to find the centroid of a suburb
+    """
     length = len(latitude)
     return latitude.sum() / length, longitude.sum() / length
 
 
 def closest_node(node, nodes):
+    """
+    node: centroid coordinate
+    nodes: all the coordinates in the respective suburb
+
+    This function is to find the address that is closest to the centroid of a suburb
+    """
     nodes = np.asarray(nodes)
-    #  dist_2 = np.sum((nodes - node)**2, axis=1)
     deltas = nodes - node
     dist_2 = np.einsum("ij,ij->i", deltas, deltas)
     return nodes[np.argmin(dist_2)]
@@ -164,6 +144,16 @@ def get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict):
 
 
 def opt_collection_coord(k, cap, depots, sample_generator, dist_and_time, seed=None):
+    """
+    k: number of collection points
+    cap: capacity of the collection points
+    depots: number of depots
+
+    This function is to prepare the data needed for collection location optimisation problem
+    It collects all the potential collection locations (supermarkets),
+    and gathered the customer information by suburbs.
+    It calls the "find_opt_collection" to solvec for the optimal collection locations.
+    """
 
     # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
     cd = os.path.join(
@@ -176,7 +166,7 @@ def opt_collection_coord(k, cap, depots, sample_generator, dist_and_time, seed=N
     fac_lat = df["latitude"].tolist()
     fac_lon = df["longitude"].tolist()
 
-    # can prolly be commented out and use the read in files from multiday?
+    # get customer information
     seed = 123456789
     rg = Generator(PCG64(seed))
     sample_data = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
@@ -225,40 +215,15 @@ def opt_collection_coord(k, cap, depots, sample_generator, dist_and_time, seed=N
     CUSTOMERS = np.arange(len(lat))
     FACILITY = np.arange(len(fac_lat))
 
-    # cap = math.ceil(sample_df.shape[0] / k)
+    # facility capacity
     Fac_cap = np.ones(len(fac_lat)) * cap
 
+    # solve the location optimisation problem
     sol_fac_lat, sol_fac_lon = find_opt_collection(
         k, CUSTOMERS, FACILITY, fac_lat, fac_lon, dist, weight, demand, Fac_cap
     )
 
+    # zip the coordinates
     coord = list(map(list, zip(lat, lon)))
     fac_coord = list(map(list, zip(fac_lat, fac_lon)))
     return sol_fac_lat, sol_fac_lon, coord, fac_coord
-
-    #  lat = CHC_df["gd2000_ycoord"].array
-    # lon = CHC_df["gd2000_xcoord"].array
-
-    # latitude, longitude = get_sample(
-    #     5*k, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, save=False
-    # )
-
-    ############################## PLOT ###################################
-    # G = nx.DiGraph()
-    # positions = False
-    # pos = {}
-    # if positions:
-    #             pos = {i: positions[i] for i in range(len(positions))}
-    # # else:
-    # #     pos = nx.spring_layout()
-
-    # nx.draw(G, pos, with_labels=True)
-    # ox.plot_graph(G)
-    # # Downloading the map as a graph object
-    # G = ox.graph_from_bbox(north, south, east, west, network_type = 'drive')
-    # # Plotting the map graph
-    # ox.plot_graph(G)
-
-    # lat, lon = centroid(k, latitude, longitude)
-
-    # lat, lon = get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict)
