@@ -221,7 +221,11 @@ def test_plot():
         replications=1,
         plot=True,
     )
+    plt.ion()
     plt.show()
+    plt.draw()
+    plt.pause(1)
+    plt.close()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import numpy as np
 from project47.routing import *
 from project47.simulation import *
+from project47.data import *
 
 # from .test_customer_tw import *
 from project47.customer import Customer
@@ -9,6 +10,34 @@ from numpy.random import Generator, PCG64
 
 
 def test_reroute_sim_tw():
+    cd = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
+    sample_data = os.path.join(cd, "Toll_CHC_November_Sample_Data.csv")
+    CHC_data = os.path.join(cd, "christchurch_street.csv")
+    sample_df, CHC_df, _, CHC_sub, CHC_sub_dict = read_data(
+        sample_data,
+        CHC_data,
+        lat_min=-43.6147000,
+        lat_max=-43.4375000,
+        lon_min=172.4768000,
+        lon_max=172.7816000,
+    )
+
+    def sample_generator(rg: np.random.Generator, locs):
+        lat, lon = get_sample(
+            locs, rg, cd, sample_df, CHC_df, CHC_sub, CHC_sub_dict, save=False
+        )
+        time_windows = np.zeros((len(lat), 2))
+        for i in range(len(lat)):
+            if rg.random() > 0.5:
+                time_windows[i, 0] = 0
+                time_windows[i, 1] = 14400
+            else:
+                time_windows[i, 0] = 14400
+                time_windows[i, 1] = 28800
+
+        customers = [Customer(lat[i], lon[i], 0.8, 0.8, rg=rg) for i in range(len(lat))]
+
+        return customers, time_windows
 
     times = np.array(
         [

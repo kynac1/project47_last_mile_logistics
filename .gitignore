@@ -6,3 +6,6 @@ prof
 cov.xml
 .coverage
 .Rproj.user
+.*/
+*.egg-info/
+meta_info.json
