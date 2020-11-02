@@ -35,7 +35,7 @@ def test_reroute_sim_tw():
                 time_windows[i, 0] = 14400
                 time_windows[i, 1] = 28800
 
-        customers = [Customer(lat[i], lon[i], 0.8, 0.8, rg=rg) for i in range(len(lat))]
+        customers = [Customer(lat[i], lon[i], 0.8, 0.8, rg=rg, presence=[1 for _ in range(28800)], presence_interval=1.6) for i in range(len(lat))]
 
         return customers, time_windows
 
@@ -84,7 +84,7 @@ def test_reroute_sim_tw():
 
     seed = 123456789
     rg = Generator(PCG64(seed))
-    tw, customers = sample_generator(rg, 5)
+    customers, tw = sample_generator(rg, 5)
 
     windows = np.array(
         [[0.0, 10000.0], [0.0, 10000.0], [0.0, 1.0], [2.0, 3.0], [0.0, 10000.0]]
