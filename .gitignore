@@ -8,3 +8,4 @@ cov.xml
 .Rproj.user
 .*/
 *.egg-info/
+meta_info.json
