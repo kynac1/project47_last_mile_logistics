@@ -305,8 +305,10 @@ def multiday(
             # add collection point as a customer if there is package allocated to it
             for cp in range(k):
                 if len(customer_to_cp[cp]) != 0:
-                    cp_customers = np.append(cp_customers, Customer(
-                        sol_fac_lat[cp], sol_fac_lon[cp], 1, 1, rg=rg))
+                    cp_customers = np.append(
+                        cp_customers,
+                        Customer(sol_fac_lat[cp], sol_fac_lon[cp], 1, 1, rg=rg),
+                    )
             # customers = np.append(customers, new_customers)
 
             # cp_customers = np.array(

@@ -140,8 +140,7 @@ def multicollection(
         dim, ind = r.add_dimension(dm, 0, 1000000, True, "distance")
         r.routing.SetArcCostEvaluatorOfAllVehicles(ind)
         dim.SetGlobalSpanCostCoefficient(100)
-        dim, ind = r.add_time_windows(
-            tm, time_windows, day_end, day_end, False, "time")
+        dim, ind = r.add_time_windows(tm, time_windows, day_end, day_end, False, "time")
         for alternates in alternate_locations:
             r.add_option(alternates, 5000000)
 

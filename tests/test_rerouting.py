@@ -29,7 +29,14 @@ def test_rerouting():
 
 def test_rerouting_tw():
 
-    times = np.array([[0, 1, 2, 3], [1, 0, 2, 3], [2, 2, 0, 3], [3, 3, 3, 0],])
+    times = np.array(
+        [
+            [0, 1, 2, 3],
+            [1, 0, 2, 3],
+            [2, 2, 0, 3],
+            [3, 3, 3, 0],
+        ]
+    )
     windows = np.array([[0.0, 10000.0], [0.0, 10000.0], [0.0, 10000.0], [2.0, 3.0]])
 
     # compute rerouting time windows
@@ -63,7 +70,14 @@ def test_ortools():
 
 def test_time_windows():
 
-    times = np.array([[0, 1, 2, 3], [1, 0, 2, 3], [2, 2, 0, 3], [3, 3, 3, 0],])
+    times = np.array(
+        [
+            [0, 1, 2, 3],
+            [1, 0, 2, 3],
+            [2, 2, 0, 3],
+            [3, 3, 3, 0],
+        ]
+    )
     windows = np.array([[0.0, 10000.0], [0.0, 10000.0], [0.0, 10000.0], [2.0, 3.0]])
 
     locs = times.shape[0]

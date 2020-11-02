@@ -35,7 +35,18 @@ def test_reroute_sim_tw():
                 time_windows[i, 0] = 14400
                 time_windows[i, 1] = 28800
 
-        customers = [Customer(lat[i], lon[i], 0.8, 0.8, rg=rg, presence=[1 for _ in range(28800)], presence_interval=1.6) for i in range(len(lat))]
+        customers = [
+            Customer(
+                lat[i],
+                lon[i],
+                0.8,
+                0.8,
+                rg=rg,
+                presence=[1 for _ in range(28800)],
+                presence_interval=1.6,
+            )
+            for i in range(len(lat))
+        ]
 
         return customers, time_windows
 

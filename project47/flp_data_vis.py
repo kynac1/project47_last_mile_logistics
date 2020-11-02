@@ -133,7 +133,7 @@ def get_sample_per_CHC_suburb(rg, CHC_df_grouped, CHC_sub_dict):
 
 
 # API_key = "AIzaSyASm62A_u5U4Kcp4ohOA9lLLXy6PyceT4U"
-cd = "/Users/karen.w/Desktop/project47_last_mile_logistics/data"
+cd = os.path.dirname(os.path.abspath(__file__)) + "/../data"
 # "/Users/karen.w/Desktop/project47_last_mile_logistics/datacoord_filename= "/Users/karen.w/Desktop/project47_last_mile_logistics/data/fac_coord.csv" # direct to data folder
 coord_filename = os.path.join(cd, "fac_coord.csv")
 # direct to collection coordinates file
