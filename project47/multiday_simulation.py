@@ -31,6 +31,31 @@ def collect_data(
     collection_point_removed_packages: list,
     collection_dist: int,
 ):
+    """Takes the data for a single day and structures it in a dictionary so that we can save it as json
+
+    Parameters
+    ----------
+    day : int
+        The current day number
+    solution : RoutingSolution
+        What the VRP solver returned for the routes
+    distances : list
+        The distance traveled for each vehicle
+    times : list
+        The time each vehicle took
+    futile : list
+        The number of futile deliveries each vehicle had
+    arrival_days : list
+        The day each customer came into the system
+    time_windows : dict
+        Maps the package number to the known time-window
+    collection_point_packages : list
+        The number of packages at each collection point
+    collection_point_removed_packages : list
+        The number of packages removed from each collection point
+    collection_dist : list
+        The distance travelled by customers to get to the collection point
+    """
     data = {}
     """
     time_delivered = []
@@ -121,7 +146,7 @@ def multiday(
     depots : np.array
         2*n_depots array of longitudes and latitudes of the depots.
         This is set up to support multidepot problems. However, to do this properly we'll need to track which depots
-        have which packages. Need to think about this more.
+        have which packages. So this isn't actually fully supported.
     sample_generator : function
         Takes no inputs, returns two lists, longitudes and latitudes of the packages.
     dist_and_time : function
@@ -140,11 +165,23 @@ def multiday(
         The time for the end of a day
     seed : int (Optional)
         The seed to initialise the random number generator with
-    replications : int
+    replications : int (Optional)
         Defaults to 1. The number of simulations to perform on the optimized route. Only the last is used as the input to the next day.
         (Might be an idea to take the mode values if enough simulations are performed?)
-    plot : bool
-        Whether to display a plot of the current routes
+    plot : bool (Optional)
+        Whether to display a plot of the current routes.
+    collection_points: bool (Optional)
+        Whether to enable the use of collection points
+    k : int (Optional)
+        If we have collection points, the number of collection points
+    dist_threshold : int
+        The distance a customer needs to be within to have their package assigned to a collection point
+    futile_count_threshold : int
+        The number of times a package needs to be futile before it gets assigned to a collection point
+    cap : int
+        The capacity of the collection points
+    tlim : int
+        The time to run the simulation for. Helps us stop the simulation if we get an extreme buildup of packages
     """
     start = time.time()
     logger.debug("Start multiday sim")
@@ -216,7 +253,7 @@ def multiday(
 
         cp_customers = np.array([])
         collection_dist = 0
-        # TODO: Remove packages from collection points
+        # Remove packages from collection points
         if collection_points and k != 0:
             for i in range(k):
                 logger.debug(
@@ -246,7 +283,7 @@ def multiday(
                     for collected in collected_package:
                         packages_at_collection[i].pop(collected)
 
-            # TODO: Add customers to collections points, and add visited collection points to customers
+            # Add customers to collections points, and add visited collection points to customers
             #  a list of undelivered packages in the simulation
             undelivered = np.ones(len(futile_count), dtype=bool)
             for i, c in enumerate(futile_count):
@@ -295,7 +332,7 @@ def multiday(
                             # fc_to_cp[min_ind].append(futile_count[i])
 
                             # packages_at_collection[min_ind][customers[i]] = 0
-            # TODO: Remove packages sent to collection points from customers
+            # Remove packages sent to collection points from customers
             delivery_time_windows = delivery_time_windows[undelivered]
             arrival_days = arrival_days[undelivered]
             futile_count = futile_count[undelivered]

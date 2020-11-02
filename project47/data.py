@@ -95,6 +95,9 @@ def get_sample(
     n, rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, save
 ):
     """
+
+    Parameters
+    ----------
     n: sample size
     rg: np.random.Generator
     cd: current directory for the use of saving files

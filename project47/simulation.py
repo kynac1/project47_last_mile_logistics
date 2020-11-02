@@ -127,152 +127,6 @@ def default_update_function(distance_matrix, time_matrix, time_windows):
     return h
 
 
-"""
-    def update_function2(distance_matrix, time_matrix, time_windows):
-        '''
-        This time window policy makes the decision after arriving at the next place.
-        The deliver man checks the time once arrived. 
-        If the current time is earlier than the time windows, then he will wait till the availabe time.
-        If the current time is later than the time windows, he will skip to next place.
-        '''
-
-        f = default_distance_function(distance_matrix)
-        g = default_time_function(time_matrix)
-        def h(route, i, time):
-            next_distance = f(route[i],route[i+1],time)
-            next_time = g(route[i],route[i+1],time)
-            if route[i+1] in time_windows:
-                if time+next_time < time_windows[route[i+1]][0]:
-                    # add on the waiting time
-                    next_time = time_windows[route[i+1]][0] - time
-                    futile = False
-                elif time+next_time > time_windows[route[i+1]][0]: # second index of tw should be 1?
-                    # skip i+1 job
-                    futile = True
-                else:
-                    futile = False
-            else:
-                futile = True
-            return next_distance, next_time, futile, route
-
-        return h
-
-    def default_update_function3(distance_matrix, time_matrix, time_windows):
-        ''' Basically the same as above, but changed the format of time_windows to a np.array
-        This time window policy makes the decision after arriving at the next place.
-        The deliver man checks the time once arrived. 
-        If the current time falls out of the time windows, then he will skip and go to the next place.
-        '''
-        f = default_distance_function(distance_matrix)
-        g = default_time_function(time_matrix)
-
-        def h(route, i, time):
-            next_distance = f(route[i],route[i+1],time)
-            next_time = g(route[i],route[i+1],time)
-            futile = time+next_time < time_windows[route[i+1]][0] or time+next_time > time_windows[route[i+1]][1]
-            return next_distance, next_time, futile, route
-
-        return h
-
-    def update_function4(distance_matrix, time_matrix, time_windows):
-        '''
-        This time window policy makes the decision before arriving at the next place.
-        The deliver man checks the time before departing from the current place. 
-        If the estimated arriving time is earlier than the time windows, then he will wait till the availabe time.
-        If the estimated arriving time is later than the time windows, he will skip the next place and reroute.
-        '''
-
-        f = default_distance_function(distance_matrix)
-        g = default_time_function(time_matrix)
-        def h(route, i, time):
-            # route = [0, 3, 2, 1, 4, 0]
-            next_distance = f(route[i],route[i+1],time)
-            next_time = g(route[i],route[i+1],time)
-            if time+next_time < time_windows[route[i+1]][0]:
-                # add on the waiting time
-                next_time = time_windows[route[i+1]][0] - time
-                futile = False
-            elif time+next_time > time_windows[route[i+1]][1]:
-                # skip i+1 job and reroute
-                futile = True
-                # go straight to depot if the next place is depot after skipping
-                if route[i+2] == 0:
-                    next_distance = f(route[i],route[i+2],time)
-                    next_time = g(route[i],route[i+2],time)
-                else:
-                    # # get the rest of the places that need to visit
-                    # places_to_visit = route[i+2::]
-                    # if i != 0:
-                    #     places_to_visit.append(route[i])
-                    # places_to_visit.sort()
-                    # keys = list(np.arange(len(places_to_visit)))
-                    # # record both the places that their indices in rerouting
-                    # places_to_visit_dic = dict(zip(keys, places_to_visit))
-                    # # current place - starting place for rerouting
-                    # k = places_to_visit.index(route[i])
-                    # # slice the times for the places to visit
-                    # tm = time_matrix[places_to_visit]
-                    # tm = tm[:, places_to_visit]
-                    # # slice the time windows for the places to visit
-                    # w = time_windows[places_to_visit]
-                    # # print(tm)
-                    # route_new = rerouting(k, np.zeros((len(tm),len(tm))), tm, w)
-                    # route_n = [places_to_visit_dic[x] for x in route_new]
-                    # # print(route_n)
-                    route = rerouting(i, route, distance_matrix, time_matrix, time_windows)
-                    print(route)
-
-                    next_distance = f(route[0],route[1],time)
-                    next_time = g(route[0],route[1],time)
-            else:
-                futile = False
-            
-            return next_distance, next_time, futile, route
-
-        return h
-
-    def update_function5(distance_matrix, time_matrix, time_windows, rg:np.random.Generator):
-    '''
-    This time window policy makes the decision before arriving at the next place.
-    The deliver man calls the next customer before departing from the current place. 
-    If the time window has changed, reroute.
-    If the time window stays the same, he continues the route
-    '''
-    f = default_distance_function(distance_matrix)
-    g = default_time_function(time_matrix)
-    def h(route, i, time):
-        # route = [0, 3, 2, 1, 4, 0]
-        next_distance = f(route[i],route[i+1],time)
-        next_time = g(route[i],route[i+1],time)
-        if rg.random() > 0.5: # if the tw is changed after the call
-            
-            time_windows[route[i+1]]= random_time_window_generator(rg)
-        if time+next_time < time_windows[route[i+1]][0]:
-            # add on the waiting time
-            next_time = time_windows[route[i+1]][0] - time
-            futile = False
-        elif time+next_time > time_windows[route[i+1]][1]:
-            # skip i+1 job and reroute
-            futile = True
-            # go straight to depot if the next place is depot after skipping
-            if route[i+2] == 0:
-                next_distance = f(route[i],route[i+2],time)
-                next_time = g(route[i],route[i+2],time)
-            else:
-                route = rerouting(i, route, distance_matrix, time_matrix, time_windows)
-                print(route)
-
-                next_distance = f(route[0],route[1],time)
-                next_time = g(route[0],route[1],time)
-        else:
-            futile = False
-        
-        return next_distance, next_time, futile, route
-
-    return h
-"""
-
-
 def base_policy(
     distance_matrix,
     time_matrix,
@@ -370,6 +224,8 @@ def truewait_policy(
     customers,
     rg=np.random.Generator(np.random.PCG64(123)),
 ):
+    """ Some experimental stuff, may make more sense if it works?"""
+
     f = default_distance_function(distance_matrix)
     g = default_time_function(time_matrix)
 
@@ -555,6 +411,10 @@ def calling_policy(distance_matrix, time_matrix, time_windows, customers, rg):
 
 
 def new_tw_policy(distance_matrix, time_matrix, time_windows, customers, rg):
+    """Idea is to get new time-windows from the customer, instead of simply calling ahead
+
+    Doesn't quite work properly yet.
+    """
     f = default_distance_function(distance_matrix)
     g = default_time_function(time_matrix)
     customers_list = customers.tolist()
@@ -637,7 +497,8 @@ def default_time_function(time_matrix):
 def rerouting(
     i, route, distance_matrix, time_matrix, time_windows, current_time=0, alternates={}
 ):
-    """
+    """This is actually mostly unused, see rerouting_new. Leaving here for reference.
+
     This function finds the optimal routes from the current location to depot 'O'.
 
     Parameters

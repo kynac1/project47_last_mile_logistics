@@ -210,12 +210,34 @@ class ORToolsRouting:
         self.routing.AddDisjunction([self.manager.NodeToIndex(node)], penalty)
 
     def add_option(self, nodes: list, penalty):
+        """Adds a constraint to allow only one of the given nodes to be visited
+
+        Parameters
+        ----------
+        nodes : list[int]
+        penalty : int
+            The cost for not visiting any of these nodes.
+        """
         self.routing.AddDisjunction(
             list(map(self.manager.NodeToIndex, nodes)), penalty, 1
         )
 
     def solve(self, tlim=10, log=True):
-        """Solves the route. If the solution has a better objective, this saves the solution."""
+        """Solves the route. If the solution has a better objective, this saves the solution.
+
+        Parameters
+        ----------
+        tlim : int
+            The maximum time to run the solver for
+        log : bool
+            Whether to log the output.
+
+        Notes
+        -----
+        OR-Tools logging does not get sent to stdout like everything else. It actually gets sent to stderr. This seems to be because
+        we don't call some setup function for the logging, but there is no documentation on how that can be done. Presumably the functionality
+        exists in c++. So for redirecting the output to a file, we need to redirect stderr.
+        """
 
         if self.routing is None:
             self.create_model()
@@ -267,6 +289,7 @@ class ORToolsRouting:
         return None
 
 
+# I've got this here mostly as a reference, so we know what the return codes mean, and can print there meaning easily.
 SearchStatus = {
     0: "ROUTING_NOT_SOLVED: Problem not solved yet.",
     1: "ROUTING_SUCCESS: Problem solved successfully.",
