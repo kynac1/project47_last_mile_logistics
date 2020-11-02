@@ -14,6 +14,11 @@ from sklearn.metrics import pairwise_distances_argmin_min
 import networkx as nx
 import math
 
+"""
+This script is to produce solutions for data visualisation of the collection optimisation problem 
+so the data here can be flowed to flp_vis.ipynb to plot graphs.
+"""
+
 
 def centroid_loc_sample(
     rg, cd, sample_df, sample_sub_dict, CHC_df_grouped, CHC_sub_dict, gp_addr, save
@@ -81,10 +86,6 @@ def centroid_loc_sample(
             else:
                 coord_closest.append(coord_street)
         sample_sub_dict = sample_street_dict
-    # sample_sub.pop(0)  # remove empty string
-    # # get number of addresses for each suburb
-    # sample_sub_size = sample_gb.size().tolist()
-    # sample_sub_size.pop(0)  # remove size of empty string
 
     # a list of centriod locations for all suburbs
     lat_cen, lon_cen = np.vstack(coord_closest).transpose()
@@ -193,9 +194,6 @@ cap = 30
 # cap = math.ceil(sample_df.shape[0] / k)
 Fac_cap = np.ones(len(fac_lat)) * sum(demand)
 
-# sol_fac_lat, sol_fac_lon, assigned_lat, assigned_lon = find_opt_collection(
-#     k, CUSTOMERS, FACILITY, lat, lon, fac_lat, fac_lon, dist, weight, demand, Fac_cap
-# )
 # solve the location optimisation problem
 sol_fac_lat, sol_fac_lon = find_opt_collection(
     k, CUSTOMERS, FACILITY, fac_lat, fac_lon, dist, weight, demand, Fac_cap

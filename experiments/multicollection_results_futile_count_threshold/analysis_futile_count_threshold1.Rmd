@@ -58,6 +58,7 @@ data1$travel_dist_per_customer[!is.finite(data1$travel_dist_per_customer)]<-0
 #   mutate(packages = lead(number_of_packages) - number_of_undelivered_packages) # compute packages
 ```
 ```{r}
+# plot metrics over futile_count_threshold
 summ <- data1 %>%
   group_by(futile_count_threshold) %>%
   summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer), total_collection_dist_customer = sum(collection_dist)) 
@@ -97,25 +98,9 @@ data1 %>%
 
 data1 %>% 
   ggplot(aes(x=futile_count_threshold, y=number_of_packages, color = futile_count_threshold)) + geom_boxplot() + ggtitle("Number of Packages vs Distance Threshold")
-
-# # combined boxplot
-# p1<-data1 %>% 
-#   ggplot(aes(x=futile_count_threshold, y=number_of_packages, color = futile_count_threshold)) + geom_boxplot() + ggtitle("number_of_packages vs collection capcity")
-# p3<-data1 %>% 
-#   ggplot(aes(x=futile_count_threshold, y=number_of_delivered_packages, color = futile_count_threshold)) + geom_boxplot() + ggtitle("number_of_delivered_packages vs collection futile_count_threshold")
-# p4<-data1 %>% 
-#   ggplot(aes(x=futile_count_threshold, y=number_of_undelivered_packages, color = futile_count_threshold)) + geom_boxplot() + ggtitle("number_of_undelivered_packages vs collection futile_count_threshold")
-# figure <- ggarrange(p1, p3, p4,
-#                     #labels = c("delivered_package_days", "undelivered_package_days", "collection_package_days"),
-#                     ncol = 2, nrow = 2)
-# figure
 ```
 ## distance
 ```{r}
-# data1 %>% 
-#   summarize(driver_distance = sum(distance), customer_distance = sum(collection_dist)) %>% 
-#   ggplot(aes(x=futile_count_threshold)) + geom_line(aes(y = driver_distance), color = "darkred") + geom_line(aes(y = customer_distance), color="steelblue", linetype="twodash")
-#   # geom_line(aes(group=1),linetype='dotted') + ggtitle("driver_distance vs. futile_count_threshold")
 # combined boxplot
 p1<-data1 %>% 
   ggplot(aes(x=futile_count_threshold, y=distance, group =futile_count_threshold, color = futile_count_threshold)) + geom_boxplot()#+ stat_summary(fun.y=mean, geom="point", shape=23, size=4) #+ ggtitle("driver_distance vs collection futile_count_threshold")
@@ -126,9 +111,6 @@ figure <- ggarrange(p1, p2,
                     labels = c("driver_distance", "customer_distance"),
                     ncol = 2, nrow = 1)
 figure
-
-# distance <- melt(summ, id="futile_count_threshold")  # convert to long format
-# ggplot(data=distance, aes(x=futile_count_threshold, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
 ```
 
 ## Packages
@@ -189,11 +171,6 @@ summ_days <- data1 %>%
   gather(key = "variable", value = "value", -futile_count_threshold) 
 
 summ_days %>% ggplot(aes(x = futile_count_threshold, y = value, group = variable)) + geom_line(aes(color = variable), linetype='dotted') + geom_point(aes(color = variable)) #+ scale_color_manual(values = c("darkred", "steelblue")) 
-
-# summ_packages %>% ggplot(aes(x = futile_count_threshold, y = value, col = variable)) + geom_boxplot()
-# summ_packages <- melt(summ, id="futile_count_threshold") %>% # convert to long format
-#   ggplot(aes(x=futile_count_threshold, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
-
 ```
 
 ```{r}
@@ -222,9 +199,6 @@ data1 %>%
 data1 %>% 
   summarize(sum = sum(collection_dist)) %>% 
   ggplot(aes(x=futile_count_threshold, y = sum)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle("customer_distance vs. futile_count_threshold")
-
-  #group_by(futile_count_threshold) %>% 
-  #ggplot(aes(x=day, y=number_of_packages, color = futile_count_threshold)) + geom_line(aes(group=1)) # + geom_bar(stat="identity") + ggtitle("tip_amount vs. hour")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

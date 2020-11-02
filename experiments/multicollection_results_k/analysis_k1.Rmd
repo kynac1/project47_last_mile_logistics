@@ -67,17 +67,7 @@ data1 <- data1 %>%
 ```
 
 ```{r}
-## Distance
-# different measures of packages number vs capacity
-# summ_distances <- data1 %>%
-#   group_by(num_of_collection_points) %>%
-#   summarize(driver_distance = sum(distance), 
-#             customer_distance = sum(collection_dist)) %>%
-#   gather(key = "variable", value = "value", -num_of_collection_points)
-# 
-# summ_distances %>% 
-#   ggplot(aes(x = num_of_collection_points, y = value)) + geom_line(aes(color = variable)) + geom_point(aes(color = variable)) + ggtitle("Distance vs. Futile Count Threshold") #+ facet_grid( . ~ variable)  #+ scale_color_manual(values = c("darkred", "steelblue"))
-
+# plot metrics over numbber of collection points
 summ <- data1 %>%
   filter(num_of_collection_points!=0) %>%
   group_by(num_of_collection_points) %>%
@@ -89,27 +79,11 @@ par(mar = c(5,5,2,5))
 with(summ, plot(num_of_collection_points, avg.number_of_packages, type="b", ylim = c(0,200), xlab= "Number of Collection Points", ylab= "Average Number of Packages", main="Effect of Number of Collection Points"))
 abline(h=summ$avg.number_of_packages[3], col="black", lty=2, lwd=1)
 
-# par(new = T)
-# with(summ, plot(num_of_collection_points, total_collection_dist_customer/1000, ylim = c(0,4000), type="b", pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
-# axis(side = 4, col="red3", col.axis="red3")
-# mtext(side = 4, line = 3, col="red3", 'avg. Travelling Distance per Customer (m)')
-# abline(h=summ$ avg.travel_dist_per_customer[3], col="red3", lty=2, lwd=1)
-
 par(new = T)
 with(summ, plot(num_of_collection_points,  total_collection_dist_customer/1000,  , ylim = c(000,4000), type="b", pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
 axis(side = 4, col="red3", col.axis="red3")
 mtext(side = 4, line = 3, col="red3", 'Total Travelling Distance by Customer (km)')
 abline(h=summ$total_collection_dist_customer[3]/1000, col="red3", lty=2, lwd=1)
-# abline(h=summ$  total_collection_dist_driver[3], col="red3", lty=2, lwd=1)
-# 
-
-# par(new = T)
-# with(data1, plot(num_of_collection_points, arrival_packages,  type="b", pch=15, col="green", axes=F, xlab=NA, ylab=NA, cex=1.2))
-# axis(side = 4, col="red3", col.axis="red3")
-# mtext(side = 4, line = 3, col="red3", 'Total Travelling Distance per Customer (m)')
-
-# twoord.plot(lx = summ$num_of_collection_points, ly = summ$ave.number_of_packages, rx = summ$num_of_collection_points, ry = summ$customer_distance,lylim=range(summ$ave.number_of_packages)+c(-20,10),  lylab="number_of_packages",rylab="customer_distance", xaxt = 'n', yaxt = 'n', xlab="Number of Collection Points")
-# # twoord.stackplot(lx = summ$num_of_collection_points, ldata = summ$ave.number_of_packages, rx = summ$num_of_collection_points, rdata = summ$customer_distance,ltype=c("l","p"), rtype=c("l","p","o"), lylab="number_of_packages",rylab="customer_distance", xaxt = 'n', yaxt = 'n', xlab="Number of Collection Points", lcol=c("red"))
 ```
 
 
@@ -121,23 +95,6 @@ data1 %>%
 data1 %>%
   filter(num_of_collection_points<2)%>%
   ggplot() + geom_line(aes(x=day, y=travel_dist_per_customer, group =num_of_collection_points, color = num_of_collection_points)) + ggtitle("number_of_delivered_packages over time")
-# data1 %>% 
-#   ggplot() + geom_line(aes(x=day, y=number_of_undelivered_packages, group =num_of_collection_points, color = num_of_collection_points)) + ggtitle("number_of_undelivered_packages over time")
-# 
-# data1 %>% 
-#   ggplot(aes(x=as.factor(num_of_collection_points), y=number_of_packages, color = num_of_collection_points)) + geom_boxplot() + ggtitle("Number of Packages vs Distance Threshold")
-
-# # combined boxplot
-# p1<-data1 %>% 
-#   ggplot(aes(x=num_of_collection_points, y=number_of_packages, color = num_of_collection_points)) + geom_boxplot() + ggtitle("number_of_packages vs collection capcity")
-# p3<-data1 %>% 
-#   ggplot(aes(x=num_of_collection_points, y=number_of_delivered_packages, color = num_of_collection_points)) + geom_boxplot() + ggtitle("number_of_delivered_packages vs collection num_of_collection_points")
-# p4<-data1 %>% 
-#   ggplot(aes(x=num_of_collection_points, y=number_of_undelivered_packages, color = num_of_collection_points)) + geom_boxplot() + ggtitle("number_of_undelivered_packages vs collection num_of_collection_points")
-# figure <- ggarrange(p1, p3, p4,
-#                     #labels = c("delivered_package_days", "undelivered_package_days", "collection_package_days"),
-#                     ncol = 2, nrow = 2)
-# figure
 ```
 ```{r}
 # combined boxplot
@@ -157,10 +114,6 @@ figure
 
 ## distance
 ```{r}
-# data1 %>% 
-#   summarize(driver_distance = sum(distance), customer_distance = sum(collection_dist)) %>% 
-#   ggplot(aes(x=num_of_collection_points)) + geom_line(aes(y = driver_distance), color = "darkred") + geom_line(aes(y = customer_distance), color="steelblue", linetype="twodash")
-#   # geom_line(aes(group=1),linetype='dotted') + ggtitle("driver_distance vs. num_of_collection_points")
 # combined boxplot
 p1<-data1 %>% 
   ggplot(aes(x=num_of_collection_points, y=distance, group =num_of_collection_points, color = num_of_collection_points)) + geom_boxplot()#+ stat_summary(fun.y=mean, geom="point", shape=23, size=4) #+ ggtitle("driver_distance vs collection num_of_collection_points")
@@ -171,9 +124,6 @@ figure <- ggarrange(p1, p2,
                     labels = c("driver_distance", "customer_distance"),
                     ncol = 2, nrow = 1)
 figure
-
-# distance <- melt(summ, id="num_of_collection_points")  # convert to long format
-# ggplot(data=distance, aes(x=num_of_collection_points, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
 ```
 
 ## Packages
@@ -232,11 +182,6 @@ summ_days <- data1 %>%
   gather(key = "variable", value = "value", -num_of_collection_points) 
 
 summ_days %>% ggplot(aes(x = num_of_collection_points, y = value, group = variable)) + geom_line(aes(color = variable), linetype='dotted') + geom_point(aes(color = variable)) #+ scale_color_manual(values = c("darkred", "steelblue")) 
-
-# summ_packages %>% ggplot(aes(x = num_of_collection_points, y = value, col = variable)) + geom_boxplot()
-# summ_packages <- melt(summ, id="num_of_collection_points") %>% # convert to long format
-#   ggplot(aes(x=num_of_collection_points, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
-
 ```
 
 ```{r}
@@ -265,9 +210,6 @@ data1 %>%
 data1 %>% 
   summarize(sum = sum(collection_dist)) %>% 
   ggplot(aes(x=num_of_collection_points, y = sum)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle("customer_distance vs. num_of_collection_points")
-
-  #group_by(num_of_collection_points) %>% 
-  #ggplot(aes(x=day, y=number_of_packages, color = num_of_collection_points)) + geom_line(aes(group=1)) # + geom_bar(stat="identity") + ggtitle("tip_amount vs. hour")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

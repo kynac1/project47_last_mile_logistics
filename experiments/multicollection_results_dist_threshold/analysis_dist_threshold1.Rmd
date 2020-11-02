@@ -58,6 +58,7 @@ data1 <- data1 %>%
   mutate(packages = lead(number_of_packages) - number_of_undelivered_packages) # compute packages
 ```
 ```{r}
+# plot metrics over distance threshold
 summ <- data1 %>%
   group_by(dist_threshold) %>%
   summarize(avg.number_of_packages = mean(number_of_packages), avg.travel_dist_per_customer = mean(travel_dist_per_customer), total_collection_dist_customer = sum(collection_dist)) 
@@ -66,8 +67,6 @@ par(mar = c(5,5,2,5))
 with(summ, plot(dist_threshold/1000, avg.number_of_packages, type="b",  ylim = c(0,200), xlab= "Distance Threshold (km)",
              ylab= "Average Number of Packages", main="Effect of Distance Threshold"))
 abline(h=summ$avg.number_of_packages[2], col="black", lty=2, lwd=1)
-# axis(side = 2, col="blue", col.axis="blue")
-# mtext(side = 2, line = 3, col="blue", "avg. Number of Packages")
 
 par(new = T)
 with(summ, plot(dist_threshold/1000,  total_collection_dist_customer/1000,  , ylim = c(000,4000), type="b", pch=15, col="red3", axes=F, xlab=NA, ylab=NA, cex=1.2))
@@ -99,25 +98,9 @@ data1 %>%
 
 data1 %>% 
   ggplot(aes(x=dist_threshold, y=number_of_packages, color = dist_threshold)) + geom_boxplot() + ggtitle("Number of Packages vs Distance Threshold")
-
-# # combined boxplot
-# p1<-data1 %>% 
-#   ggplot(aes(x=dist_threshold, y=number_of_packages, color = dist_threshold)) + geom_boxplot() + ggtitle("number_of_packages vs collection capcity")
-# p3<-data1 %>% 
-#   ggplot(aes(x=dist_threshold, y=number_of_delivered_packages, color = dist_threshold)) + geom_boxplot() + ggtitle("number_of_delivered_packages vs collection dist_threshold")
-# p4<-data1 %>% 
-#   ggplot(aes(x=dist_threshold, y=number_of_undelivered_packages, color = dist_threshold)) + geom_boxplot() + ggtitle("number_of_undelivered_packages vs collection dist_threshold")
-# figure <- ggarrange(p1, p3, p4,
-#                     #labels = c("delivered_package_days", "undelivered_package_days", "collection_package_days"),
-#                     ncol = 2, nrow = 2)
-# figure
 ```
 ## distance
 ```{r}
-# data1 %>% 
-#   summarize(driver_distance = sum(distance), customer_distance = sum(collection_dist)) %>% 
-#   ggplot(aes(x=dist_threshold)) + geom_line(aes(y = driver_distance), color = "darkred") + geom_line(aes(y = customer_distance), color="steelblue", linetype="twodash")
-#   # geom_line(aes(group=1),linetype='dotted') + ggtitle("driver_distance vs. dist_threshold")
 # combined boxplot
 p1<-data1 %>% 
   ggplot(aes(x=dist_threshold, y=distance, group =dist_threshold, color = dist_threshold)) + geom_boxplot()#+ stat_summary(fun.y=mean, geom="point", shape=23, size=4) #+ ggtitle("driver_distance vs collection dist_threshold")
@@ -128,9 +111,6 @@ figure <- ggarrange(p1, p2,
                     labels = c("driver_distance", "customer_distance"),
                     ncol = 2, nrow = 1)
 figure
-
-# distance <- melt(summ, id="dist_threshold")  # convert to long format
-# ggplot(data=distance, aes(x=dist_threshold, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
 ```
 
 ## Packages
@@ -188,11 +168,6 @@ summ_days <- data1 %>%
   gather(key = "variable", value = "value", -dist_threshold) 
 
 summ_days %>% ggplot(aes(x = dist_threshold, y = value, group = variable)) + geom_line(aes(color = variable), linetype='dotted') + geom_point(aes(color = variable)) #+ scale_color_manual(values = c("darkred", "steelblue")) 
-
-# summ_packages %>% ggplot(aes(x = dist_threshold, y = value, col = variable)) + geom_boxplot()
-# summ_packages <- melt(summ, id="dist_threshold") %>% # convert to long format
-#   ggplot(aes(x=dist_threshold, y=value, group = variable, colour=variable)) + geom_line() + geom_point()
-
 ```
 
 ```{r}
@@ -221,9 +196,6 @@ data1 %>%
 data1 %>% 
   summarize(sum = sum(collection_dist)) %>% 
   ggplot(aes(x=dist_threshold, y = sum)) + geom_point() + geom_line(aes(group=1),linetype='dotted') + ggtitle("customer_distance vs. dist_threshold")
-
-  #group_by(dist_threshold) %>% 
-  #ggplot(aes(x=day, y=number_of_packages, color = dist_threshold)) + geom_line(aes(group=1)) # + geom_bar(stat="identity") + ggtitle("tip_amount vs. hour")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
