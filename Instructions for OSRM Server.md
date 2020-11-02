@@ -19,6 +19,8 @@ This is somewhat trickier. The file formats *.osm, *.osm.pbf and *.osm.bz2 are s
 The way I've done it is by going to https://www.openstreetmap.org/export#map=12/-43.5258/172.6730 and downloading an area.
 Note that if the area is too large, this can fail. I just tried the mirrors listed until one worked.
 
+For the experiments we've run, the map file used is hosted at https://drive.google.com/file/d/1gVyb4wfWogdUbIhFy5iZLECEc5f92mU4/view?usp=sharing
+
 4. Clean map data
 
 Navigate to the folder the map data is downloaded to. Run the following commands, where "filename.osm" is replaced by the name of the map data file.
